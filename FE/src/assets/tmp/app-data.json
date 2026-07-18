@@ -1,0 +1,27 @@
+{
+  "app": {
+    "name": "FE",
+    "description": "Front-end base built on ng-alain"
+  },
+  "user": {
+    "name": "Admin",
+    "avatar": "./assets/tmp/img/avatar.jpg",
+    "email": "admin@example.com"
+  },
+  "menu": [
+    {
+      "text": "Main",
+      "i18n": "menu.main",
+      "group": true,
+      "hideInBreadcrumb": true,
+      "children": [
+        {
+          "text": "Dashboard",
+          "i18n": "menu.dashboard",
+          "icon": "anticon-dashboard",
+          "link": "/dashboard/welcome"
+        }
+      ]
+    }
+  ]
+}

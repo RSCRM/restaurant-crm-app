@@ -1,0 +1,36 @@
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" role="form">
+  @if (error) {
+    <nz-alert [nzType]="'error'" [nzMessage]="error" [nzShowIcon]="true" class="mb-lg" />
+  }
+  <nz-form-item>
+    <nz-form-control nzErrorTip="Please enter username (admin or user)">
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="user" />
+        <input nz-input nzSize="large" formControlName="userName" autocomplete="username" placeholder="username: admin or user" />
+      </nz-input-wrapper>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-control nzErrorTip="Please enter password (ng-alain.com)">
+      <nz-input-wrapper>
+        <nz-icon nzInputPrefix nzType="lock" />
+        <input
+          nz-input
+          nzSize="large"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          placeholder="password: ng-alain.com"
+        />
+      </nz-input-wrapper>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <label nz-checkbox formControlName="remember">{{ 'app.login.remember-me' | i18n }}</label>
+  </nz-form-item>
+  <nz-form-item>
+    <button nz-button type="submit" nzType="primary" nzSize="large" [nzLoading]="loading" nzBlock>
+      {{ 'app.login.login' | i18n }}
+    </button>
+  </nz-form-item>
+</form>
