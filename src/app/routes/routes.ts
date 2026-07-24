@@ -16,6 +16,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () => import('./dashboard/routes').then(m => m.routes)
+      },
+      {
+        path: 'kds',
+        loadChildren: () => import('./kds/routes').then(m => m.routes)
       }
     ]
   },
