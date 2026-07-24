@@ -57,11 +57,8 @@ const POLL_INTERVAL_MS = 2000;
 export class KitchenOrderComponent {
   private readonly service = inject(KitchenOrderService);
 
-  // TODO(uc-scf-01): use the logged-in user's branch once identity (NhatNL11) exposes branch-context.
-  readonly branchId = 'branch-1';
-
   readonly items$: Observable<KitchenOrderItem[]> = timer(0, POLL_INTERVAL_MS).pipe(
-    switchMap(() => this.service.getQueue(this.branchId).pipe(catchError(() => of<KitchenOrderItem[]>([]))))
+    switchMap(() => this.service.getQueue().pipe(catchError(() => of<KitchenOrderItem[]>([]))))
   );
 
   statusColor(status: KitchenOrderItem['status']): string {

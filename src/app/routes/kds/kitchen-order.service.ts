@@ -9,8 +9,12 @@ export class KitchenOrderService {
   private readonly http = inject(_HttpClient);
   private readonly endpoint = '/api/v1/kitchen/order-items';
 
-  /** FIFO waiting list for a branch (uc-scf-01). Server already returns it sorted. */
-  getQueue(branchId: string): Observable<KitchenOrderItem[]> {
-    return this.http.get<ApiResponse<KitchenOrderItem[]>>(this.endpoint, { branchId }).pipe(map(res => res?.data ?? []));
+  /**
+   * FIFO waiting list for the kitchen (uc-scf-01).
+   * The branch comes from the caller's token on the server, never from the client (NFR-07).
+   * The server already returns the list sorted.
+   */
+  getQueue(): Observable<KitchenOrderItem[]> {
+    return this.http.get<ApiResponse<KitchenOrderItem[]>>(this.endpoint).pipe(map(res => res?.data ?? []));
   }
 }

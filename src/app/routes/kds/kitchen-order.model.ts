@@ -1,10 +1,12 @@
-export type OrderItemStatus = 'PENDING' | 'IN_PROGRESS' | 'READY' | 'SERVED' | 'CANCELLED';
+export type OrderItemStatus = 'PENDING' | 'IN_PROGRESS' | 'READY_TO_SERVE' | 'SERVED' | 'CANCELLED';
 
 export interface KitchenOrderItem {
   orderItemId: string;
-  dishName: string;
+  /** Null when the product/combo behind the item cannot be resolved. */
+  itemName: string | null;
   quantity: number;
-  tableNumber: string;
+  /** Null for orders with no table (take-away). */
+  tableNumber: string | null;
   note?: string;
   status: OrderItemStatus;
   priorityFlag: boolean;
