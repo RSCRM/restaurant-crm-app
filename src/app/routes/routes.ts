@@ -1,26 +1,24 @@
 import { Routes } from '@angular/router';
-import { startPageGuard } from '@core';
-import { authSimpleCanActivate, authSimpleCanActivateChild } from '@delon/auth';
-
-import { LayoutBasic } from '../layout';
+import { authGuard } from '../auth/guards/auth.guard';
+import { adminGuard } from '../auth/guards/admin.guard';
+import { portalGuard } from '../auth/guards/portal.guard';
 
 export const routes: Routes = [
+  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
   {
-    path: '',
-    component: LayoutBasic,
-    canActivate: [startPageGuard, authSimpleCanActivate],
-    canActivateChild: [authSimpleCanActivateChild],
-    data: {},
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      {
-        path: 'dashboard',
-        loadChildren: () => import('./dashboard/routes').then(m => m.routes)
-      }
-    ]
+    path: 'auth',
+    loadChildren: () => import('../auth/auth.routes').then(m => m.routes)
   },
-  // passport
-  { path: '', loadChildren: () => import('./passport/routes').then(m => m.routes) },
+  {
+    path: 'admin',
+    canActivate: [authGuard, adminGuard],
+    loadChildren: () => import('../admin/admin.routes').then(m => m.routes)
+  },
+  {
+    path: 'portal',
+    canActivate: [authGuard, portalGuard],
+    loadChildren: () => import('../portal/portal.routes').then(m => m.routes)
+  },
   { path: 'exception', loadChildren: () => import('./exception/routes').then(m => m.routes) },
   { path: '**', redirectTo: 'exception/404' }
 ];

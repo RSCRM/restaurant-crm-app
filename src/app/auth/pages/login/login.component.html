@@ -1,0 +1,31 @@
+<div class="login-container">
+  <div class="login-card">
+    <h2 nz-typography>Đăng nhập</h2>
+
+    @if (error$ | async; as error) {
+      <nz-alert nzType="error" [nzMessage]="error" nzShowIcon class="mb-md"></nz-alert>
+    }
+
+    <form nz-form [formGroup]="form" (ngSubmit)="submit()">
+      <nz-form-item>
+        <nz-form-control nzHasFeedback>
+          <nz-input-group nzPrefixIcon="user">
+            <input nz-input formControlName="email" placeholder="Email" type="email" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control nzHasFeedback>
+          <nz-input-group nzPrefixIcon="lock">
+            <input nz-input formControlName="password" placeholder="Mật khẩu" type="password" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <button nz-button nzType="primary" nzBlock [nzLoading]="loading$ | async" type="submit">
+        Đăng nhập
+      </button>
+    </form>
+  </div>
+</div>
