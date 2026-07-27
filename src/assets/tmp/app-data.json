@@ -20,6 +20,11 @@
           "i18n": "menu.dashboard",
           "icon": "anticon-dashboard",
           "link": "/dashboard/welcome"
+        },
+        {
+          "text": "Màn hình bếp",
+          "icon": "anticon-fire",
+          "link": "/kds/orders"
         }
       ]
     }
