@@ -1,7 +1,7 @@
-// Mock for uc-scf-01 kitchen queue. Swap to the real backend by pointing
-// environment.api.baseUrl at the server — the path and shape already match
-// GET /api/v1/kitchen/order-items -> { success, data: KitchenOrderItem[] }.
-// The server takes the branch from the caller's token, so there is no request param.
+// Mock for the KDS board (uc-scf-01 + uc-scf-02). Matches the backend contract on dev:
+// GET /api/v1/kds/items?section=ACTIVE -> { success, data: KdsActiveResponse }.
+// The branch comes from the caller's token on the server, so there is no request param.
+// Swap to the real backend by pointing environment.api.baseUrl at the server.
 
 const now = Date.now();
 
@@ -9,17 +9,31 @@ function iso(minutesAgo: number): string {
   return new Date(now - minutesAgo * 60000).toISOString();
 }
 
-// Already ordered per BR-RES-ORD-04: priority first, then oldest first.
-const QUEUE = [
-  { orderItemId: 'oi-1', itemName: 'Phở bò tái', quantity: 2, tableNumber: '5', note: 'Ít hành', status: 'PENDING', priorityFlag: true, createdAt: iso(3) },
-  { orderItemId: 'oi-2', itemName: 'Bún chả', quantity: 1, tableNumber: '2', note: '', status: 'IN_PROGRESS', priorityFlag: false, createdAt: iso(12) },
-  { orderItemId: 'oi-3', itemName: 'Combo gia đình', quantity: 1, tableNumber: '8', note: 'Thêm trứng', status: 'PENDING', priorityFlag: false, createdAt: iso(7) },
-  // Take-away order: the server returns a null tableNumber.
-  { orderItemId: 'oi-4', itemName: 'Gỏi cuốn', quantity: 2, tableNumber: null, note: '', status: 'PENDING', priorityFlag: false, createdAt: iso(2) },
-  // Product/combo that could not be resolved: the server returns a null itemName.
-  { orderItemId: 'oi-5', itemName: null, quantity: 1, tableNumber: '1', note: '', status: 'PENDING', priorityFlag: false, createdAt: iso(1) }
+// Ordered oldest-first (FIFO). NOTE: backend does not yet expose priority_flag,
+// so priority-first ordering (BR-RES-ORD-04) is not reflected here yet.
+const WAITING_ITEMS = [
+  { orderItemId: 'oi-1', orderCode: 'ORD-1001', tableNumber: '5', areaName: 'Tầng 1', productName: 'Phở bò tái', comboName: null, quantity: 2, note: 'Ít hành', modifiers: null, status: 'PENDING', createdAt: iso(12) },
+  { orderItemId: 'oi-2', orderCode: 'ORD-1002', tableNumber: '8', areaName: 'Tầng 1', productName: null, comboName: 'Combo gia đình', quantity: 1, note: 'Thêm trứng', modifiers: null, status: 'PENDING', createdAt: iso(7) },
+  { orderItemId: 'oi-3', orderCode: 'ORD-1003', tableNumber: null, areaName: null, productName: 'Gỏi cuốn', comboName: null, quantity: 2, note: null, modifiers: null, status: 'PENDING', createdAt: iso(2) }
+];
+
+const PREPARING_ITEMS = [
+  { orderItemId: 'oi-4', orderCode: 'ORD-1000', tableNumber: '2', areaName: 'Tầng 1', productName: 'Bún chả', comboName: null, quantity: 1, note: null, modifiers: null, status: 'IN_PROGRESS', createdAt: iso(18) }
+];
+
+const WAITING_SUMMARY = [
+  { productName: 'Phở bò tái', comboName: null, note: 'Ít hành', modifiers: null, totalQuantity: 2 },
+  { productName: null, comboName: 'Combo gia đình', note: 'Thêm trứng', modifiers: null, totalQuantity: 1 },
+  { productName: 'Gỏi cuốn', comboName: null, note: null, modifiers: null, totalQuantity: 2 }
 ];
 
 export const KITCHEN = {
-  '/api/v1/kitchen/order-items': () => ({ success: true, data: QUEUE })
+  '/api/v1/kds/items': () => ({
+    success: true,
+    data: {
+      waitingSummary: WAITING_SUMMARY,
+      waitingItems: WAITING_ITEMS,
+      preparingItems: PREPARING_ITEMS
+    }
+  })
 };

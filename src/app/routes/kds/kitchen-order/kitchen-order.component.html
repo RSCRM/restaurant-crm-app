@@ -1,21 +1,49 @@
 <nz-card nzTitle="Màn hình bếp — Món chờ (FIFO)">
-  @if (items$ | async; as items) {
-    @if (items.length === 0) {
+  @if (board$ | async; as board) {
+    @if (board.waitingItems.length === 0 && board.preparingItems.length === 0) {
       <nz-empty nzNotFoundContent="Chưa có món nào chờ chế biến" />
     } @else {
+      @if (board.waitingSummary.length > 0) {
+        <div class="kds-summary">
+          @for (s of board.waitingSummary; track $index) {
+            <span class="kds-summary__pill">
+              {{ itemName(s) }}<span class="kds-summary__qty">×{{ s.totalQuantity }}</span>
+            </span>
+          }
+        </div>
+      }
+
+      <div class="kds-section__title">Chờ chế biến ({{ board.waitingItems.length }})</div>
       <div class="kds-grid">
-        @for (item of items; track item.orderItemId) {
-          <nz-card nzSize="small" [class.kds-card--priority]="item.priorityFlag">
+        @for (item of board.waitingItems; track item.orderItemId) {
+          <nz-card nzSize="small">
             <div class="kds-card__head">
-              <span>{{ item.itemName || 'Món chưa xác định' }}</span>
+              <span>{{ itemName(item) }}</span>
               <span class="kds-card__qty">×{{ item.quantity }}</span>
             </div>
             <div class="kds-card__meta">
-              <nz-tag>{{ item.tableNumber ? 'Bàn ' + item.tableNumber : 'Mang về' }}</nz-tag>
-              <nz-tag [nzColor]="statusColor(item.status)">{{ item.status }}</nz-tag>
-              @if (item.priorityFlag) {
-                <nz-tag nzColor="red">Ưu tiên</nz-tag>
-              }
+              <nz-tag>{{ location(item) }}</nz-tag>
+              <nz-tag>{{ item.status }}</nz-tag>
+            </div>
+            @if (item.note) {
+              <div class="kds-card__note">{{ item.note }}</div>
+            }
+            <div class="kds-card__wait">Đã chờ {{ waitedMinutes(item.createdAt) }} phút</div>
+          </nz-card>
+        }
+      </div>
+
+      <div class="kds-section__title">Đang chế biến ({{ board.preparingItems.length }})</div>
+      <div class="kds-grid">
+        @for (item of board.preparingItems; track item.orderItemId) {
+          <nz-card nzSize="small">
+            <div class="kds-card__head">
+              <span>{{ itemName(item) }}</span>
+              <span class="kds-card__qty">×{{ item.quantity }}</span>
+            </div>
+            <div class="kds-card__meta">
+              <nz-tag>{{ location(item) }}</nz-tag>
+              <nz-tag nzColor="processing">{{ item.status }}</nz-tag>
             </div>
             @if (item.note) {
               <div class="kds-card__note">{{ item.note }}</div>

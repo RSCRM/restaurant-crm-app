@@ -2,19 +2,21 @@ import { Injectable, inject } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { Observable, map } from 'rxjs';
 
-import { ApiResponse, KitchenOrderItem } from './kitchen-order.model';
+import { ApiResponse, KdsActiveResponse } from './kitchen-order.model';
+
+const EMPTY_ACTIVE: KdsActiveResponse = { waitingSummary: [], waitingItems: [], preparingItems: [] };
 
 @Injectable({ providedIn: 'root' })
 export class KitchenOrderService {
   private readonly http = inject(_HttpClient);
-  private readonly endpoint = '/api/v1/kitchen/order-items';
+  private readonly endpoint = '/api/v1/kds/items';
 
   /**
-   * FIFO waiting list for the kitchen (uc-scf-01).
-   * The branch comes from the caller's token on the server, never from the client (NFR-07).
-   * The server already returns the list sorted.
+   * Active kitchen board for the caller's branch (uc-scf-01 + uc-scf-02).
+   * Backend takes the branch from the token (NFR-07); returns waiting summary,
+   * waiting items and preparing items, already branch-filtered.
    */
-  getQueue(): Observable<KitchenOrderItem[]> {
-    return this.http.get<ApiResponse<KitchenOrderItem[]>>(this.endpoint).pipe(map(res => res?.data ?? []));
+  getActiveBoard(): Observable<KdsActiveResponse> {
+    return this.http.get<ApiResponse<KdsActiveResponse>>(this.endpoint, { section: 'ACTIVE' }).pipe(map(res => res?.data ?? EMPTY_ACTIVE));
   }
 }

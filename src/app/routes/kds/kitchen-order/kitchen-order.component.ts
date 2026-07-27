@@ -5,11 +5,13 @@ import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { Observable, catchError, of, switchMap, timer } from 'rxjs';
 
-import { KitchenOrderItem } from '../kitchen-order.model';
+import { KdsActiveResponse, KdsItem, WaitingSummary } from '../kitchen-order.model';
 import { KitchenOrderService } from '../kitchen-order.service';
 
-/** Poll interval — satisfies the "new items appear within 2s" criterion without WebSocket. */
+/** Poll interval — satisfies the "new items appear within 2s" criterion without WebSocket/SSE. */
 const POLL_INTERVAL_MS = 2000;
+
+const EMPTY_BOARD: KdsActiveResponse = { waitingSummary: [], waitingItems: [], preparingItems: [] };
 
 @Component({
   selector: 'app-kitchen-order',
@@ -18,10 +20,31 @@ const POLL_INTERVAL_MS = 2000;
   imports: [...SHARED_IMPORTS, NzCardModule, NzTagModule, NzEmptyModule],
   styles: [
     `
+      .kds-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .kds-summary__pill {
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 13px;
+      }
+      .kds-summary__qty {
+        font-weight: 600;
+        margin-left: 4px;
+      }
+      .kds-section__title {
+        font-weight: 600;
+        margin: 8px 0;
+      }
       .kds-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 12px;
+        margin-bottom: 20px;
       }
       .kds-card__head {
         display: flex;
@@ -48,21 +71,22 @@ const POLL_INTERVAL_MS = 2000;
         color: rgba(0, 0, 0, 0.45);
         font-size: 12px;
       }
-      .kds-card--priority {
-        border-color: #ff4d4f;
-      }
     `
   ]
 })
 export class KitchenOrderComponent {
   private readonly service = inject(KitchenOrderService);
 
-  readonly items$: Observable<KitchenOrderItem[]> = timer(0, POLL_INTERVAL_MS).pipe(
-    switchMap(() => this.service.getQueue().pipe(catchError(() => of<KitchenOrderItem[]>([]))))
+  readonly board$: Observable<KdsActiveResponse> = timer(0, POLL_INTERVAL_MS).pipe(
+    switchMap(() => this.service.getActiveBoard().pipe(catchError(() => of(EMPTY_BOARD))))
   );
 
-  statusColor(status: KitchenOrderItem['status']): string {
-    return status === 'IN_PROGRESS' ? 'processing' : 'default';
+  itemName(item: KdsItem | WaitingSummary): string {
+    return item.productName || item.comboName || 'Món chưa xác định';
+  }
+
+  location(item: KdsItem): string {
+    return item.tableNumber ? `Bàn ${item.tableNumber}` : 'Mang về';
   }
 
   waitedMinutes(createdAt: string): number {
