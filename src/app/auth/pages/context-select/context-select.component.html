@@ -1,0 +1,28 @@
+<div class="context-container">
+  <div class="context-card">
+    <h2 nz-typography>Chọn tổ chức</h2>
+    <p nz-typography>Vui lòng chọn tổ chức để tiếp tục</p>
+
+    <nz-list nzItemLayout="vertical">
+      @for (ctx of contexts$ | async; track ctx.organizationId) {
+        <nz-list-item>
+          <nz-card [nzTitle]="ctx.organizationName" [nzExtra]="selectBtnTpl">
+            @if (ctx.branchName) {
+              <p><strong>Chi nhánh:</strong> {{ ctx.branchName }}</p>
+            }
+            <div>
+              <nz-tag nzColor="blue">{{ ctx.role }}</nz-tag>
+            </div>
+          </nz-card>
+          <ng-template #selectBtnTpl>
+            <button nz-button nzType="primary" (click)="selectContext(ctx)" [nzLoading]="loading$ | async">
+              Chọn
+            </button>
+          </ng-template>
+        </nz-list-item>
+      }
+    </nz-list>
+
+    <button nz-button nzBlock (click)="logout()" class="mt-md">Đăng xuất</button>
+  </div>
+</div>

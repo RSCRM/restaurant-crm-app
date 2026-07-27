@@ -1,5 +1,8 @@
 // Components
 
+// Directives
+export * from './directives/has-permission.directive';
+
 // Utils
 export * from './utils/yuan';
 
