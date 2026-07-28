@@ -4,7 +4,7 @@ import { ExceptionModule, ExceptionType } from '@delon/abc/exception';
 
 @Component({
   selector: 'app-exception',
-  template: ` <exception [type]="type" style="min-height: 500px; height: 80%;" />`,
+  templateUrl: './exception.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ExceptionModule]
 })

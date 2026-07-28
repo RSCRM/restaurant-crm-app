@@ -3,6 +3,8 @@ import { default as ngLang } from '@angular/common/locales/vi';
 import {
   ApplicationConfig,
   EnvironmentProviders,
+  inject,
+  provideAppInitializer,
   provideBrowserGlobalErrorListeners,
   Provider,
   provideZonelessChangeDetection
@@ -16,7 +18,7 @@ import {
   withViewTransitions
 } from '@angular/router';
 import { provideEffects } from '@ngrx/effects';
-import { provideStore } from '@ngrx/store';
+import { provideStore, Store } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { I18NService, defaultInterceptor, provideStartup } from '@core';
 import { provideCellWidgets } from '@delon/abc/cell';
@@ -33,6 +35,7 @@ import { vi_VN as zorroLang } from 'ng-zorro-antd/i18n';
 
 import { ICONS } from '../style-icons';
 import { ICONS_AUTO } from '../style-icons-auto';
+import { AuthActions } from './routes/auth/store/auth.actions';
 import { AuthEffects } from './routes/auth/store/auth.effects';
 import { authReducer } from './routes/auth/store/auth.reducer';
 import { routes } from './routes/routes';
@@ -73,7 +76,11 @@ const providers: Array<Provider | EnvironmentProviders> = [
   provideStartup(),
   provideStore({ auth: authReducer }),
   provideEffects([AuthEffects]),
-  provideStoreDevtools({ maxAge: 25, logOnly: environment.production })
+  provideStoreDevtools({ maxAge: 25, logOnly: environment.production }),
+  provideAppInitializer(() => {
+    const store = inject(Store);
+    store.dispatch(AuthActions.init());
+  })
 ];
 
 export const appConfig: ApplicationConfig = {

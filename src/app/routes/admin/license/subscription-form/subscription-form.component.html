@@ -1,0 +1,25 @@
+<div class="modal-header">
+  <div class="modal-title">Cấp Subscription</div>
+</div>
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">ID Tổ chức</nz-form-label>
+    <nz-form-control nzErrorTip="Vui lòng nhập ID tổ chức">
+      <input nz-input formControlName="organizationId" placeholder="Nhập ID tổ chức" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>Ngày bắt đầu</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker formControlName="startDate" style="width: 100%;" nzPlaceHolder="Chọn ngày (mặc định: hôm nay)"></nz-date-picker>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+    <button nz-button type="button" (click)="close()">Hủy</button>
+    <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="loading" [disabled]="form.invalid">
+      Cấp Subscription
+    </button>
+  </div>
+</form>

@@ -6,6 +6,13 @@ import { AuthState, initialAuthState } from './auth.state';
 export const authReducer = createReducer(
   initialAuthState,
 
+  on(AuthActions.restoreAuth, (state, { accessToken, systemRoles, contextToken }): AuthState => ({
+    ...state,
+    accessToken,
+    systemRoles,
+    contextToken
+  })),
+
   on(AuthActions.login, (state): AuthState => ({
     ...state,
     loading: true,

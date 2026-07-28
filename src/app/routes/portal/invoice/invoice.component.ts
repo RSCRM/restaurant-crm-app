@@ -6,13 +6,6 @@ import { NzCardModule } from 'ng-zorro-antd/card';
   selector: 'app-invoice',
   standalone: true,
   imports: [NzTypographyModule, NzCardModule],
-  template: `
-    <div style="padding: 24px;">
-      <nz-card>
-        <h2 nz-typography>Hóa đơn</h2>
-        <p nz-typography>Quản lý hóa đơn và thanh toán</p>
-      </nz-card>
-    </div>
-  `
+  templateUrl: './invoice.component.html'
 })
 export class InvoiceComponent {}

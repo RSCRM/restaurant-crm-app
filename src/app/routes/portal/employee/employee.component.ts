@@ -6,13 +6,6 @@ import { NzCardModule } from 'ng-zorro-antd/card';
   selector: 'app-employee',
   standalone: true,
   imports: [NzTypographyModule, NzCardModule],
-  template: `
-    <div style="padding: 24px;">
-      <nz-card>
-        <h2 nz-typography>Nhân viên</h2>
-        <p nz-typography>Quản lý nhân viên và ca làm việc</p>
-      </nz-card>
-    </div>
-  `
+  templateUrl: './employee.component.html'
 })
 export class EmployeeComponent {}

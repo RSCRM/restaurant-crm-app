@@ -6,13 +6,6 @@ import { NzCardModule } from 'ng-zorro-antd/card';
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [NzTypographyModule, NzCardModule],
-  template: `
-    <div style="padding: 24px;">
-      <nz-card>
-        <h2 nz-typography>Admin Dashboard</h2>
-        <p nz-typography>Chào mừng đến với trang quản trị hệ thống Restaurant CRM</p>
-      </nz-card>
-    </div>
-  `
+  templateUrl: './admin-dashboard.component.html'
 })
 export class AdminDashboardComponent {}
