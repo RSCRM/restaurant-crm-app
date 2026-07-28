@@ -1,13 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { catchError, exhaustMap, map, of, switchMap, take, tap } from 'rxjs';
+import { catchError, exhaustMap, map, of, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../services/auth.service';
 import { AuthActions } from './auth.actions';
-import { selectAccessToken } from './auth.selectors';
 
 @Injectable()
 export class AuthEffects {
@@ -15,18 +13,21 @@ export class AuthEffects {
   private authService = inject(AuthService);
   private router = inject(Router);
   private notification = inject(NzNotificationService);
-  private store = inject(Store);
 
   // Init: Restore auth state from localStorage on app startup
   init$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.init),
       switchMap(() => {
-        const token = this.authService.getToken();
-        if (token) {
+        const accessToken = this.authService.getAccessToken();
+        if (accessToken) {
           const systemRoles = this.authService.getSystemRoles();
           const contextToken = this.authService.getContextToken();
-          return of(AuthActions.restoreAuth({ accessToken: token, systemRoles, contextToken }));
+          // Restore contextToken into DA_SERVICE_TOKEN if exists
+          if (contextToken) {
+            this.authService.setToken(contextToken, 72 * 60 * 60 * 1000);
+          }
+          return of(AuthActions.restoreAuth({ accessToken, systemRoles, contextToken }));
         }
         return of();
       })
@@ -39,14 +40,14 @@ export class AuthEffects {
       ofType(AuthActions.login),
       exhaustMap(({ email, password }) =>
         this.authService.login({ email, password }).pipe(
-          map(response => {
-            return AuthActions.loginSuccess({
+          map(response =>
+            AuthActions.loginSuccess({
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               contexts: response.contexts || [],
               systemRoles: response.systemRoles || []
-            });
-          }),
+            })
+          ),
           catchError(err => {
             const message = err?.error?.errorMessage?.message || err?.error?.message || err?.message || 'Đăng nhập thất bại';
             return of(AuthActions.loginFailure({ error: message }));
@@ -56,18 +57,21 @@ export class AuthEffects {
     )
   );
 
-  // Step 2: After login success → check systemRoles
+  // Step 2: After login success → persist accessToken & systemRoles, redirect by role
   loginSuccess$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap(({ accessToken, systemRoles }) => {
+          this.authService.setAccessToken(accessToken);
           this.authService.setSystemRoles(systemRoles);
           if (systemRoles.includes('ADMIN')) {
+            // ADMIN: use accessToken as the main API token
             this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
             this.router.navigate(['/admin/dashboard']);
           } else {
-            this.router.navigate(['/auth/context-select']);
+            // USER: redirect to context-select within portal
+            this.router.navigate(['/portal/context-select']);
           }
         })
       ),
@@ -78,30 +82,25 @@ export class AuthEffects {
   selectContext$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.selectContext),
-      switchMap(({ organizationId, employeeId, role }) =>
-        this.store.select(selectAccessToken).pipe(
-          take(1),
-          switchMap(accessToken =>
-            this.authService.selectContext({ organizationId, employeeId, role }, accessToken || '').pipe(
-              map(response => {
-                this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);
-                this.authService.setContextToken(response.contextToken);
-                return AuthActions.selectContextSuccess({
-                  contextToken: response.contextToken
-                });
-              }),
-              catchError(err => {
-                const message = err?.error?.errorMessage?.message || err?.error?.message || err?.message || 'Chọn context thất bại';
-                return of(AuthActions.selectContextFailure({ error: message }));
-              })
-            )
-          )
-        )
-      )
+      switchMap(({ organizationId, employeeId, role }) => {
+        const accessToken = this.authService.getAccessToken();
+        return this.authService.selectContext({ organizationId, employeeId, role }, accessToken || '').pipe(
+          map(response => {
+            // contextToken is the main API token for business calls
+            this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);
+            this.authService.setContextToken(response.contextToken);
+            return AuthActions.selectContextSuccess({ contextToken: response.contextToken });
+          }),
+          catchError(err => {
+            const message = err?.error?.errorMessage?.message || err?.error?.message || err?.message || 'Chọn context thất bại';
+            return of(AuthActions.selectContextFailure({ error: message }));
+          })
+        );
+      })
     )
   );
 
-  // Step 4: After context success → redirect to portal
+  // Step 4: After context success → redirect to portal dashboard
   selectContextSuccess$ = createEffect(
     () =>
       this.actions$.pipe(

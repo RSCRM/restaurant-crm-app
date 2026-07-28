@@ -60,9 +60,18 @@ export class AuthService {
     return localStorage.getItem('auth_contextToken');
   }
 
+  setAccessToken(token: string): void {
+    localStorage.setItem('auth_accessToken', token);
+  }
+
+  getAccessToken(): string | null {
+    return localStorage.getItem('auth_accessToken');
+  }
+
   clearPersistedAuth(): void {
     localStorage.removeItem('auth_systemRoles');
     localStorage.removeItem('auth_contextToken');
+    localStorage.removeItem('auth_accessToken');
   }
 
   parseJwtPayload(token: string): Record<string, unknown> {

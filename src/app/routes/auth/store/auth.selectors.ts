@@ -17,5 +17,7 @@ export const selectIsAuthenticated = createSelector(selectAccessToken, token => 
 
 export const selectIsAdmin = createSelector(selectSystemRoles, roles => roles.includes('ADMIN'));
 
+export const selectHasContext = createSelector(selectContextToken, token => !!token);
+
 export const selectHasPermission = (permission: string) =>
   createSelector(selectPermissions, perms => perms.includes(permission));

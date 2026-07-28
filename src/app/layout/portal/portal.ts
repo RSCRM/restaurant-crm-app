@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
@@ -11,7 +11,7 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 
 import { AuthActions } from '../../routes/auth/store/auth.actions';
-import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
+import { selectAuthUser, selectHasContext } from '../../routes/auth/store/auth.selectors';
 
 @Component({
   selector: 'app-portal-layout',
@@ -29,44 +29,57 @@ import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
   ],
   templateUrl: './portal.component.html'
 })
-export class LayoutPortal {
+export class LayoutPortal implements OnInit {
   private store = inject(Store);
   private router = inject(Router);
   private settingsService = inject(SettingsService);
   private menuService = inject(MenuService);
 
   user$ = this.store.select(selectAuthUser);
+  hasContext$ = this.store.select(selectHasContext);
   notificationCount = 0;
 
   protected options: LayoutDefaultOptions = {
     logoExpanded: `./assets/logo-full.svg`,
     logoCollapsed: `./assets/logo.svg`,
-    logoLink: '/portal/dashboard'
+    logoLink: '/portal/context-select'
   };
 
   constructor() {
     this.settingsService.setUser({ name: 'User', avatar: '' });
-    this.buildMenu();
   }
 
-  private buildMenu(): void {
-    const menuItems = [
-      { text: 'Dashboard', i18n: 'menu.dashboard', icon: 'dashboard', link: '/portal/dashboard' },
-      { text: 'Quản lý Đơn hàng', icon: 'shopping-cart', link: '/portal/order' },
-      { text: 'Quản lý Thực đơn', icon: 'coffee', link: '/portal/menu' },
-      { text: 'Quản lý Bàn', icon: 'table', link: '/portal/table' },
-      { text: 'Đặt bàn', icon: 'calendar', link: '/portal/booking' },
-      { text: 'Kho hàng', icon: 'database', link: '/portal/inventory' },
-      { text: 'Nhân viên', icon: 'team', link: '/portal/employee' },
-      { text: 'Hóa đơn', icon: 'file-text', link: '/portal/invoice' }
-    ];
+  ngOnInit(): void {
+    this.store.select(selectHasContext).subscribe(hasContext => {
+      this.buildMenu(hasContext);
+    });
+  }
 
+  private buildMenu(hasContext: boolean): void {
+    this.menuService.clear();
     this.menuService.add([
+      {
+        text: 'Tổ chức',
+        group: true,
+        hideInBreadcrumb: true,
+        children: [
+          { text: 'Chọn tổ chức', icon: 'bank', link: '/portal/context-select' }
+        ]
+      },
       {
         text: 'Quản lý nhà hàng',
         group: true,
         hideInBreadcrumb: true,
-        children: menuItems
+        children: [
+          { text: 'Dashboard', i18n: 'menu.dashboard', icon: 'dashboard', link: '/portal/dashboard', disabled: !hasContext },
+          { text: 'Quản lý Đơn hàng', icon: 'shopping-cart', link: '/portal/order', disabled: !hasContext },
+          { text: 'Quản lý Thực đơn', icon: 'coffee', link: '/portal/menu', disabled: !hasContext },
+          { text: 'Quản lý Bàn', icon: 'table', link: '/portal/table', disabled: !hasContext },
+          { text: 'Đặt bàn', icon: 'calendar', link: '/portal/booking', disabled: !hasContext },
+          { text: 'Kho hàng', icon: 'database', link: '/portal/inventory', disabled: !hasContext },
+          { text: 'Nhân viên', icon: 'team', link: '/portal/employee', disabled: !hasContext },
+          { text: 'Hóa đơn', icon: 'file-text', link: '/portal/invoice', disabled: !hasContext }
+        ]
       }
     ]);
   }
