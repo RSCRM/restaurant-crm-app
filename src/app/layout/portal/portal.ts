@@ -10,8 +10,8 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 
-import { AuthActions } from '../../auth/store/auth.actions';
-import { selectAuthUser } from '../../auth/store/auth.selectors';
+import { AuthActions } from '../../routes/auth/store/auth.actions';
+import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
 
 @Component({
   selector: 'app-portal-layout',
@@ -61,7 +61,7 @@ import { selectAuthUser } from '../../auth/store/auth.selectors';
     </layout-default>
   `
 })
-export class PortalLayoutComponent {
+export class LayoutPortal {
   private store = inject(Store);
   private router = inject(Router);
   private settingsService = inject(SettingsService);

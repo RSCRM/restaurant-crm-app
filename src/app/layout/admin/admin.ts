@@ -9,8 +9,8 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 
-import { AuthActions } from '../../auth/store/auth.actions';
-import { selectAuthUser } from '../../auth/store/auth.selectors';
+import { AuthActions } from '../../routes/auth/store/auth.actions';
+import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
 
 @Component({
   selector: 'app-admin-layout',
@@ -52,7 +52,7 @@ import { selectAuthUser } from '../../auth/store/auth.selectors';
     </layout-default>
   `
 })
-export class AdminLayoutComponent {
+export class LayoutAdmin {
   private store = inject(Store);
   private router = inject(Router);
   private settingsService = inject(SettingsService);
