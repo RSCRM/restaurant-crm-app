@@ -56,9 +56,9 @@ export const defaultInterceptor: HttpInterceptorFn = (req, next) => {
     }
   }
 
-  // Add auth token if not anonymous
+  // Add auth token if not anonymous (skip if request already has Authorization header)
   const headers: Record<string, string> = getAdditionalHeaders(req.headers);
-  if (!isAnonymous) {
+  if (!isAnonymous && !req.headers.has('Authorization')) {
     const tokenService = inject(DA_SERVICE_TOKEN);
     const token = tokenService.get()?.token;
     if (token) {
