@@ -37,7 +37,8 @@ export class LayoutAdmin {
 
   protected options: LayoutDefaultOptions = {
     logoExpanded: `./assets/logo-full.svg`,
-    logoCollapsed: `./assets/logo.svg`
+    logoCollapsed: `./assets/logo.svg`,
+    logoLink: '/admin/dashboard'
   };
 
   constructor() {
