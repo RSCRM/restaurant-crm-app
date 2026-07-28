@@ -8,9 +8,9 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 
-import { AuthActions } from '../../store/auth.actions';
-import { selectAuthLoading, selectContexts } from '../../store/auth.selectors';
-import { ContextInfo } from '../../store/auth.state';
+import { AuthActions } from '../store/auth.actions';
+import { selectAuthLoading, selectContexts } from '../store/auth.selectors';
+import { ContextInfo } from '../store/auth.state';
 
 @Component({
   selector: 'app-context-select',

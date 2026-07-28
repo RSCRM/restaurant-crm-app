@@ -8,8 +8,8 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 
-import { AuthActions } from '../../store/auth.actions';
-import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
+import { AuthActions } from '../store/auth.actions';
+import { selectAuthError, selectAuthLoading } from '../store/auth.selectors';
 
 @Component({
   selector: 'app-login',
