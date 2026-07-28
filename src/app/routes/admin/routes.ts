@@ -11,6 +11,10 @@ export const routes: Routes = [
     loadComponent: () => import('./license/license.component').then(m => m.LicenseComponent)
   },
   {
+    path: 'license/:id/detail',
+    loadComponent: () => import('./license/license-detail/license-detail.component').then(m => m.LicenseDetailComponent)
+  },
+  {
     path: 'organization',
     loadComponent: () => import('./organization/organization.component').then(m => m.OrganizationComponent)
   },

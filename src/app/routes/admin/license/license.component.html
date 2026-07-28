@@ -1,0 +1,32 @@
+<page-header [title]="'Quản lý License'" />
+<nz-card>
+  <div style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus" nzTheme="outline"></span>
+      Tạo License
+    </button>
+  </div>
+  <st
+    #st
+    [columns]="columns"
+    [data]="data"
+    [total]="total"
+    [ps]="pageSize"
+    [pi]="currentPage"
+    [loading]="loading"
+    [page]="{ show: true, showSize: true }"
+    [scroll]="{ x: '1200px' }"
+    (change)="onSTChange($event)"
+  >
+    <ng-template st-row="billingCycle" let-item>
+      <nz-tag [nzColor]="item.billingCycle === 'YEARLY' ? 'blue' : 'green'">
+        {{ item.billingCycle === 'YEARLY' ? 'Hàng năm' : 'Hàng tháng' }}
+      </nz-tag>
+    </ng-template>
+    <ng-template st-row="status" let-item>
+      <nz-tag [nzColor]="item.status === 'ACTIVE' ? 'success' : 'error'">
+        {{ item.status === 'ACTIVE' ? 'Hoạt động' : 'Khóa' }}
+      </nz-tag>
+    </ng-template>
+  </st>
+</nz-card>

@@ -17,6 +17,22 @@ export class AuthEffects {
   private notification = inject(NzNotificationService);
   private store = inject(Store);
 
+  // Init: Restore auth state from localStorage on app startup
+  init$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.init),
+      switchMap(() => {
+        const token = this.authService.getToken();
+        if (token) {
+          const systemRoles = this.authService.getSystemRoles();
+          const contextToken = this.authService.getContextToken();
+          return of(AuthActions.restoreAuth({ accessToken: token, systemRoles, contextToken }));
+        }
+        return of();
+      })
+    )
+  );
+
   // Step 1: Login → get accessToken + contexts + systemRoles
   login$ = createEffect(() =>
     this.actions$.pipe(
@@ -46,6 +62,7 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap(({ accessToken, systemRoles }) => {
+          this.authService.setSystemRoles(systemRoles);
           if (systemRoles.includes('ADMIN')) {
             this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
             this.router.navigate(['/admin/dashboard']);
@@ -68,6 +85,7 @@ export class AuthEffects {
             this.authService.selectContext({ organizationId, employeeId, role }, accessToken || '').pipe(
               map(response => {
                 this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);
+                this.authService.setContextToken(response.contextToken);
                 return AuthActions.selectContextSuccess({
                   contextToken: response.contextToken
                 });
@@ -102,10 +120,12 @@ export class AuthEffects {
         this.authService.logout().pipe(
           map(() => {
             this.authService.clearToken();
+            this.authService.clearPersistedAuth();
             return AuthActions.logoutSuccess();
           }),
           catchError(() => {
             this.authService.clearToken();
+            this.authService.clearPersistedAuth();
             return of(AuthActions.logoutSuccess());
           })
         )

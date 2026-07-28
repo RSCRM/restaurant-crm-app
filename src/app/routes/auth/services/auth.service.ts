@@ -39,6 +39,32 @@ export class AuthService {
     this.tokenService.clear();
   }
 
+  setSystemRoles(roles: string[]): void {
+    localStorage.setItem('auth_systemRoles', JSON.stringify(roles));
+  }
+
+  getSystemRoles(): string[] {
+    try {
+      const raw = localStorage.getItem('auth_systemRoles');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  setContextToken(token: string): void {
+    localStorage.setItem('auth_contextToken', token);
+  }
+
+  getContextToken(): string | null {
+    return localStorage.getItem('auth_contextToken');
+  }
+
+  clearPersistedAuth(): void {
+    localStorage.removeItem('auth_systemRoles');
+    localStorage.removeItem('auth_contextToken');
+  }
+
   parseJwtPayload(token: string): Record<string, unknown> {
     try {
       const base64Url = token.split('.')[1];
