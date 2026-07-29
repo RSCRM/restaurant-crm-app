@@ -47,5 +47,10 @@ export const routes: Routes = [
     path: 'invoice',
     canActivate: [contextGuard, permissionGuard('PAYMENT_READ')],
     loadComponent: () => import('./invoice/invoice.component').then(m => m.InvoiceComponent)
+  },
+  {
+    path: 'customer',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./customer/customer.component').then(m => m.CustomerComponent)
   }
 ];

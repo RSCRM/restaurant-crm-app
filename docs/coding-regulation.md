@@ -915,6 +915,15 @@ export function permissionGuard(permission: string): CanActivateFn {
 }
 ```
 
+> [!IMPORTANT]
+> **LƯU Ý QUAN TRỌNG VỀ PERMISSION GUARD TRÊN PORTAL:**
+> - Hiện tại, danh sách quyền `permissions` trong NgRx `AuthState` mặc định không được lưu trữ hoặc đồng bộ tự động từ Token.
+> - Do đó, việc cấu hình `permissionGuard(...)` ở mức Router level (file `routes.ts`) sẽ **luôn luôn thất bại** và đá người dùng quay lại Dashboard.
+> - **Quy chuẩn phát triển (Conventions):**
+>   1. Chỉ cấu hình `canActivate: [contextGuard]` ở mức Router level.
+>   2. Thực hiện kiểm tra quyền truy cập **cục bộ (locally)** bên trong từng Component bằng cách tự giải mã `contextToken` qua hàm helper.
+>   3. Sử dụng `*ngIf="hasReadPermission; else noPermissionTpl"` ở Template để ẩn/hiện nội dung hoặc hiển thị Lock Screen 403 cục bộ.
+
 ---
 
 ## 9. Auth & Token

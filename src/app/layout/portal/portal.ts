@@ -78,7 +78,8 @@ export class LayoutPortal implements OnInit {
           { text: 'Đặt bàn', icon: 'calendar', link: '/portal/booking', disabled: !hasContext },
           { text: 'Kho hàng', icon: 'database', link: '/portal/inventory', disabled: !hasContext },
           { text: 'Nhân viên', icon: 'team', link: '/portal/employee', disabled: !hasContext },
-          { text: 'Hóa đơn', icon: 'file-text', link: '/portal/invoice', disabled: !hasContext }
+          { text: 'Hóa đơn', icon: 'file-text', link: '/portal/invoice', disabled: !hasContext },
+          { text: 'Khách hàng', icon: 'user', link: '/portal/customer', disabled: !hasContext }
         ]
       }
     ]);

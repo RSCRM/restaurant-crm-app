@@ -1,0 +1,262 @@
+<page-header [title]="'Quản lý Khách hàng & Loyalty'" />
+
+<ng-container *ngIf="hasReadPermission; else noPermissionTpl">
+<nz-tabs nzLinkRouter>
+  <!-- TAB 1: TRA CỨU KHÁCH HÀNG & LỊCH SỬ DÙNG ĐIỂM -->
+  <nz-tab nzTitle="Tra Cứu Khách Hàng">
+    <div nz-row [nzGutter]="24">
+      <!-- Cột Tìm Kiếm và Thông Tin Thành Viên -->
+      <div nz-col [nzXs]="24" [nzLg]="8">
+        <nz-card nzTitle="Định Danh Khách Hàng" style="margin-bottom: 20px;">
+          <!-- Thanh tìm kiếm số điện thoại -->
+          <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton">
+            <input
+              nz-input
+              [(ngModel)]="searchPhone"
+              placeholder="Nhập SĐT tìm khách hàng..."
+              (keyup.enter)="searchCustomer()"
+              [disabled]="searchLoading"
+            />
+          </nz-input-group>
+          <ng-template #suffixIconButton>
+            <button nz-button nzType="primary" nzSearch (click)="searchCustomer()" [nzLoading]="searchLoading">
+              <span nz-icon nzType="search"></span>
+            </button>
+          </ng-template>
+
+          <div *ngIf="customer" style="margin-top: 20px;">
+            <div class="balance-card">
+              <div class="balance-label">Số Dư Điểm Tích Lũy</div>
+              <div class="balance-amount">{{ wallet?.currentPoints || 0 }}</div>
+              <div class="balance-label">Tổng điểm trọn đời: {{ wallet?.lifetimePoints || 0 }}</div>
+            </div>
+
+            <div style="font-size: 13px; color: #595959;">
+              <p><strong style="color: #262626;">SĐT Khách:</strong> {{ customer.phone }}</p>
+              <p>
+                <strong style="color: #262626;">Trạng thái:</strong>
+                <nz-tag [nzColor]="customer.status === 'ACTIVE' ? 'success' : 'default'">
+                  {{ customer.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng' }}
+                </nz-tag>
+              </p>
+              <p><strong style="color: #262626;">Ngày gia nhập:</strong> {{ customer.createdAt | date:'yyyy-MM-dd HH:mm' }}</p>
+            </div>
+          </div>
+        </nz-card>
+
+        <!-- Lịch Sử Giao Dịch Điểm -->
+        <nz-card *ngIf="customer" nzTitle="Lịch Sử Ví Điểm">
+          <st
+            #stHistory
+            [columns]="historyColumns"
+            [data]="pointHistory"
+            [total]="historyTotal"
+            [ps]="historySize"
+            [pi]="historyPage"
+            [loading]="loadingHistory"
+            [page]="{ show: true, showSize: false }"
+            (change)="onHistoryChange($event)"
+          >
+            <!-- Custom Render for Transaction Type -->
+            <ng-template st-row="type" let-item>
+              <span [ngSwitch]="item.transactionType">
+                <nz-tag *ngSwitchCase="'EARN'" nzColor="success">Tích điểm</nz-tag>
+                <nz-tag *ngSwitchCase="'REDEEM'" nzColor="warning">Đổi quà</nz-tag>
+                <nz-tag *ngSwitchCase="'EXPIRE'" nzColor="default">Hết hạn</nz-tag>
+                <nz-tag *ngSwitchCase="'ADJUSTMENT'" nzColor="processing">Điều chỉnh</nz-tag>
+              </span>
+            </ng-template>
+
+            <!-- Custom Render for Points Changed -->
+            <ng-template st-row="points" let-item>
+              <strong [style.color]="item.pointsChanged >= 0 ? '#52c41a' : '#f5222d'">
+                {{ item.pointsChanged >= 0 ? '+' : '' }}{{ item.pointsChanged }}
+              </strong>
+            </ng-template>
+          </st>
+        </nz-card>
+      </div>
+
+      <!-- Cột Ví Voucher và Quy Đổi Điểm -->
+      <div nz-col [nzXs]="24" [nzLg]="16">
+        <nz-card *ngIf="customer" [nzTitle]="'Ví Voucher Thành Viên'" [nzExtra]="extraRedeemAction">
+          <ng-template #extraRedeemAction>
+            <button *ngIf="hasRedeemPermission" nz-button nzType="primary" (click)="openRedeemModal(redeemTpl)">
+              <span nz-icon nzType="gift"></span> Đổi Điểm Lấy Voucher
+            </button>
+          </ng-template>
+
+          <div *ngIf="customerVouchers.length === 0" style="text-align: center; padding: 40px 0; color: #8c8c8c;">
+            <span nz-icon nzType="inbox" style="font-size: 40px; display: block; margin-bottom: 8px;"></span>
+            Khách hàng chưa có voucher nào trong ví.
+          </div>
+
+          <div class="voucher-grid" *ngIf="customerVouchers.length > 0">
+            <div class="voucher-card" *ngFor="let item of customerVouchers">
+              <div class="voucher-header">
+                <span>{{ item.voucher.title }}</span>
+                <nz-tag [nzColor]="item.status === 'AVAILABLE' ? 'success' : item.status === 'USED' ? 'purple' : 'error'">
+                  {{ item.status === 'AVAILABLE' ? 'Chưa dùng' : item.status === 'USED' ? 'Đã dùng' : 'Hết hạn' }}
+                </nz-tag>
+              </div>
+              <div class="voucher-body">
+                <div class="voucher-row">
+                  <span class="voucher-label">Số Seri:</span>
+                  <span class="voucher-value">{{ item.voucherSn }}</span>
+                </div>
+                <div class="voucher-row">
+                  <span class="voucher-label">Giảm giá:</span>
+                  <span class="voucher-value" style="color: #ff4d4f; font-weight: bold;">{{ item.voucher.discountPercent }}%</span>
+                </div>
+                <div class="voucher-row">
+                  <span class="voucher-label">Hóa đơn tối thiểu:</span>
+                  <span class="voucher-value">{{ item.voucher.minBillAmount | currency:'VND':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="voucher-row">
+                  <span class="voucher-label">Hạn sử dụng:</span>
+                  <span class="voucher-value">{{ item.voucher.expiredAt ? (item.voucher.expiredAt | date:'yyyy-MM-dd') : 'Vô thời hạn' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nz-card>
+
+        <nz-card *ngIf="!customer" style="text-align: center; padding: 60px 0; color: #8c8c8c;">
+          <span nz-icon nzType="user" style="font-size: 48px; display: block; margin-bottom: 12px; color: #d9d9d9;"></span>
+          Nhập số điện thoại khách hàng thành viên ở cột bên trái để thực hiện tra cứu thông tin tích điểm, xem ví voucher và quy đổi quà tặng.
+        </nz-card>
+      </div>
+    </div>
+  </nz-tab>
+
+  <!-- TAB 2: DANH MỤC VOUCHER HỆ THỐNG -->
+  <nz-tab nzTitle="Danh Mục Voucher Hệ Thống">
+    <nz-card [nzTitle]="'Quản Lý Các Loại Voucher'" [nzExtra]="extraCreateVoucher">
+      <ng-template #extraCreateVoucher>
+        <button *ngIf="hasCreatePermission" nz-button nzType="primary" (click)="openCreateVoucherModal(createTpl)">
+          <span nz-icon nzType="plus"></span> Thêm Voucher Mới
+        </button>
+      </ng-template>
+
+      <st
+        #stCatalog
+        [columns]="catalogColumns"
+        [data]="activeVouchers"
+        [total]="catalogTotal"
+        [ps]="catalogSize"
+        [pi]="catalogPage"
+        [loading]="loadingCatalog"
+        [page]="{ show: true, showSize: true }"
+        (change)="onCatalogChange($event)"
+      >
+        <!-- Custom Render for Expired At -->
+        <ng-template st-row="expiredAt" let-item>
+          {{ item.expiredAt ? (item.expiredAt | date:'yyyy-MM-dd') : 'Vô thời hạn' }}
+        </ng-template>
+
+        <!-- Custom Render for Toggle Active (Cho phép đổi) -->
+        <ng-template st-row="isActive" let-item>
+          <nz-switch
+            [ngModel]="item.isActive === 1"
+            (ngModelChange)="toggleVoucherActive(item, $event)"
+            [nzDisabled]="!hasCreatePermission"
+          />
+        </ng-template>
+      </st>
+    </nz-card>
+  </nz-tab>
+</nz-tabs>
+
+<!-- TEMPLATE MODAL: ĐỔI VOUCHER -->
+<ng-template #redeemTpl>
+  <div style="max-height: 400px; overflow-y: auto;">
+    <p>Chọn loại Voucher muốn đổi cho khách hàng (Số dư điểm: <strong style="color: #1890ff;">{{ wallet?.currentPoints }}</strong> điểm)</p>
+    <div *ngFor="let v of activeVouchers" style="border: 1px solid #f0f0f0; border-radius: 6px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h4 style="margin: 0; font-weight: 600;">{{ v.title }}</h4>
+        <span style="font-size: 12px; color: #8c8c8c; display: block; margin-top: 4px;">
+          Giảm: {{ v.discountPercent }}% (Bill min: {{ v.minBillAmount | currency:'VND':'symbol':'1.0-0' }})
+        </span>
+        <span style="font-size: 12px; color: #fa8c16; font-weight: 500; display: block; margin-top: 2px;">
+          Yêu cầu: {{ v.pointsRequired === 0 ? 'Miễn phí' : v.pointsRequired + ' điểm' }}
+        </span>
+      </div>
+      <button
+        nz-button
+        nzType="primary"
+        nzSize="small"
+        [disabled]="wallet ? wallet.currentPoints < v.pointsRequired : true"
+        (click)="redeemVoucher(v)"
+      >
+        Đổi Voucher
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- TEMPLATE MODAL: TẠO VOUCHER MỚI -->
+<ng-template #createTpl>
+  <form nz-form [formGroup]="voucherForm" [nzLayout]="'vertical'">
+    <!-- Tiêu đề -->
+    <nz-form-item>
+      <nz-form-label nzRequired>Tiêu Đề Voucher</nz-form-label>
+      <nz-form-control nzErrorTip="Vui lòng nhập tiêu đề voucher!">
+        <input nz-input formControlName="title" placeholder="Ví dụ: Voucher Giảm 10% Khai Trương" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <div nz-row [nzGutter]="16">
+      <!-- % Giảm giá -->
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>% Giảm Giá</nz-form-label>
+          <nz-form-control nzErrorTip="Phần trăm giảm giá phải từ 1 đến 100!">
+            <input type="number" nz-input formControlName="discountPercent" min="1" max="100" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Hóa đơn tối thiểu -->
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>Hóa Đơn Tối Thiểu (VNĐ)</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập giá trị hóa đơn tối thiểu!">
+            <input type="number" nz-input formControlName="minBillAmount" min="0" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div nz-row [nzGutter]="16">
+      <!-- Điểm quy đổi -->
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>Điểm Quy Đổi</nz-form-label>
+          <nz-form-control nzErrorTip="Điểm quy đổi không được âm (bằng 0 nếu phát miễn phí)!">
+            <input type="number" nz-input formControlName="pointsRequired" min="0" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Hạn sử dụng -->
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label>Hạn Được Phép Đổi (Expired At)</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker formControlName="expiredAt" style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+</ng-template>
+</ng-container>
+
+<ng-template #noPermissionTpl>
+  <nz-card style="margin-top: 24px; text-align: center; padding: 40px 0;">
+    <span nz-icon nzType="lock" style="font-size: 48px; color: #ff4d4f; display: block; margin-bottom: 16px;"></span>
+    <h3 style="font-weight: 600;">Không Có Quyền Truy Cập</h3>
+    <p style="color: #8c8c8c;">Tài khoản của bạn không có quyền xem thông tin khách hàng (Yêu cầu quyền CUSTOMER_READ).</p>
+    <button nz-button nzType="primary" style="margin-top: 8px;" routerLink="/portal/dashboard">Quay lại Trang chủ</button>
+  </nz-card>
+</ng-template>
