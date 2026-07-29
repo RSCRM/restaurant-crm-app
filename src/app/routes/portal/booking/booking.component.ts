@@ -19,7 +19,6 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
 import { BookingStatus, BookingResponse } from './booking.model';
 import { BookingService } from './booking.service';
 import { BookingFormComponent } from './booking-form/booking-form.component';
-import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 
 @Component({
   selector: 'app-booking',
@@ -37,8 +36,7 @@ import { HasPermissionDirective } from '../../../shared/directives/has-permissio
     NzSelectModule,
     NzFormModule,
     NzGridModule,
-    STModule,
-    HasPermissionDirective
+    STModule
   ],
   templateUrl: './booking.component.html',
   styles: [
@@ -77,6 +75,8 @@ export class BookingComponent implements OnInit, OnDestroy {
 
   branchId: string | null = null;
   loading = false;
+  hasCreatePermission = false;
+  hasUpdatePermission = false;
 
   // Pagination & Lists
   bookingsList: BookingResponse[] = [];
@@ -131,7 +131,10 @@ export class BookingComponent implements OnInit, OnDestroy {
     if (!token) return null;
     try {
       const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) {
+        base64 += '=';
+      }
       const jsonPayload = decodeURIComponent(
         atob(base64)
           .split('')
@@ -145,9 +148,33 @@ export class BookingComponent implements OnInit, OnDestroy {
     }
   }
 
+  private hasPermissionInToken(token: string | null, permission: string): boolean {
+    if (!token) return false;
+    try {
+      const base64Url = token.split('.')[1];
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) {
+        base64 += '=';
+      }
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const payload = JSON.parse(jsonPayload);
+      const permissions = payload.permission || [];
+      return permissions.includes(permission);
+    } catch {
+      return false;
+    }
+  }
+
   ngOnInit(): void {
     this.store.select(selectContextToken).subscribe(token => {
       this.branchId = this.getBranchIdFromToken(token);
+      this.hasCreatePermission = this.hasPermissionInToken(token, 'BOOKING_CREATE');
+      this.hasUpdatePermission = this.hasPermissionInToken(token, 'BOOKING_UPDATE');
       if (this.branchId) {
         this.loadData();
       }
