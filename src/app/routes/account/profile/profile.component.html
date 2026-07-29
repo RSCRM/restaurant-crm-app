@@ -1,0 +1,95 @@
+<page-header [title]="'Thông tin cá nhân'" [action]="actionTpl">
+  <ng-template #actionTpl>
+    <button nz-button nzType="default" (click)="loadProfile()" [nzLoading]="loading">
+      <span nz-icon nzType="reload"></span>
+      Tải lại
+    </button>
+  </ng-template>
+</page-header>
+
+@if (errorMsg) {
+  <nz-alert nzType="error" [nzMessage]="errorMsg" nzShowIcon class="mb-md" />
+}
+
+<nz-card [nzLoading]="loading">
+  @if (profile; as profile) {
+    <div class="profile-container">
+      <!-- Header Summary Card -->
+      <div class="profile-header">
+        <div class="avatar-wrapper">
+          <nz-avatar [nzSize]="80" nzIcon="user" class="profile-avatar" />
+        </div>
+        <div class="profile-title-area">
+          <h2 class="user-name">
+            {{ profile.fullName || profile.username }}
+            <nz-tag [nzColor]="getStatusColor(profile.status)">
+              {{ getStatusText(profile.status) }}
+            </nz-tag>
+          </h2>
+          <p class="user-username">&#64;{{ profile.username }}</p>
+        </div>
+      </div>
+
+      <nz-card nzTitle="Thông tin chi tiết" class="detail-card" [nzBordered]="false">
+        <sv-container col="2" size="large">
+          <sv label="Mã tài khoản">
+            <code>{{ profile.id }}</code>
+          </sv>
+          <sv label="Tên đăng nhập">
+            <strong>{{ profile.username }}</strong>
+          </sv>
+          <sv label="Họ và tên">
+            @if (profile.fullName) {
+              <span>{{ profile.fullName }}</span>
+            } @else {
+              <span class="text-placeholder">Chưa cập nhật</span>
+            }
+          </sv>
+          <sv label="Email">
+            <a [href]="'mailto:' + profile.email">{{ profile.email }}</a>
+          </sv>
+          <sv label="Số điện thoại">
+            @if (profile.phone) {
+              <span>{{ profile.phone }}</span>
+            } @else {
+              <span class="text-placeholder">Chưa cập nhật</span>
+            }
+          </sv>
+          <sv label="Trạng thái">
+            <nz-tag [nzColor]="getStatusColor(profile.status)">
+              {{ getStatusText(profile.status) }}
+            </nz-tag>
+          </sv>
+          <sv label="Ngày tạo tài khoản">
+            {{ profile.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}
+          </sv>
+        </sv-container>
+      </nz-card>
+
+      <!-- Roles & Permissions Card -->
+      <nz-card nzTitle="Vai trò & Quyền hạn" class="roles-card" [nzBordered]="false">
+        @if (profile.roles.length > 0) {
+          <div class="roles-list">
+            @for (role of profile.roles; track role.id) {
+              <div class="role-item">
+                <nz-tag nzColor="blue" class="role-tag">
+                  <span nz-icon nzType="safety-certificate" nzTheme="outline"></span>
+                  {{ role.roleName }}
+                </nz-tag>
+                @if (role.permissions.length > 0) {
+                  <div class="permission-chips">
+                    @for (permission of role.permissions; track permission.id) {
+                      <span class="perm-chip">{{ permission.permissionName }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <span class="text-placeholder">Chưa được gán vai trò nào</span>
+        }
+      </nz-card>
+    </div>
+  }
+</nz-card>

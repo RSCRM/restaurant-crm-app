@@ -21,5 +21,9 @@ export const routes: Routes = [
   {
     path: 'user',
     loadComponent: () => import('./user/user.component').then(m => m.UserComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('../account/profile/profile.component').then(m => m.ProfileComponent)
   }
 ];

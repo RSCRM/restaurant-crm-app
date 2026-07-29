@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { permissionGuard } from '../auth/guards/permission.guard';
 
 export const routes: Routes = [
@@ -40,5 +41,9 @@ export const routes: Routes = [
     path: 'invoice',
     canActivate: [permissionGuard('PAYMENT_READ')],
     loadComponent: () => import('./invoice/invoice.component').then(m => m.InvoiceComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('../account/profile/profile.component').then(m => m.ProfileComponent)
   }
 ];

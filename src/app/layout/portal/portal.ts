@@ -1,14 +1,14 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { Store } from '@ngrx/store';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
 
 import { AuthActions } from '../../routes/auth/store/auth.actions';
 import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
@@ -18,10 +18,11 @@ import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
   standalone: true,
   imports: [
     AsyncPipe,
+    RouterLink,
     RouterOutlet,
     LayoutDefaultModule,
     NzIconModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzAvatarModule,
     NzBadgeModule,
@@ -31,7 +32,6 @@ import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
 })
 export class LayoutPortal {
   private store = inject(Store);
-  private router = inject(Router);
   private settingsService = inject(SettingsService);
   private menuService = inject(MenuService);
 

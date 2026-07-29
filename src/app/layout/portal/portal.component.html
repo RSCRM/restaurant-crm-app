@@ -8,11 +8,16 @@
   </layout-default-header-item>
   <layout-default-header-item direction="right">
     <div class="alain-default__nav-item" nz-dropdown [nzDropdownMenu]="userMenu" nzPlacement="bottomRight">
-      <nz-avatar [nzSrc]="(user$ | async)?.avatar || ''" nzSize="small" class="alain-default__nav-item-avatar"></nz-avatar>
+      <nz-avatar [nzSrc]="(user$ | async)?.avatar || ''" nzSize="small" class="alain-default__nav-item-avatar" />
       <span class="alain-default__nav-item-text">{{ (user$ | async)?.fullName || 'User' }}</span>
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <ul nz-menu>
+        <li nz-menu-item routerLink="/portal/profile">
+          <span nz-icon nzType="user" nzTheme="outline" class="mr-sm"></span>
+          Thông tin cá nhân
+        </li>
+        <li nz-menu-divider></li>
         <li nz-menu-item (click)="logout()">{{ 'menu.account.logout' | i18n }}</li>
       </ul>
     </nz-dropdown-menu>
