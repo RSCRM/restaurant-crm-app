@@ -1,0 +1,18 @@
+<div class="modal-header">
+  <div class="modal-title">{{ mode === 'replace' ? 'Replace Manager' : 'Assign Manager' }}</div>
+  <div class="modal-subtitle">{{ branch.branchName }}</div>
+</div>
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">Employee ID</nz-form-label>
+    <nz-form-control nzErrorTip="Vui lòng nhập Employee ID">
+      <input nz-input formControlName="managerId" placeholder="VD: e0000000-0000-0000-0000-000000000001" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()" [disabled]="submitting">Hủy</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="submitting" [disabled]="form.invalid || submitting"> Cập nhật </button>
+  </div>
+</form>

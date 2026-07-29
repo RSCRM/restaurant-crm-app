@@ -1,14 +1,14 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { Store } from '@ngrx/store';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
 
 import { AuthActions } from '../../routes/auth/store/auth.actions';
 import { selectAuthUser, selectHasContext } from '../../routes/auth/store/auth.selectors';
@@ -21,7 +21,7 @@ import { selectAuthUser, selectHasContext } from '../../routes/auth/store/auth.s
     RouterOutlet,
     LayoutDefaultModule,
     NzIconModule,
-    NzDropDownModule,
+    NzDropdownModule,
     NzMenuModule,
     NzAvatarModule,
     NzBadgeModule,
@@ -62,9 +62,7 @@ export class LayoutPortal implements OnInit {
         text: 'Tổ chức',
         group: true,
         hideInBreadcrumb: true,
-        children: [
-          { text: 'Chọn tổ chức', icon: 'bank', link: '/portal/context-select' }
-        ]
+        children: [{ text: 'Chọn tổ chức', icon: 'bank', link: '/portal/context-select' }]
       },
       {
         text: 'Quản lý nhà hàng',
@@ -72,6 +70,7 @@ export class LayoutPortal implements OnInit {
         hideInBreadcrumb: true,
         children: [
           { text: 'Dashboard', i18n: 'menu.dashboard', icon: 'dashboard', link: '/portal/dashboard', disabled: !hasContext },
+          { text: 'Chi nhánh', icon: 'fork', link: '/portal/branch', disabled: !hasContext },
           { text: 'Quản lý Đơn hàng', icon: 'shopping-cart', link: '/portal/order', disabled: !hasContext },
           { text: 'Quản lý Thực đơn', icon: 'coffee', link: '/portal/menu', disabled: !hasContext },
           { text: 'Quản lý Bàn', icon: 'table', link: '/portal/table', disabled: !hasContext },

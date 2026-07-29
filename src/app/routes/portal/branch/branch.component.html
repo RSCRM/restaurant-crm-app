@@ -1,0 +1,113 @@
+<page-header [title]="'Chi nhánh'" />
+
+<div class="branch-page">
+  <div class="branch-toolbar">
+    @if (!selectedContext?.branchId && branchOptions.length > 1) {
+      <nz-select [(ngModel)]="selectedBranchId" (ngModelChange)="onBranchChange($event)" [nzDisabled]="loadingBranch">
+        @for (option of branchOptions; track option.id) {
+          <nz-option [nzValue]="option.id" [nzLabel]="option.branchName" />
+        }
+      </nz-select>
+    }
+
+    <button nz-button type="button" (click)="reload()" [disabled]="loadingBranch || loadingManager">
+      <span nz-icon nzType="reload" nzTheme="outline"></span>
+      Tải lại
+    </button>
+  </div>
+
+  @if (errorMessage) {
+    <nz-alert nzType="error" [nzMessage]="errorMessage" nzShowIcon />
+  }
+
+  <nz-card>
+    <div class="section-header">
+      <h2>Thông tin chi nhánh</h2>
+      @if (branch?.status; as status) {
+        <nz-tag [nzColor]="getBranchStatusColor(status)">{{ getBranchStatusText(status) }}</nz-tag>
+      }
+    </div>
+
+    @if (loadingBranch) {
+      <nz-skeleton [nzActive]="true" />
+    } @else if (branch) {
+      <nz-descriptions nzBordered [nzColumn]="1">
+        <nz-descriptions-item nzTitle="Branch Name">{{ branch.branchName }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Branch ID">{{ branch.id }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Address">{{ branch.address || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Phone">{{ branch.phone || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Status">
+          @if (branch.status) {
+            <nz-tag [nzColor]="getBranchStatusColor(branch.status)">{{ getBranchStatusText(branch.status) }}</nz-tag>
+          } @else {
+            -
+          }
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Organization">
+          {{ selectedContext?.organizationName || selectedContext?.organizationId || '-' }}
+        </nz-descriptions-item>
+      </nz-descriptions>
+    } @else {
+      <nz-empty nzNotFoundContent="Không tìm thấy chi nhánh trong context hiện tại" />
+    }
+  </nz-card>
+
+  <nz-card>
+    <div class="section-header">
+      <h2>Quản lý chi nhánh</h2>
+      <div class="manager-actions">
+        @if (!manager) {
+          <button nz-button nzType="primary" type="button" (click)="openManagerForm('assign')" [disabled]="!branch || !canAssignManager">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>
+            Gán quản lý
+          </button>
+        } @else {
+          <button nz-button type="button" (click)="openManagerForm('replace')" [disabled]="!canAssignManager">
+            <span nz-icon nzType="edit" nzTheme="outline"></span>
+            Thay quản lý
+          </button>
+          <button
+            nz-button
+            nzDanger
+            type="button"
+            nz-popconfirm
+            nzPopconfirmTitle="Xác nhận gỡ quản lý khỏi chi nhánh?"
+            (nzOnConfirm)="removeManager()"
+            [disabled]="!canAssignManager || removingManager"
+            [nzLoading]="removingManager"
+          >
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
+            Gỡ quản lý
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (loadingManager) {
+      <nz-skeleton [nzActive]="true" />
+    } @else if (manager) {
+      <nz-descriptions nzBordered [nzColumn]="1">
+        <nz-descriptions-item nzTitle="Manager Name">{{ manager.managerName || manager.username || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Username">{{ manager.username || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Email">{{ manager.email || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Phone">{{ manager.phone || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Org Role">{{ manager.orgRoleName || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Employee Status">
+          <nz-tag [nzColor]="manager.status === 'ACTIVE' ? 'success' : manager.status === 'TERMINATED' ? 'error' : 'warning'">
+            {{ manager.status || '-' }}
+          </nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="User Enabled">
+          <nz-tag [nzColor]="manager.enabled ? 'success' : 'error'">{{ manager.enabled ? 'Enabled' : 'Disabled' }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Start Date">{{ manager.startDate || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="End Date">{{ manager.endDate || '-' }}</nz-descriptions-item>
+      </nz-descriptions>
+    } @else {
+      <nz-empty nzNotFoundContent="Chi nhánh chưa có quản lý" />
+      @if (managerErrorMessage) {
+        <nz-alert nzType="info" [nzMessage]="managerErrorMessage" nzShowIcon class="manager-note" />
+      }
+    }
+  </nz-card>
+</div>

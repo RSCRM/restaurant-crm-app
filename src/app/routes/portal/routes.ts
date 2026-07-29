@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { contextGuard } from '../auth/guards/context.guard';
 import { permissionGuard } from '../auth/guards/permission.guard';
 
@@ -12,6 +13,11 @@ export const routes: Routes = [
     path: 'dashboard',
     canActivate: [contextGuard],
     loadComponent: () => import('./dashboard/portal-dashboard.component').then(m => m.PortalDashboardComponent)
+  },
+  {
+    path: 'branch',
+    canActivate: [contextGuard, permissionGuard('ORGANIZATION_BRANCH_VIEW')],
+    loadComponent: () => import('./branch/branch.component').then(m => m.BranchComponent)
   },
   {
     path: 'order',

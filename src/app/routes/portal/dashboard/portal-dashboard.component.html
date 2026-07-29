@@ -1,25 +1,88 @@
-<div style="padding: 24px;">
-  <h2 nz-typography>Bảng điều khiển</h2>
+<page-header [title]="'Bảng điều khiển'" />
+
+<div class="dashboard-page">
+  @if (dashboardError) {
+    <nz-alert nzType="error" [nzMessage]="dashboardError" nzShowIcon />
+  }
+
+  <nz-card>
+    <div class="context-header">
+      <div>
+        <div class="context-label">Chi nhánh hiện tại</div>
+        <h2>{{ currentOrganizationName || 'Chưa có tổ chức' }} - {{ currentBranchName || 'Chưa chọn chi nhánh' }}</h2>
+        <nz-tag nzColor="blue">Vai trò: {{ currentRole || '-' }}</nz-tag>
+      </div>
+
+      <div class="context-actions">
+        @if (branchOptions.length > 1) {
+          <nz-select [(ngModel)]="currentBranchId" (ngModelChange)="onBranchChange($event)" [nzDisabled]="loadingContext">
+            @for (branch of branchOptions; track branch.id) {
+              <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+            }
+          </nz-select>
+        }
+        <button nz-button nzType="primary" type="button" (click)="goToBranch()">
+          <span nz-icon nzType="fork" nzTheme="outline"></span>
+          Xem chi nhánh
+        </button>
+      </div>
+    </div>
+
+    @if (loadingContext) {
+      <nz-skeleton [nzActive]="true" />
+    } @else if (!currentBranchId) {
+      <nz-empty nzNotFoundContent="Context hiện tại chưa có chi nhánh" />
+    }
+  </nz-card>
+
+  <nz-alert nzType="info" [nzMessage]="summaryMessage" nzShowIcon />
+
   <div nz-row [nzGutter]="[16, 16]">
-    <div nz-col [nzSpan]="6">
+    <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
       <nz-card>
-        <nz-statistic [nzValue]="0" nzTitle="Đơn hàng hôm nay" nzPrefix=""></nz-statistic>
+        <nz-statistic [nzValue]="dashboardSummary.todayOrders" nzTitle="Đơn hàng hôm nay" [nzLoading]="loadingSummary" />
       </nz-card>
     </div>
-    <div nz-col [nzSpan]="6">
+    <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
       <nz-card>
-        <nz-statistic [nzValue]="0" nzTitle="Doanh thu" nzPrefix="$"></nz-statistic>
+        <nz-statistic [nzValue]="dashboardSummary.revenue" nzTitle="Doanh thu" nzPrefix="₫" [nzLoading]="loadingSummary" />
       </nz-card>
     </div>
-    <div nz-col [nzSpan]="6">
+    <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
       <nz-card>
-        <nz-statistic [nzValue]="0" nzTitle="Đặt bàn"></nz-statistic>
+        <nz-statistic [nzValue]="dashboardSummary.bookings" nzTitle="Đặt bàn" [nzLoading]="loadingSummary" />
       </nz-card>
     </div>
-    <div nz-col [nzSpan]="6">
+    <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="6">
       <nz-card>
-        <nz-statistic [nzValue]="0" nzTitle="Khách hàng mới"></nz-statistic>
+        <nz-statistic [nzValue]="dashboardSummary.newCustomers" nzTitle="Khách hàng mới" [nzLoading]="loadingSummary" />
       </nz-card>
     </div>
   </div>
+
+  <nz-card>
+    <div class="manager-header">
+      <h2>Quản lý chi nhánh</h2>
+      <button nz-button type="button" (click)="goToBranch()">
+        <span nz-icon nzType="eye" nzTheme="outline"></span>
+        Xem chi nhánh
+      </button>
+    </div>
+
+    @if (loadingManager) {
+      <nz-skeleton [nzActive]="true" />
+    } @else if (manager) {
+      <nz-descriptions nzBordered [nzColumn]="1">
+        <nz-descriptions-item nzTitle="Manager Name">{{ manager.managerName || manager.username || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Email">{{ manager.email || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Org Role">{{ manager.orgRoleName || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Status">{{ manager.status || '-' }}</nz-descriptions-item>
+      </nz-descriptions>
+    } @else {
+      <nz-empty nzNotFoundContent="Chi nhánh chưa có quản lý" />
+      @if (managerMessage) {
+        <nz-alert nzType="info" [nzMessage]="managerMessage" nzShowIcon class="manager-note" />
+      }
+    }
+  </nz-card>
 </div>
