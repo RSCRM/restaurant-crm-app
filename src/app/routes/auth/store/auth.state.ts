@@ -3,6 +3,7 @@ export interface AuthState {
   refreshToken: string | null;
   contextToken: string | null;
   contexts: ContextInfo[];
+  selectedContext: SelectedContext | null;
   systemRoles: string[];
   user: AuthUser | null;
   permissions: string[];
@@ -19,6 +20,15 @@ export interface ContextInfo {
   role: string;
 }
 
+export interface SelectedContext {
+  employeeId: string | null;
+  organizationId: string | null;
+  organizationName: string | null;
+  branchId: string | null;
+  branchName: string | null;
+  role: string | null;
+}
+
 export interface AuthUser {
   userId: string;
   email: string;
@@ -31,6 +41,7 @@ export const initialAuthState: AuthState = {
   refreshToken: null,
   contextToken: null,
   contexts: [],
+  selectedContext: null,
   systemRoles: [],
   user: null,
   permissions: [],

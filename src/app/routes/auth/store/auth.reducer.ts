@@ -6,11 +6,13 @@ import { AuthState, initialAuthState } from './auth.state';
 export const authReducer = createReducer(
   initialAuthState,
 
-  on(AuthActions.restoreAuth, (state, { accessToken, systemRoles, contextToken }): AuthState => ({
+  on(AuthActions.restoreAuth, (state, { accessToken, systemRoles, contextToken, permissions, selectedContext }): AuthState => ({
     ...state,
     accessToken,
     systemRoles,
-    contextToken
+    contextToken,
+    permissions,
+    selectedContext
   })),
 
   on(AuthActions.login, (state): AuthState => ({
@@ -41,9 +43,11 @@ export const authReducer = createReducer(
     error: null
   })),
 
-  on(AuthActions.selectContextSuccess, (state, { contextToken }): AuthState => ({
+  on(AuthActions.selectContextSuccess, (state, { contextToken, permissions, selectedContext }): AuthState => ({
     ...state,
     contextToken,
+    permissions,
+    selectedContext,
     loading: false,
     error: null
   })),
@@ -52,6 +56,11 @@ export const authReducer = createReducer(
     ...state,
     loading: false,
     error
+  })),
+
+  on(AuthActions.updateSelectedContext, (state, { selectedContext }): AuthState => ({
+    ...state,
+    selectedContext
   })),
 
   on(AuthActions.logoutSuccess, (): AuthState => ({

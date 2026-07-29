@@ -4,8 +4,10 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { catchError, exhaustMap, map, of, switchMap, tap } from 'rxjs';
 
-import { AuthService } from '../services/auth.service';
 import { AuthActions } from './auth.actions';
+import { SelectedContext } from './auth.state';
+import { TokenPayload } from '../models/auth.model';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthEffects {
@@ -27,7 +29,17 @@ export class AuthEffects {
           if (contextToken) {
             this.authService.setToken(contextToken, 72 * 60 * 60 * 1000);
           }
-          return of(AuthActions.restoreAuth({ accessToken, systemRoles, contextToken }));
+          const restoredContext = this.getContextState(contextToken);
+          const persistedContext = this.authService.getSelectedContext();
+          return of(
+            AuthActions.restoreAuth({
+              accessToken,
+              systemRoles,
+              contextToken,
+              permissions: restoredContext.permissions,
+              selectedContext: this.mergeSelectedContext(restoredContext.selectedContext, persistedContext)
+            })
+          );
         }
         return of();
       })
@@ -62,16 +74,18 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(({ accessToken, systemRoles }) => {
-          this.authService.setAccessToken(accessToken);
-          this.authService.setSystemRoles(systemRoles);
-          if (systemRoles.includes('ADMIN')) {
-            // ADMIN: use accessToken as the main API token
-            this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
-            this.router.navigate(['/admin/dashboard']);
-          } else {
-            // USER: redirect to context-select within portal
-            this.router.navigate(['/portal/context-select']);
+        tap({
+          next: ({ accessToken, systemRoles }) => {
+            this.authService.setAccessToken(accessToken);
+            this.authService.setSystemRoles(systemRoles);
+            if (systemRoles.includes('ADMIN')) {
+              // ADMIN: use accessToken as the main API token
+              this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
+              this.router.navigate(['/admin/dashboard']);
+            } else {
+              // USER: redirect to context-select within portal
+              this.router.navigate(['/portal/context-select']);
+            }
           }
         })
       ),
@@ -82,14 +96,28 @@ export class AuthEffects {
   selectContext$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.selectContext),
-      switchMap(({ organizationId, employeeId, role }) => {
+      switchMap(({ organizationId, organizationName, employeeId, branchId, branchName, role }) => {
         const accessToken = this.authService.getAccessToken();
         return this.authService.selectContext({ organizationId, employeeId, role }, accessToken || '').pipe(
           map(response => {
             // contextToken is the main API token for business calls
             this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);
             this.authService.setContextToken(response.contextToken);
-            return AuthActions.selectContextSuccess({ contextToken: response.contextToken });
+            const contextState = this.getContextState(response.contextToken);
+            const selectedContext = this.mergeSelectedContext(contextState.selectedContext, {
+              employeeId: employeeId ?? null,
+              organizationId,
+              organizationName: organizationName ?? null,
+              branchId: branchId ?? null,
+              branchName: branchName ?? null,
+              role
+            });
+            this.authService.setSelectedContext(selectedContext);
+            return AuthActions.selectContextSuccess({
+              contextToken: response.contextToken,
+              permissions: contextState.permissions,
+              selectedContext
+            });
           }),
           catchError(err => {
             const message = err?.error?.errorMessage?.message || err?.error?.message || err?.message || 'Chọn context thất bại';
@@ -105,8 +133,10 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.selectContextSuccess),
-        tap(() => {
-          this.router.navigate(['/portal/dashboard']);
+        tap({
+          next: () => {
+            this.router.navigate(['/portal/dashboard']);
+          }
         })
       ),
     { dispatch: false }
@@ -136,8 +166,10 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.logoutSuccess),
-        tap(() => {
-          this.router.navigate(['/auth/login']);
+        tap({
+          next: () => {
+            this.router.navigate(['/auth/login']);
+          }
         })
       ),
     { dispatch: false }
@@ -147,10 +179,58 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginFailure, AuthActions.selectContextFailure),
-        tap(({ error }) => {
-          this.notification.error('Lỗi', error);
+        tap({
+          next: ({ error }) => {
+            this.notification.error('Lỗi', error);
+          }
         })
       ),
     { dispatch: false }
   );
+
+  private getContextState(contextToken: string | null): { permissions: string[]; selectedContext: SelectedContext | null } {
+    if (!contextToken) {
+      return { permissions: [], selectedContext: null };
+    }
+
+    const payload = this.authService.parseJwtPayload(contextToken) as Partial<TokenPayload>;
+    const selectedContext: SelectedContext = {
+      employeeId: this.toNullableString(payload.employeeId),
+      organizationId: this.toNullableString(payload.organizationId),
+      organizationName: null,
+      branchId: this.toNullableString(payload.branchId),
+      branchName: null,
+      role: this.toNullableString(payload.orgRole)
+    };
+
+    return {
+      permissions: this.toStringArray(payload.permission),
+      selectedContext
+    };
+  }
+
+  private toNullableString(value: unknown): string | null {
+    return typeof value === 'string' && value.length > 0 ? value : null;
+  }
+
+  private toStringArray(value: unknown): string[] {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string');
+    }
+
+    return typeof value === 'string' && value.length > 0 ? [value] : [];
+  }
+
+  private mergeSelectedContext(tokenContext: SelectedContext | null, savedContext: SelectedContext | null): SelectedContext | null {
+    if (!tokenContext && !savedContext) return null;
+
+    return {
+      employeeId: tokenContext?.employeeId ?? savedContext?.employeeId ?? null,
+      organizationId: tokenContext?.organizationId ?? savedContext?.organizationId ?? null,
+      organizationName: savedContext?.organizationName ?? tokenContext?.organizationName ?? null,
+      branchId: tokenContext?.branchId ?? savedContext?.branchId ?? null,
+      branchName: savedContext?.branchName ?? tokenContext?.branchName ?? null,
+      role: tokenContext?.role ?? savedContext?.role ?? null
+    };
+  }
 }
