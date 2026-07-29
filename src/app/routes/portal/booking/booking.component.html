@@ -38,9 +38,9 @@
         </button>
       </nz-form-item>
 
-      <!-- Add Booking Button (Protected by appHasPermission) -->
+      <!-- Add Booking Button (Protected by local permission check) -->
       <div style="margin-left: auto; display: flex; align-items: center;">
-        <button *appHasPermission="'BOOKING_CREATE'" nz-button nzType="primary" (click)="openCreateBooking()">
+        <button *ngIf="hasCreatePermission" nz-button nzType="primary" (click)="openCreateBooking()">
           <span nz-icon nzType="plus"></span>Tạo Đặt Bàn
         </button>
       </div>
@@ -98,7 +98,7 @@
         </button>
 
         <!-- Hủy đặt bàn (Cancel) -->
-        <ng-container *appHasPermission="'BOOKING_UPDATE'">
+        <ng-container *ngIf="hasUpdatePermission">
           <button
             *ngIf="item.status === 'CONFIRMED' || item.status === 'PENDING'"
             nz-button
