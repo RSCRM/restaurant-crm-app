@@ -4,20 +4,32 @@ import { PageHeaderModule } from '@delon/abc/page-header';
 import { Store } from '@ngrx/store';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { combineLatest, map } from 'rxjs';
 
 import { AuthActions } from '../../auth/store/auth.actions';
-import { selectAuthLoading, selectContexts } from '../../auth/store/auth.selectors';
-import { ContextInfo } from '../../auth/store/auth.state';
+import { selectAuthLoading, selectContexts, selectSelectedContext } from '../../auth/store/auth.selectors';
+import { ContextInfo, SelectedContext } from '../../auth/store/auth.state';
 
 @Component({
   selector: 'app-context-select',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AsyncPipe, NzCardModule, NzButtonModule, NzTagModule, NzTypographyModule, NzIconModule, NzSpinModule, PageHeaderModule],
+  imports: [
+    AsyncPipe,
+    NzCardModule,
+    NzButtonModule,
+    NzTagModule,
+    NzTypographyModule,
+    NzIconModule,
+    NzSpinModule,
+    NzEmptyModule,
+    PageHeaderModule
+  ],
   templateUrl: './context-select.component.html',
   styleUrl: './context-select.component.less'
 })
@@ -25,7 +37,9 @@ export class ContextSelectComponent implements OnInit {
   private store = inject(Store);
   private cdr = inject(ChangeDetectorRef);
 
-  contexts$ = this.store.select(selectContexts);
+  contexts$ = combineLatest([this.store.select(selectContexts), this.store.select(selectSelectedContext)]).pipe(
+    map(([contexts, selectedContext]) => (contexts.length > 0 ? contexts : this.createContextsFromSelectedContext(selectedContext)))
+  );
   loading$ = this.store.select(selectAuthLoading);
 
   ngOnInit(): void {
@@ -43,5 +57,22 @@ export class ContextSelectComponent implements OnInit {
         role: context.role
       })
     );
+  }
+
+  private createContextsFromSelectedContext(selectedContext: SelectedContext | null): ContextInfo[] {
+    if (!selectedContext?.organizationId || !selectedContext.role) {
+      return [];
+    }
+
+    return [
+      {
+        employeeId: selectedContext.employeeId,
+        organizationId: selectedContext.organizationId,
+        organizationName: selectedContext.organizationName ?? selectedContext.organizationId,
+        branchId: selectedContext.branchId,
+        branchName: selectedContext.branchName,
+        role: selectedContext.role
+      }
+    ];
   }
 }

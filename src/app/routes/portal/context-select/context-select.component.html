@@ -4,13 +4,13 @@
 
   <nz-spin [nzSpinning]="loading$ | async">
     <div class="context-grid">
-      @for (ctx of contexts$ | async; track ctx.organizationId) {
+      @for (ctx of contexts$ | async; track ctx.organizationId + ':' + (ctx.branchId || ctx.role)) {
         <div class="context-item">
           <nz-card [nzTitle]="ctx.organizationName" nzHoverable>
             @if (ctx.branchName) {
               <p><strong>Chi nhánh:</strong> {{ ctx.branchName }}</p>
             }
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 12px">
               <nz-tag nzColor="blue">{{ ctx.role }}</nz-tag>
             </div>
             <button nz-button nzType="primary" nzBlock (click)="selectContext(ctx)" [nzLoading]="loading$ | async">
@@ -19,6 +19,8 @@
             </button>
           </nz-card>
         </div>
+      } @empty {
+        <nz-empty nzNotFoundContent="Không tìm thấy tổ chức trong phiên đăng nhập hiện tại" />
       }
     </div>
   </nz-spin>
