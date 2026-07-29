@@ -4,7 +4,7 @@ import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN } from '@delon/auth';
 import { Observable, map } from 'rxjs';
 
 import { ApiResponse, ContextSelectionRequest, ContextSelectionResponse, LoginRequest, LoginResponse } from '../models/auth.model';
-import type { SelectedContext } from '../store/auth.state';
+import type { ContextInfo, SelectedContext } from '../store/auth.state';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -56,6 +56,20 @@ export class AuthService {
     }
   }
 
+  setContexts(contexts: ContextInfo[]): void {
+    localStorage.setItem('auth_contexts', JSON.stringify(contexts));
+  }
+
+  getContexts(): ContextInfo[] {
+    try {
+      const raw = localStorage.getItem('auth_contexts');
+      const value: unknown = raw ? JSON.parse(raw) : [];
+      return Array.isArray(value) ? value.filter((item): item is ContextInfo => this.isContextInfo(item)) : [];
+    } catch {
+      return [];
+    }
+  }
+
   setContextToken(token: string): void {
     localStorage.setItem('auth_contextToken', token);
   }
@@ -74,6 +88,7 @@ export class AuthService {
 
   clearPersistedAuth(): void {
     localStorage.removeItem('auth_systemRoles');
+    localStorage.removeItem('auth_contexts');
     localStorage.removeItem('auth_contextToken');
     localStorage.removeItem('auth_accessToken');
     localStorage.removeItem('auth_selectedContext');
@@ -132,5 +147,19 @@ export class AuthService {
 
     const message = (errorMessage as Record<string, unknown>)['message'];
     return typeof message === 'string' && message.length > 0 ? message : null;
+  }
+
+  private isContextInfo(value: unknown): value is ContextInfo {
+    if (typeof value !== 'object' || value === null) return false;
+
+    const context = value as Record<string, unknown>;
+    return (
+      typeof context['organizationId'] === 'string' &&
+      typeof context['organizationName'] === 'string' &&
+      (typeof context['employeeId'] === 'string' || context['employeeId'] === null) &&
+      (typeof context['branchId'] === 'string' || context['branchId'] === null) &&
+      (typeof context['branchName'] === 'string' || context['branchName'] === null) &&
+      typeof context['role'] === 'string'
+    );
   }
 }

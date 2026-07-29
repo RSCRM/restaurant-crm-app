@@ -31,10 +31,12 @@ export class AuthEffects {
           }
           const restoredContext = this.getContextState(contextToken);
           const persistedContext = this.authService.getSelectedContext();
+          const contexts = this.authService.getContexts();
           return of(
             AuthActions.restoreAuth({
               accessToken,
               systemRoles,
+              contexts,
               contextToken,
               permissions: restoredContext.permissions,
               selectedContext: this.mergeSelectedContext(restoredContext.selectedContext, persistedContext)
@@ -75,8 +77,9 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap({
-          next: ({ accessToken, systemRoles }) => {
+          next: ({ accessToken, contexts, systemRoles }) => {
             this.authService.setAccessToken(accessToken);
+            this.authService.setContexts(contexts);
             this.authService.setSystemRoles(systemRoles);
             if (systemRoles.includes('ADMIN')) {
               // ADMIN: use accessToken as the main API token

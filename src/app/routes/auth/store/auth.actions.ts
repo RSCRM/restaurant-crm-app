@@ -9,6 +9,7 @@ export const AuthActions = createActionGroup({
     'Restore Auth': props<{
       accessToken: string;
       systemRoles: string[];
+      contexts: ContextInfo[];
       contextToken: string | null;
       permissions: string[];
       selectedContext: SelectedContext | null;
