@@ -1,1 +1,44 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+  --crm-primary-color: @primary-color;
+  --crm-primary-hover: @primary-color-hover;
+  --crm-primary-active: @primary-color-active;
+  --crm-primary-bg: @alain-default-aside-nav-selected-bg;
+  --alain-default-header-bg: var(--crm-primary-color);
+  --alain-default-heading-border: var(--crm-primary-bg);
+  --alain-default-aside-nav-selected-bg: var(--crm-primary-bg);
+}
+
+[class~='alain-default__header'] {
+  background-color: var(--crm-primary-color);
+}
+
+[class~='alain-default__nav-item']:hover {
+  background-color: rgb(255 255 255 / 18%);
+}
+
+[class~='sidebar-nav__item-link']:hover,
+[class~='sidebar-nav__selected'] > [class~='sidebar-nav__item-link'] {
+  color: var(--crm-primary-color);
+}
+
+[class~='sidebar-nav__selected'] {
+  border-left-color: var(--crm-primary-color);
+  background-color: var(--crm-primary-bg);
+}
+
+.ant-btn-primary {
+  border-color: var(--crm-primary-color);
+  background: var(--crm-primary-color);
+}
+
+.ant-btn-primary:not(:disabled):hover {
+  border-color: var(--crm-primary-hover);
+  background: var(--crm-primary-hover);
+}
+
+.ant-btn-primary:not(:disabled):active {
+  border-color: var(--crm-primary-active);
+  background: var(--crm-primary-active);
+}

@@ -1,18 +1,55 @@
+@success-color: #52c41a;
+@border-color: #f0f0f0;
+@page-background: #f5f7fa;
+@text-primary: rgba(0, 0, 0, 0.88);
+@text-secondary: rgba(0, 0, 0, 0.45);
+
 .branch-page {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: calc(100vh - 180px);
+  padding: 16px;
+  background: @page-background;
 }
 
-.branch-toolbar {
+.branch-hero {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--crm-primary-color);
+  box-shadow: 0 8px 24px rgb(22 119 255 / 16%);
+}
+
+.branch-hero h1 {
+  margin: 4px 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+.branch-hero-eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 72%);
+}
+
+.branch-hero-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
+  gap: 8px 16px;
+  color: rgb(255 255 255 / 88%);
 }
 
-.branch-toolbar nz-select {
-  width: 260px;
+.branch-page nz-card {
+  border: 1px solid @border-color;
+  border-radius: 8px;
 }
 
 .section-header {
@@ -27,14 +64,43 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
+  color: @text-primary;
 }
 
 .manager-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .manager-note {
-  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+:host ::ng-deep .ant-tag-success {
+  border-color: fade(@success-color, 24%);
+  color: @success-color;
+  background: fade(@success-color, 8%);
+}
+
+@media (max-width: 575px) {
+  .branch-page {
+    padding: 12px;
+  }
+
+  .branch-hero,
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .branch-hero button,
+  .manager-actions button {
+    width: 100%;
+  }
+
+  .manager-actions {
+    width: 100%;
+  }
 }

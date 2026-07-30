@@ -53,7 +53,16 @@ const alainConfig: AlainConfig = {
   auth: { login_url: '/auth/login' }
 };
 
-const ngZorroConfig: NzConfig = {};
+const ngZorroConfig: NzConfig = {
+  theme: {
+    primaryColor: '#1677ff',
+    infoColor: '#1677ff',
+    processingColor: '#1677ff',
+    successColor: '#52c41a',
+    warningColor: '#faad14',
+    errorColor: '#ff4d4f'
+  }
+};
 
 const routerFeatures: RouterFeatures[] = [
   withComponentInputBinding(),

@@ -1,30 +1,31 @@
-<page-header [title]="'Chi nhánh'" />
+<page-header [title]="'branch.title' | i18n" />
 
 <div class="branch-page">
-  <div class="branch-toolbar">
-    @if (!selectedContext?.branchId && branchOptions.length > 1) {
-      <nz-select [(ngModel)]="selectedBranchId" (ngModelChange)="onBranchChange($event)" [nzDisabled]="loadingBranch">
-        @for (option of branchOptions; track option.id) {
-          <nz-option [nzValue]="option.id" [nzLabel]="option.branchName" />
-        }
-      </nz-select>
-    }
+  <section class="branch-hero">
+    <div>
+      <span class="branch-hero-eyebrow">{{ 'branch.currentBranch' | i18n }}</span>
+      <h1>{{ branch?.branchName || selectedContext?.branchName || ('common.emptyValue' | i18n) }}</h1>
+      <div class="branch-hero-meta">
+        <span>{{ selectedContext?.organizationName || selectedContext?.organizationId || ('common.emptyValue' | i18n) }}</span>
+        <span>{{ selectedContext?.role || ('common.emptyValue' | i18n) }}</span>
+      </div>
+    </div>
 
-    <button nz-button type="button" (click)="reload()" [disabled]="loadingBranch || loadingManager">
+    <button nz-button nzType="primary" type="button" (click)="reload()" [disabled]="loadingBranch || loadingManager">
       <span nz-icon nzType="reload" nzTheme="outline"></span>
-      Tải lại
+      {{ 'common.reload' | i18n }}
     </button>
-  </div>
+  </section>
 
-  @if (errorMessage) {
-    <nz-alert nzType="error" [nzMessage]="errorMessage" nzShowIcon />
+  @if (errorMessageKey) {
+    <nz-alert nzType="error" [nzMessage]="errorMessageKey | i18n" nzShowIcon />
   }
 
   <nz-card>
     <div class="section-header">
-      <h2>Thông tin chi nhánh</h2>
-      @if (branch?.status; as status) {
-        <nz-tag [nzColor]="getBranchStatusColor(status)">{{ getBranchStatusText(status) }}</nz-tag>
+      <h2>{{ 'branch.branchInformation' | i18n }}</h2>
+      @if (branch?.branchStatus; as status) {
+        <nz-tag [nzColor]="getBranchStatusColor(status)">{{ getBranchStatusKey(status) | i18n }}</nz-tag>
       }
     </div>
 
@@ -32,82 +33,135 @@
       <nz-skeleton [nzActive]="true" />
     } @else if (branch) {
       <nz-descriptions nzBordered [nzColumn]="1">
-        <nz-descriptions-item nzTitle="Branch Name">{{ branch.branchName }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Branch ID">{{ branch.id }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Address">{{ branch.address || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Phone">{{ branch.phone || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Status">
-          @if (branch.status) {
-            <nz-tag [nzColor]="getBranchStatusColor(branch.status)">{{ getBranchStatusText(branch.status) }}</nz-tag>
+        <nz-descriptions-item [nzTitle]="'branch.branchName' | i18n">{{ branch.branchName }}</nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.branchId' | i18n">{{ branch.id }}</nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.branchAddress' | i18n">{{ branch.branchAddress || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.branchPhone' | i18n">{{ branch.branchPhone || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.status.title' | i18n">
+          @if (branch.branchStatus) {
+            <nz-tag [nzColor]="getBranchStatusColor(branch.branchStatus)">{{ getBranchStatusKey(branch.branchStatus) | i18n }}</nz-tag>
           } @else {
-            -
+            {{ 'common.emptyValue' | i18n }}
           }
         </nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Organization">
-          {{ selectedContext?.organizationName || selectedContext?.organizationId || '-' }}
+        <nz-descriptions-item [nzTitle]="'branch.organization' | i18n">
+          {{ selectedContext?.organizationName || selectedContext?.organizationId || ('common.emptyValue' | i18n) }}
         </nz-descriptions-item>
       </nz-descriptions>
     } @else {
-      <nz-empty nzNotFoundContent="Không tìm thấy chi nhánh trong context hiện tại" />
+      <nz-empty [nzNotFoundContent]="'branch.errors.missingBranch' | i18n" />
     }
   </nz-card>
 
   <nz-card>
     <div class="section-header">
-      <h2>Quản lý chi nhánh</h2>
+      <h2>{{ 'branch.manager.title' | i18n }}</h2>
       <div class="manager-actions">
-        @if (!manager) {
-          <button nz-button nzType="primary" type="button" (click)="openManagerForm('assign')" [disabled]="!branch || !canAssignManager">
-            <span nz-icon nzType="plus" nzTheme="outline"></span>
-            Gán quản lý
+        @if (!hasManager() && canUpdateManager()) {
+          <button nz-button nzType="primary" type="button" (click)="openManagerModal('assign')" [disabled]="loadingManager || !selectedBranchId">
+            <span nz-icon nzType="user-add" nzTheme="outline"></span>
+            {{ 'branch.manager.assign' | i18n }}
           </button>
-        } @else {
-          <button nz-button type="button" (click)="openManagerForm('replace')" [disabled]="!canAssignManager">
-            <span nz-icon nzType="edit" nzTheme="outline"></span>
-            Thay quản lý
+        }
+        @if (hasManager() && canUpdateManager()) {
+          <button nz-button nzType="primary" type="button" (click)="openManagerModal('replace')" [disabled]="loadingManager">
+            <span nz-icon nzType="swap" nzTheme="outline"></span>
+            {{ 'branch.manager.replace' | i18n }}
           </button>
-          <button
-            nz-button
-            nzDanger
-            type="button"
-            nz-popconfirm
-            nzPopconfirmTitle="Xác nhận gỡ quản lý khỏi chi nhánh?"
-            (nzOnConfirm)="removeManager()"
-            [disabled]="!canAssignManager || removingManager"
-            [nzLoading]="removingManager"
-          >
-            <span nz-icon nzType="delete" nzTheme="outline"></span>
-            Gỡ quản lý
+        }
+        @if (hasManager() && canRemoveManager()) {
+          <button nz-button nzDanger type="button" (click)="confirmRemoveManager()" [disabled]="loadingManager || removing" [nzLoading]="removing">
+            <span nz-icon nzType="user-delete" nzTheme="outline"></span>
+            {{ 'branch.manager.remove' | i18n }}
           </button>
         }
       </div>
     </div>
 
+    @if (managerErrorMessageKey) {
+      <nz-alert nzType="error" [nzMessage]="managerErrorMessageKey | i18n" nzShowIcon class="manager-note" />
+    }
+
     @if (loadingManager) {
       <nz-skeleton [nzActive]="true" />
-    } @else if (manager) {
+    } @else if (hasManager()) {
       <nz-descriptions nzBordered [nzColumn]="1">
-        <nz-descriptions-item nzTitle="Manager Name">{{ manager.managerName || manager.username || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Username">{{ manager.username || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Email">{{ manager.email || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Phone">{{ manager.phone || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Org Role">{{ manager.orgRoleName || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Employee Status">
-          <nz-tag [nzColor]="manager.status === 'ACTIVE' ? 'success' : manager.status === 'TERMINATED' ? 'error' : 'warning'">
-            {{ manager.status || '-' }}
+        <nz-descriptions-item [nzTitle]="'branch.manager.name' | i18n">
+          {{ manager?.managerName || manager?.username || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.employeeId' | i18n">
+          {{ manager?.employeeId || manager?.managerId || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.username' | i18n">
+          {{ manager?.username || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.email' | i18n">
+          {{ manager?.email || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.phone' | i18n">
+          {{ manager?.phone || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.orgRole' | i18n">
+          {{ manager?.orgRoleName || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.role' | i18n">
+          {{ manager?.role || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.employeeStatus' | i18n">
+          <nz-tag [nzColor]="getManagerStatusColor(manager?.status)">{{ manager?.status || ('common.emptyValue' | i18n) }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.accountStatus' | i18n">
+          <nz-tag [nzColor]="manager?.enabled ? 'success' : 'error'">
+            {{ (manager?.enabled ? 'branch.manager.enabled' : 'branch.manager.disabled') | i18n }}
           </nz-tag>
         </nz-descriptions-item>
-        <nz-descriptions-item nzTitle="User Enabled">
-          <nz-tag [nzColor]="manager.enabled ? 'success' : 'error'">{{ manager.enabled ? 'Enabled' : 'Disabled' }}</nz-tag>
+        <nz-descriptions-item [nzTitle]="'branch.manager.startDate' | i18n">
+          {{ manager?.startDate || ('common.emptyValue' | i18n) }}
         </nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Start Date">{{ manager.startDate || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="End Date">{{ manager.endDate || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item [nzTitle]="'branch.manager.endDate' | i18n">
+          {{ manager?.endDate || ('common.emptyValue' | i18n) }}
+        </nz-descriptions-item>
       </nz-descriptions>
     } @else {
-      <nz-empty nzNotFoundContent="Chi nhánh chưa có quản lý" />
-      @if (managerErrorMessage) {
-        <nz-alert nzType="info" [nzMessage]="managerErrorMessage" nzShowIcon class="manager-note" />
-      }
+      <nz-empty [nzNotFoundContent]="'branch.manager.empty' | i18n" />
     }
   </nz-card>
 </div>
+
+<nz-modal
+  [nzVisible]="managerModalVisible"
+  [nzTitle]="(managerModalMode === 'replace' ? 'branch.manager.replace' : 'branch.manager.assign') | i18n"
+  [nzOkText]="'common.submit' | i18n"
+  [nzCancelText]="'common.cancel' | i18n"
+  [nzOkLoading]="submitting"
+  [nzOkDisabled]="managerForm.invalid || submitting"
+  (nzOnCancel)="closeManagerModal()"
+  (nzOnOk)="submitManager()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form nzLayout="vertical" [formGroup]="managerForm">
+      <nz-form-item>
+        <nz-form-label>{{ 'branch.branchName' | i18n }}</nz-form-label>
+        <nz-form-control>
+          <strong>{{ branch?.branchName || selectedContext?.branchName || ('common.emptyValue' | i18n) }}</strong>
+        </nz-form-control>
+      </nz-form-item>
+
+      @if (managerModalMode === 'replace' && hasManager()) {
+        <nz-form-item>
+          <nz-form-label>{{ 'branch.manager.current' | i18n }}</nz-form-label>
+          <nz-form-control>
+            {{ manager?.managerName || manager?.username || ('common.emptyValue' | i18n) }}
+          </nz-form-control>
+        </nz-form-item>
+      }
+
+      <nz-form-item>
+        <nz-form-label nzRequired>{{ 'branch.manager.employeeId' | i18n }}</nz-form-label>
+        <nz-form-control [nzErrorTip]="'validation.managerId.required' | i18n">
+          <input nz-input formControlName="managerId" [placeholder]="'branch.manager.employeeIdPlaceholder' | i18n" />
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

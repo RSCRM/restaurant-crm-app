@@ -77,7 +77,6 @@ export class PortalDashboardComponent implements OnInit {
   };
   manager: BranchManagerResponse | null = null;
   dashboardError: string | null = null;
-  summaryMessage = 'Backend chưa cung cấp API dashboard summary';
   managerMessage: string | null = null;
   branchOptions: OrganizationBranchResponse[] = [];
 
@@ -134,7 +133,6 @@ export class PortalDashboardComponent implements OnInit {
     }
 
     if (context.branchId) {
-      this.loadBranchDetail(context.branchId);
       this.loadDashboardSummary(context.branchId);
       this.loadManagerSummary(context.branchId);
       return;
@@ -165,21 +163,6 @@ export class PortalDashboardComponent implements OnInit {
     });
   }
 
-  private loadBranchDetail(branchId: string): void {
-    this.branchService.getBranch(branchId).subscribe({
-      next: branch => {
-        this.currentBranchId = branch.id;
-        this.currentBranchName = branch.branchName;
-        this.persistSelectedBranch(branch.id, branch.branchName);
-        this.cdr.markForCheck();
-      },
-      error: error => {
-        this.dashboardError = this.getErrorMessage(error);
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
   private loadDashboardSummary(_branchId: string): void {
     this.loadingSummary = true;
     this.dashboardSummary = {
@@ -199,6 +182,8 @@ export class PortalDashboardComponent implements OnInit {
     this.branchService.getBranchManager(branchId).subscribe({
       next: manager => {
         this.manager = manager;
+        this.currentBranchName = this.currentBranchName || manager.branchName;
+        this.dashboardError = null;
         this.loadingManager = false;
         this.managerMessage = null;
         this.cdr.markForCheck();

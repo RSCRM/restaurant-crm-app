@@ -44,7 +44,7 @@ import { HasPermissionDirective } from '../../../shared/directives/has-permissio
   styles: [
     `
       .countdown-active {
-        color: #fa8c16;
+        color: var(--crm-primary-color);
         font-size: 12px;
         font-weight: 500;
         margin-top: 4px;

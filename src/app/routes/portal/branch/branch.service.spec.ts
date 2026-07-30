@@ -25,6 +25,9 @@ describe('BranchService', () => {
     service.getBranches('org-1', { page: 1, size: 10 }).subscribe(response => {
       expect(response.totalElement).toBe(1);
       expect(response.data[0].id).toBe('branch-1');
+      expect(response.data[0].branchAddress).toBe('1 Main');
+      expect(response.data[0].branchPhone).toBe('0904000001');
+      expect(response.data[0].branchStatus).toBe('ACTIVE');
     });
 
     const req = http.expectOne(
@@ -48,8 +51,8 @@ describe('BranchService', () => {
             id: 'branch-1',
             organizationId: 'org-1',
             branchName: 'Chi nhánh 1',
-            address: null,
-            phone: null,
+            address: '1 Main',
+            phone: '0904000001',
             status: 'ACTIVE',
             createdAt: '2026-07-29T00:00:00Z',
             updatedAt: '2026-07-29T00:00:00Z'
@@ -62,6 +65,9 @@ describe('BranchService', () => {
   it('loads branch detail by id', () => {
     service.getBranch('branch-1').subscribe(response => {
       expect(response.branchName).toBe('Chi nhánh 1');
+      expect(response.branchAddress).toBe('1 Main');
+      expect(response.branchPhone).toBe('0904000001');
+      expect(response.branchStatus).toBe('ACTIVE');
     });
 
     const req = http.expectOne('/api/v1/erp/organization-branches/branch-1');
@@ -73,8 +79,8 @@ describe('BranchService', () => {
         id: 'branch-1',
         organizationId: 'org-1',
         branchName: 'Chi nhánh 1',
-        address: null,
-        phone: null,
+        address: '1 Main',
+        phone: '0904000001',
         status: 'ACTIVE',
         createdAt: '2026-07-29T00:00:00Z',
         updatedAt: '2026-07-29T00:00:00Z'
@@ -87,6 +93,9 @@ describe('BranchService', () => {
       expect(response.managerId).toBe('employee-1');
       expect(response.managerUserId).toBe('user-1');
       expect(response.managerName).toBe('manager');
+      expect(response.branchAddress).toBe('1 Main');
+      expect(response.branchPhone).toBe('0904000001');
+      expect(response.branchStatus).toBe('ACTIVE');
     });
 
     const req = http.expectOne('/api/v1/personal/branches/branch-1/manager');
@@ -97,6 +106,9 @@ describe('BranchService', () => {
       data: {
         branchId: 'branch-1',
         branchName: 'Chi nhánh 1',
+        branchAddress: '1 Main',
+        branchPhone: '0904000001',
+        branchStauts: 'ACTIVE',
         employeeId: 'employee-1',
         managerId: 'employee-1',
         userId: 'user-1',
@@ -116,9 +128,10 @@ describe('BranchService', () => {
     });
   });
 
-  it('assigns branch manager with Employee.id as managerId payload', () => {
+  it('assigns branch manager with Employee.id as managerId', () => {
     service.assignBranchManager('branch-1', { managerId: 'employee-1' }).subscribe(response => {
       expect(response.employeeId).toBe('employee-1');
+      expect(response.managerId).toBe('employee-1');
     });
 
     const req = http.expectOne('/api/v1/personal/branches/branch-1/manager');
@@ -129,10 +142,13 @@ describe('BranchService', () => {
       errorMessage: null,
       data: {
         branchId: 'branch-1',
-        branchName: 'Chi nhánh 1',
+        branchName: 'Chi nhÃ¡nh 1',
         employeeId: 'employee-1',
+        managerId: 'employee-1',
         userId: 'user-1',
+        managerUserId: 'user-1',
         username: 'manager',
+        managerName: 'manager',
         email: 'manager@example.com',
         enabled: true,
         phone: '0904000001',
@@ -140,14 +156,17 @@ describe('BranchService', () => {
         startDate: '2026-07-01',
         endDate: null,
         orgRoleId: 'role-manager',
-        orgRoleName: 'MANAGER'
+        orgRoleName: 'MANAGER',
+        role: 'MANAGER'
       }
     });
   });
 
-  it('removes current branch manager by branch id', () => {
+  it('removes branch manager by branch id', () => {
     service.removeBranchManager('branch-1').subscribe(response => {
-      expect(response).toBeNull();
+      expect(response.branchId).toBe('branch-1');
+      expect(response.employeeId).toBeNull();
+      expect(response.managerId).toBeNull();
     });
 
     const req = http.expectOne('/api/v1/personal/branches/branch-1/manager');
@@ -155,7 +174,25 @@ describe('BranchService', () => {
     req.flush({
       success: true,
       errorMessage: null,
-      data: null
+      data: {
+        branchId: 'branch-1',
+        branchName: 'Chi nhÃ¡nh 1',
+        employeeId: null,
+        managerId: null,
+        userId: null,
+        managerUserId: null,
+        username: null,
+        managerName: null,
+        email: null,
+        enabled: false,
+        phone: null,
+        status: null,
+        startDate: null,
+        endDate: null,
+        orgRoleId: null,
+        orgRoleName: null,
+        role: null
+      }
     });
   });
 });

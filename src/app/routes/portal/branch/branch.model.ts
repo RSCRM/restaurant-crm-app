@@ -13,10 +13,11 @@ export enum EmployeeStatus {
 export interface OrganizationBranchResponse {
   id: string;
   organizationId: string;
+  managerId?: string | null;
   branchName: string;
-  address: string | null;
-  phone: string | null;
-  status: OrganizationBranchStatus;
+  branchAddress: string | null;
+  branchPhone: string | null;
+  branchStatus: OrganizationBranchStatus | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,6 +25,10 @@ export interface OrganizationBranchResponse {
 export interface BranchManagerResponse {
   branchId: string;
   branchName: string;
+  branchAddress: string | null;
+  branchPhone: string | null;
+  branchStatus: OrganizationBranchStatus | null;
+  branchStauts?: OrganizationBranchStatus | null;
   employeeId: string | null;
   managerId?: string | null;
   userId: string | null;
@@ -41,9 +46,11 @@ export interface BranchManagerResponse {
   role?: string | null;
 }
 
-export interface AssignBranchManagerRequest {
+export interface EmployeeBranchAssignmentRequest {
   managerId: string;
 }
+
+export type AssignBranchManagerRequest = EmployeeBranchAssignmentRequest;
 
 export type BranchManagerFormMode = 'assign' | 'replace';
 
