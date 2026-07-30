@@ -1,0 +1,56 @@
+<div class="employee-detail">
+  <app-employee-card [employee]="employee" />
+
+  <section>
+    <h3>{{ 'employee.detail.personalInformation' | i18n }}</h3>
+    <nz-descriptions nzBordered [nzColumn]="1">
+      <nz-descriptions-item [nzTitle]="'employee.fields.fullName' | i18n">{{ employee.fullName || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.firstName' | i18n">{{ employee.firstName || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.lastName' | i18n">{{ employee.lastName || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.email' | i18n">{{ employee.email || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.phone' | i18n">{{ employee.phone || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+    </nz-descriptions>
+  </section>
+
+  <section>
+    <h3>{{ 'employee.detail.employmentInformation' | i18n }}</h3>
+    <nz-descriptions nzBordered [nzColumn]="1">
+      <nz-descriptions-item [nzTitle]="'employee.fields.employeeId' | i18n">{{ employee.employeeCode || employee.employeeId || employee.id }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.organizationId' | i18n">{{ employee.organizationId || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.branch' | i18n">{{ employee.branchName || employee.branchId || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.branchId' | i18n">{{ employee.branchId || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.role' | i18n">
+        <app-employee-role-badge [role]="employee.orgRoleName || employee.role" />
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.orgRoleId' | i18n">{{ employee.orgRoleId || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.status' | i18n">
+        <app-employee-status-badge [status]="employee.status" />
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.startDate' | i18n">{{ employee.startDate || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.endDate' | i18n">{{ employee.endDate || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+    </nz-descriptions>
+  </section>
+
+  <section>
+    <h3>{{ 'employee.detail.accountInformation' | i18n }}</h3>
+    <nz-descriptions nzBordered [nzColumn]="1">
+      <nz-descriptions-item [nzTitle]="'employee.fields.username' | i18n">{{ employee.username || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.userId' | i18n">{{ employee.userId || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.userStatus' | i18n">
+        <nz-tag [nzColor]="employee.enabled ? 'success' : 'error'">
+          {{ (employee.enabled ? 'employee.userStatus.enabled' : 'employee.userStatus.disabled') | i18n }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.createdAt' | i18n">
+        {{ employee.createdAt ? (employee.createdAt | date:'yyyy-MM-dd HH:mm') : ('common.emptyValue' | i18n) }}
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'employee.fields.updatedAt' | i18n">
+        {{ employee.updatedAt ? (employee.updatedAt | date:'yyyy-MM-dd HH:mm') : ('common.emptyValue' | i18n) }}
+      </nz-descriptions-item>
+    </nz-descriptions>
+  </section>
+
+  <div class="employee-detail-actions">
+    <button nz-button nzType="primary" type="button" (click)="close()">{{ 'common.cancel' | i18n }}</button>
+  </div>
+</div>

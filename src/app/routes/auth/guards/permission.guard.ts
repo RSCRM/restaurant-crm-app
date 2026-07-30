@@ -5,7 +5,7 @@ import { map, take } from 'rxjs';
 
 import { selectHasPermission } from '../store/auth.selectors';
 
-export function permissionGuard(permission: string): CanActivateFn {
+export function permissionGuard(permission: string | string[]): CanActivateFn {
   return () => {
     const store = inject(Store);
     const router = inject(Router);

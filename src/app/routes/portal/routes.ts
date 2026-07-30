@@ -46,7 +46,7 @@ export const routes: Routes = [
   },
   {
     path: 'employee',
-    canActivate: [contextGuard, permissionGuard('STAFF_MANAGE')],
+    canActivate: [contextGuard, permissionGuard(['STAFF_VIEW', 'STAFF_MANAGE'])],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
   },
   {

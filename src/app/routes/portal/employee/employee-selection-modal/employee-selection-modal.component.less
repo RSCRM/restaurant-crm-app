@@ -1,0 +1,27 @@
+.employee-selection {
+  display: grid;
+  gap: 16px;
+}
+
+.employee-selection-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 160px 160px auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.employee-selection-subtext {
+  color: var(--text-color-secondary, rgba(0, 0, 0, 0.45));
+  font-size: 12px;
+}
+
+.employee-selection-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .employee-selection-toolbar {
+    grid-template-columns: 1fr;
+  }
+}

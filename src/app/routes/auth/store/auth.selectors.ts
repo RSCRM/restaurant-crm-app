@@ -25,5 +25,9 @@ export const selectSelectedBranchId = createSelector(selectSelectedContext, cont
 export const selectSelectedBranchName = createSelector(selectSelectedContext, context => context?.branchName ?? null);
 export const selectSelectedRole = createSelector(selectSelectedContext, context => context?.role ?? null);
 
-export const selectHasPermission = (permission: string) =>
-  createSelector(selectPermissions, selectSelectedRole, (perms, role) => role === 'OWNER' || perms.includes(permission));
+export const selectHasPermission = (permission: string | string[]) =>
+  createSelector(selectPermissions, selectSelectedRole, (perms, role) => {
+    if (role === 'OWNER') return true;
+    const permissions = Array.isArray(permission) ? permission : [permission];
+    return permissions.some(item => perms.includes(item));
+  });

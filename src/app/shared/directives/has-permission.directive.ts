@@ -8,7 +8,7 @@ export class HasPermissionDirective implements OnInit {
   private viewContainer = inject(ViewContainerRef);
   private store = inject(Store);
 
-  @Input('appHasPermission') permission!: string;
+  @Input('appHasPermission') permission!: string | string[];
 
   ngOnInit(): void {
     this.store.select(selectHasPermission(this.permission)).subscribe(has => {
