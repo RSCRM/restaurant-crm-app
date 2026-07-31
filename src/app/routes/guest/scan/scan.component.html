@@ -1,0 +1,35 @@
+<div class="scanner-container">
+  <div class="scanner-header">
+    <h2 nz-typography class="title">QUÉT MÃ QR BÀN ĂN</h2>
+    <p class="subtitle">Vui lòng quét mã QR tại bàn để gọi món & theo dõi trạng thái chế biến</p>
+  </div>
+
+  <div class="camera-viewport">
+    <div class="scanner-laser"></div>
+    <div class="corner-border top-left"></div>
+    <div class="corner-border top-right"></div>
+    <div class="corner-border bottom-left"></div>
+    <div class="corner-border bottom-right"></div>
+
+    <div class="scanner-overlay-text">
+      <span nz-icon nzType="qrcode" nzTheme="outline" class="qr-icon"></span>
+      <p>Đang tìm kiếm mã QR...</p>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <nz-card [nzBordered]="false" class="demo-card">
+      <h3 nz-typography class="demo-title">Giả Lập Quét QR (Môi Trường Phát Triển)</h3>
+      <p class="demo-desc">Bấm chọn một bàn ăn mẫu dưới đây để bắt đầu trải nghiệm gọi món & theo dõi:</p>
+      
+      <div class="tables-grid">
+        @for (table of sampleTables; track table.id) {
+          <button nz-button nzType="primary" nzBlock class="table-btn" (click)="simulateScan(table.id, table.branchId)">
+            <span nz-icon nzType="table" nzTheme="outline"></span>
+            Bàn {{ table.number }} — {{ table.branchName }} ({{ table.capacity }} chỗ)
+          </button>
+        }
+      </div>
+    </nz-card>
+  </div>
+</div>

@@ -1,0 +1,234 @@
+<div class="guest-container">
+  <!-- Top Navigation Header -->
+  <header class="guest-header">
+    <button nz-button nzType="text" class="back-nav-btn" (click)="goBackToScan()">
+      <span nz-icon nzType="left" nzTheme="outline"></span>
+    </button>
+    <div class="header-center">
+      <span class="table-title">BÀN {{ tableId ? tableId.substring(tableId.length - 3).toUpperCase() : '' }}</span>
+      @if (activeOrder) {
+        <span class="realtime-badge">
+          <span class="pulse-dot"></span>
+          Đang kết nối
+        </span>
+      }
+    </div>
+    <div class="header-right">
+      @if (activeOrder && viewMode === 'MENU') {
+        <button nz-button nzType="default" nzShape="round" class="toggle-view-btn" (click)="switchToStatus()">
+          <span nz-icon nzType="clock-circle" nzTheme="outline"></span>
+          Theo dõi
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Body Content -->
+  <main class="guest-content">
+    @if (loading) {
+      <div class="loading-wrapper">
+        <span nz-icon nzType="loading" nzTheme="outline" class="loading-icon"></span>
+        <p>Đang tải dữ liệu...</p>
+      </div>
+    } @else {
+      <!-- ---------------------------------------------------- -->
+      <!-- VIEW: MENU -->
+      <!-- ---------------------------------------------------- -->
+      @if (viewMode === 'MENU') {
+        <div class="menu-view">
+          <div class="menu-intro">
+            <h1 nz-typography class="section-title">Thực Đơn Đặt Món</h1>
+            <p class="section-desc">Chọn các món ngon và nhấn Gửi đơn hàng xuống bếp bên dưới.</p>
+          </div>
+
+          <div class="products-list">
+            @for (product of products; track product.id) {
+              <div class="product-item">
+                <div class="product-img-wrapper">
+                  <img [src]="product.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'" alt="{{ product.productName }}" class="product-img" />
+                </div>
+                <div class="product-details">
+                  <h3 class="product-name">{{ product.productName }}</h3>
+                  <p class="product-desc">{{ product.description }}</p>
+                  <div class="product-action-row">
+                    <span class="product-price">{{ product.price | number:'1.0-0' }} ₫</span>
+                    <button nz-button nzType="primary" nzShape="circle" class="add-btn" (click)="addToCart(product)">
+                      <span nz-icon nzType="plus" nzTheme="outline"></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ---------------------------------------------------- -->
+      <!-- VIEW: COOKING STATUS -->
+      <!-- ---------------------------------------------------- -->
+      @if (viewMode === 'STATUS' && activeOrder) {
+        <div class="status-view">
+          <!-- Progress Card -->
+          <nz-card [nzBordered]="false" class="status-progress-card">
+            <div class="progress-header">
+              <div>
+                <p class="label">Mã đơn hàng</p>
+                <h2 class="order-code">{{ activeOrder.orderCode }}</h2>
+              </div>
+              <div class="text-right">
+                <p class="label">Khách hàng (SĐT)</p>
+                <p class="value">{{ activeOrder.customerPhone }}</p>
+              </div>
+            </div>
+
+            <div class="progress-bar-section">
+              <div class="progress-label-row">
+                <span>Tiến độ chế biến</span>
+                <span class="progress-ratio">{{ getCompletedCount() }} / {{ activeOrder.items.length }} món đã xong</span>
+              </div>
+              <div class="progress-bar-outer">
+                <div class="progress-bar-inner" [style.width.%]="(getCompletedCount() / activeOrder.items.length) * 100"></div>
+              </div>
+            </div>
+          </nz-card>
+
+          <!-- List of Ordered Items -->
+          <div class="items-section">
+            <h3 class="section-subtitle">Chi Tiết Món Ăn</h3>
+            <div class="items-list">
+              @for (item of activeOrder.items; track item.orderItemId) {
+                <div class="item-status-row" [class.ready-to-serve]="item.status === 'READY_TO_SERVE'">
+                  <div class="item-info">
+                    <div class="item-name-row">
+                      <span class="item-name">{{ item.itemName }}</span>
+                      <span class="item-qty">x{{ item.quantity }}</span>
+                    </div>
+                    @if (item.note) {
+                      <p class="item-note">Ghi chú: "{{ item.note }}"</p>
+                    }
+                  </div>
+                  <div class="item-status">
+                    <nz-tag [nzColor]="getStatusColor(item.status)" class="status-tag">
+                      @if (item.status === 'IN_PROGRESS') {
+                        <span nz-icon nzType="sync" nzSpin class="status-icon"></span>
+                      }
+                      @if (item.status === 'READY_TO_SERVE') {
+                        <span nz-icon nzType="bell" nzTheme="fill" class="status-icon pulse-icon"></span>
+                      }
+                      {{ getStatusLabel(item.status) }}
+                    </nz-tag>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Total Bill Invoice Summary -->
+          <nz-card [nzBordered]="false" class="bill-summary-card">
+            <h3 class="bill-title">Tạm Tính Đơn Hàng</h3>
+            <div class="bill-row">
+              <span class="bill-label">Tổng tiền món:</span>
+              <span class="bill-value">{{ activeOrder.subtotal | number:'1.0-0' }} ₫</span>
+            </div>
+            <div class="bill-row">
+              <span class="bill-label">Giảm giá:</span>
+              <span class="bill-value text-discount">-{{ activeOrder.discountAmount | number:'1.0-0' }} ₫</span>
+            </div>
+            <div class="bill-divider"></div>
+            <div class="bill-row total">
+              <span class="bill-label-large">Cần thanh toán:</span>
+              <span class="bill-value-large">{{ activeOrder.totalAmount | number:'1.0-0' }} ₫</span>
+            </div>
+          </nz-card>
+
+          <!-- Order More CTA -->
+          <div class="cta-section">
+            <button nz-button nzType="primary" nzBlock class="order-more-btn" (click)="switchToMenu()">
+              <span nz-icon nzType="plus-circle" nzTheme="outline"></span>
+              Gọi thêm món ăn
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </main>
+
+  <!-- Sticky Bottom Cart Bar (Only in Menu View) -->
+  @if (viewMode === 'MENU' && cart.size > 0) {
+    <div class="sticky-cart-bar">
+      <div class="cart-summary" (click)="showCartModal()">
+        <nz-badge [nzCount]="getCartCount()" class="cart-badge">
+          <span nz-icon nzType="shopping-cart" class="cart-icon"></span>
+        </nz-badge>
+        <div class="cart-text">
+          <p class="cart-total-label">Tổng cộng tạm tính</p>
+          <p class="cart-total-value">{{ getCartTotal() | number:'1.0-0' }} ₫</p>
+        </div>
+      </div>
+      <button nz-button nzType="primary" class="checkout-btn" [nzLoading]="submitting" (click)="checkout()">
+        Gửi yêu cầu
+        <span nz-icon nzType="arrow-right" nzTheme="outline"></span>
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Modal: Enter Customer Phone Number (Only for first-time orders) -->
+<nz-modal
+  [(nzVisible)]="showPhoneModal"
+  nzTitle="Định Danh Khách Hàng tại Bàn"
+  [nzFooter]="modalFooter"
+  (nzOnCancel)="showPhoneModal = false"
+  nzWidth="400px"
+>
+  <ng-container *nzModalContent>
+    <div class="phone-modal-content">
+      <p class="modal-desc">Vui lòng nhập số điện thoại để nhà hàng lưu thông tin tích điểm thành viên và quản lý đơn hàng của bạn.</p>
+      <div class="phone-input-field">
+        <nz-input-group nzPrefixIcon="phone">
+          <input type="text" nz-input [(ngModel)]="customerPhone" placeholder="Nhập số điện thoại (ví dụ: 0987654321)" maxLength="11" />
+        </nz-input-group>
+      </div>
+    </div>
+  </ng-container>
+  <ng-template #modalFooter>
+    <button nz-button nzType="default" (click)="showPhoneModal = false">Hủy</button>
+    <button nz-button nzType="primary" [disabled]="!customerPhone || customerPhone.length < 9" (click)="confirmPhoneOrder()">Xác Nhận Đặt Món</button>
+  </ng-template>
+</nz-modal>
+
+<!-- Modal: Cart Review -->
+<nz-modal
+  [(nzVisible)]="showCart"
+  nzTitle="Chi Tiết Giỏ Hàng"
+  (nzOnCancel)="showCart = false"
+  [nzFooter]="cartModalFooter"
+  nzWidth="420px"
+>
+  <ng-container *nzModalContent>
+    <div class="cart-modal-list">
+      @if (cart.size === 0) {
+        <p style="text-align: center; color: #8c8c8c; padding: 24px 0;">Giỏ hàng của bạn đang trống.</p>
+      } @else {
+        @for (item of cart.values(); track item.product.id) {
+          <div class="cart-modal-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
+            <div class="cart-item-info" style="flex: 1; margin-right: 12px;">
+              <p class="cart-item-name" style="font-weight: 700; margin: 0; font-size: 14px;">{{ item.product.productName }}</p>
+              <p class="cart-item-price" style="color: #f5222d; margin: 2px 0 0 0; font-size: 13px; font-weight: 600;">{{ item.product.price | number:'1.0-0' }} ₫</p>
+              <input type="text" nz-input nzSize="small" [(ngModel)]="item.note" (ngModelChange)="updateNote(item.product.id, $event)" placeholder="Ghi chú món ăn..." style="margin-top: 6px; font-size: 12px;" />
+            </div>
+            <div class="cart-item-actions" style="display: flex; align-items: center; gap: 8px;">
+              <button nz-button nzType="default" nzSize="small" nzShape="circle" (click)="updateQuantity(item.product.id, item.quantity - 1)">-</button>
+              <span class="cart-item-qty" style="font-weight: 800; min-width: 20px; text-align: center;">{{ item.quantity }}</span>
+              <button nz-button nzType="default" nzSize="small" nzShape="circle" (click)="updateQuantity(item.product.id, item.quantity + 1)">+</button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </ng-container>
+  <ng-template #cartModalFooter>
+    <button nz-button nzType="default" (click)="showCart = false">Đóng</button>
+    <button nz-button nzType="primary" [disabled]="cart.size === 0" (click)="showCart = false; checkout()">Xác Nhận Đặt Món</button>
+  </ng-template>
+</nz-modal>
