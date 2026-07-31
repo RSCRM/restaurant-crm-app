@@ -1,8 +1,8 @@
-import { HttpHeaders, HttpResponseBase } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders, HttpResponseBase } from '@angular/common/http';
 import { Injector, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
-import { ALAIN_I18N_TOKEN } from '@delon/theme';
+import { ALAIN_I18N_TOKEN, AlainI18NService } from '@delon/theme';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 export interface ReThrowHttpError {
@@ -10,22 +10,30 @@ export interface ReThrowHttpError {
   _throw: true;
 }
 
+interface ApiErrorPayload {
+  errorMessage?: {
+    errorCode?: string;
+    message?: string;
+  };
+  message?: string;
+}
+
 export const CODEMESSAGE: Record<number, string> = {
-  200: '服务器成功返回请求的数据。',
-  201: '新建或修改数据成功。',
-  202: '一个请求已经进入后台排队（异步任务）。',
-  204: '删除数据成功。',
-  400: '发出的请求有错误，服务器没有进行新建或修改数据的操作。',
-  401: '用户没有权限（令牌、用户名、密码错误）。',
-  403: '用户得到授权，但是访问是被禁止的。',
-  404: '发出的请求针对的是不存在的记录，服务器没有进行操作。',
-  406: '请求的格式不可得。',
-  410: '请求的资源被永久删除，且不会再得到的。',
-  422: '当创建一个对象时，发生一个验证错误。',
-  500: '服务器发生错误，请检查服务器。',
-  502: '网关错误。',
-  503: '服务不可用，服务器暂时过载或维护。',
-  504: '网关超时。'
+  200: 'http.200',
+  201: 'http.201',
+  202: 'http.202',
+  204: 'http.204',
+  400: 'http.400',
+  401: 'http.401',
+  403: 'http.403',
+  404: 'http.404',
+  406: 'http.406',
+  410: 'http.410',
+  422: 'http.422',
+  500: 'http.500',
+  502: 'http.502',
+  503: 'http.503',
+  504: 'http.504'
 };
 
 export function goTo(injector: Injector, url: string): void {
@@ -33,7 +41,7 @@ export function goTo(injector: Injector, url: string): void {
 }
 
 export function toLogin(injector: Injector): void {
-  injector.get(NzNotificationService).error(`未登录或登录已过期，请重新登录。`, ``);
+  injector.get(NzNotificationService).error(injector.get(ALAIN_I18N_TOKEN).fanyi('http.login-expired'), '');
   goTo(injector, injector.get(DA_SERVICE_TOKEN).login_url!);
 }
 
@@ -47,11 +55,29 @@ export function getAdditionalHeaders(headers?: HttpHeaders): Record<string, stri
   return res;
 }
 
+export function getHttpErrorMessage(i18n: AlainI18NService, error: unknown, fallbackKey?: string): string {
+  const httpError = error as HttpErrorResponse;
+  const payload = httpError?.error as ApiErrorPayload | undefined;
+  const errorCode = payload?.errorMessage?.errorCode;
+
+  if (errorCode) {
+    const errorKey = `error.${errorCode}`;
+    const translated = i18n.fanyi(errorKey);
+    if (translated !== errorKey) return translated;
+  }
+
+  const fallback = fallbackKey ?? CODEMESSAGE[httpError?.status] ?? 'common.error';
+  if (!i18n.currentLang.startsWith('en')) return i18n.fanyi(fallback);
+
+  return payload?.errorMessage?.message ?? payload?.message ?? httpError?.message ?? i18n.fanyi(fallback);
+}
+
 export function checkStatus(injector: Injector, ev: HttpResponseBase): void {
   if ((ev.status >= 200 && ev.status < 300) || ev.status === 401) {
     return;
   }
 
-  const errortext = CODEMESSAGE[ev.status] || ev.status.toString();
-  injector.get(NzNotificationService).error(`请求错误 ${ev.status}: ${ev.url}`, errortext);
+  const i18n = injector.get(ALAIN_I18N_TOKEN);
+  const errortext = getHttpErrorMessage(i18n, ev);
+  injector.get(NzNotificationService).error(i18n.fanyi('common.error'), errortext);
 }

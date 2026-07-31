@@ -1,13 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
-import { _HttpClient } from '@delon/theme';
+import { I18nPipe, _HttpClient } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 
 @Component({
   selector: 'exception-trigger',
   templateUrl: './trigger.component.html',
-  imports: [NzCardModule, NzButtonModule]
+  imports: [NzCardModule, NzButtonModule, I18nPipe]
 })
 export class ExceptionTriggerComponent {
   private readonly http = inject(_HttpClient);
@@ -23,9 +23,9 @@ export class ExceptionTriggerComponent {
     this.tokenService.set({ token: 'invalid-token' });
     // 必须提供一个后端地址，无法通过 Mock 来模拟
     this.http.post(`https://localhost:5001/auth`).subscribe({
-      next: res => console.warn('成功', res),
+      next: res => console.warn('Success', res),
       error: err => {
-        console.log('最后结果失败', err);
+        console.log('Request failed', err);
       }
     });
   }

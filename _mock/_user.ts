@@ -99,7 +99,7 @@ export const USERS = {
     address: 'XX区XXX路 XX 号',
     phone: '你猜-你猜你猜猜猜'
   },
-  'GET /api/v1/users/me': {
+  'GET /api/v1/profile/me': {
     success: true,
     errorMessage: null,
     data: {

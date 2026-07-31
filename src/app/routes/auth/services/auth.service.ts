@@ -11,20 +11,23 @@ export class AuthService {
   private tokenService = inject(DA_SERVICE_TOKEN);
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<ApiResponse<LoginResponse>>('/api/v1/auth/login', request, {
-      context: new HttpContext().set(ALLOW_ANONYMOUS, true)
-    }).pipe(map(res => res.data));
+    return this.http
+      .post<ApiResponse<LoginResponse>>('/api/v1/auth/login', request, {
+        context: new HttpContext().set(ALLOW_ANONYMOUS, true)
+      })
+      .pipe(map(res => res.data));
   }
 
   selectContext(request: ContextSelectionRequest, accessToken: string): Observable<ContextSelectionResponse> {
-    return this.http.post<ApiResponse<ContextSelectionResponse>>('/api/v1/auth/context', request, {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    }).pipe(map(res => res.data));
+    return this.http
+      .post<ApiResponse<ContextSelectionResponse>>('/api/v1/auth/context', request, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+      .pipe(map(res => res.data));
   }
 
   logout(): Observable<void> {
-    return this.http.post<ApiResponse<void>>('/api/v1/auth/logout', {})
-      .pipe(map(() => undefined));
+    return this.http.post<ApiResponse<void>>('/api/v1/auth/logout', {}).pipe(map(() => undefined));
   }
 
   setToken(token: string, expiresInMs: number): void {
@@ -54,6 +57,10 @@ export class AuthService {
 
   setContextToken(token: string): void {
     localStorage.setItem('auth_contextToken', token);
+  }
+
+  clearContextToken(): void {
+    localStorage.removeItem('auth_contextToken');
   }
 
   getContextToken(): string | null {
@@ -88,5 +95,10 @@ export class AuthService {
     } catch {
       return {};
     }
+  }
+
+  getPermissions(token: string): string[] {
+    const permissions = this.parseJwtPayload(token)['permission'];
+    return Array.isArray(permissions) ? permissions.filter((permission): permission is string => typeof permission === 'string') : [];
   }
 }

@@ -1,11 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { getHttpErrorMessage } from '@core';
+import { ALAIN_I18N_TOKEN } from '@delon/theme';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { catchError, exhaustMap, map, of, switchMap, tap } from 'rxjs';
 
-import { AuthService } from '../services/auth.service';
 import { AuthActions } from './auth.actions';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthEffects {
@@ -13,6 +15,7 @@ export class AuthEffects {
   private authService = inject(AuthService);
   private router = inject(Router);
   private notification = inject(NzNotificationService);
+  private i18n = inject(ALAIN_I18N_TOKEN);
 
   // Init: Restore auth state from localStorage on app startup
   init$ = createEffect(() =>
@@ -23,11 +26,9 @@ export class AuthEffects {
         if (accessToken) {
           const systemRoles = this.authService.getSystemRoles();
           const contextToken = this.authService.getContextToken();
-          // Restore contextToken into DA_SERVICE_TOKEN if exists
-          if (contextToken) {
-            this.authService.setToken(contextToken, 72 * 60 * 60 * 1000);
-          }
-          return of(AuthActions.restoreAuth({ accessToken, systemRoles, contextToken }));
+          this.authService.setToken(contextToken ?? accessToken, 72 * 60 * 60 * 1000);
+          const permissions = contextToken ? this.authService.getPermissions(contextToken) : [];
+          return of(AuthActions.restoreAuth({ accessToken, systemRoles, contextToken, permissions }));
         }
         return of();
       })
@@ -49,8 +50,7 @@ export class AuthEffects {
             })
           ),
           catchError(err => {
-            const message = err?.error?.errorMessage?.message || err?.error?.message || err?.message || 'Đăng nhập thất bại';
-            return of(AuthActions.loginFailure({ error: message }));
+            return of(AuthActions.loginFailure({ error: getHttpErrorMessage(this.i18n, err, 'app.login.failed') }));
           })
         )
       )
@@ -65,9 +65,8 @@ export class AuthEffects {
         tap(({ accessToken, systemRoles }) => {
           this.authService.setAccessToken(accessToken);
           this.authService.setSystemRoles(systemRoles);
+          this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
           if (systemRoles.includes('ADMIN')) {
-            // ADMIN: use accessToken as the main API token
-            this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
             this.router.navigate(['/admin/dashboard']);
           } else {
             // USER: redirect to context-select within portal
@@ -89,11 +88,13 @@ export class AuthEffects {
             // contextToken is the main API token for business calls
             this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);
             this.authService.setContextToken(response.contextToken);
-            return AuthActions.selectContextSuccess({ contextToken: response.contextToken });
+            return AuthActions.selectContextSuccess({
+              contextToken: response.contextToken,
+              permissions: this.authService.getPermissions(response.contextToken)
+            });
           }),
           catchError(err => {
-            const message = err?.error?.errorMessage?.message || err?.error?.message || err?.message || 'Chọn context thất bại';
-            return of(AuthActions.selectContextFailure({ error: message }));
+            return of(AuthActions.selectContextFailure({ error: getHttpErrorMessage(this.i18n, err, 'context.select-failed') }));
           })
         );
       })
@@ -148,7 +149,7 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginFailure, AuthActions.selectContextFailure),
         tap(({ error }) => {
-          this.notification.error('Lỗi', error);
+          this.notification.error(this.i18n.fanyi('common.error'), error);
         })
       ),
     { dispatch: false }

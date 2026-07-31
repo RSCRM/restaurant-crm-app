@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
-import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { I18nPipe } from '@delon/theme';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
 
 @Component({
   selector: 'app-order',
   standalone: true,
-  imports: [NzTypographyModule, NzCardModule],
+  imports: [NzTypographyModule, NzCardModule, I18nPipe],
   templateUrl: './order.component.html'
 })
 export class OrderComponent {}

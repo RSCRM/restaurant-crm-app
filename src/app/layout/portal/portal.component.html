@@ -1,6 +1,11 @@
 <layout-default [options]="options" [asideUser]="asideUserTpl" [content]="contentTpl" [customError]="null">
   <layout-default-header-item direction="right">
     <div class="alain-default__nav-item">
+      <header-i18n />
+    </div>
+  </layout-default-header-item>
+  <layout-default-header-item direction="right">
+    <div class="alain-default__nav-item">
       <nz-badge [nzCount]="notificationCount" nzSize="small">
         <span nz-icon nzType="bell" nzTheme="outline"></span>
       </nz-badge>
@@ -15,7 +20,7 @@
       <ul nz-menu>
         <li nz-menu-item routerLink="/portal/profile">
           <span nz-icon nzType="user" nzTheme="outline" class="mr-sm"></span>
-          Thông tin cá nhân
+          {{ 'profile.personal-profile' | i18n }}
         </li>
         <li nz-menu-divider></li>
         <li nz-menu-item (click)="logout()">{{ 'menu.account.logout' | i18n }}</li>

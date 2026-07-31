@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { getHttpErrorMessage } from '@core';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
+import { differenceInCalendarDays } from 'date-fns';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -14,7 +17,6 @@ import { NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
-import { differenceInCalendarDays } from 'date-fns';
 
 import { selectContextToken } from '../../../auth/store/auth.selectors';
 import { BookingStatus, BookingResponse, TableSearchResponse } from '../booking.model';
@@ -42,7 +44,8 @@ interface TableAvailability extends TableSearchResponse {
     NzTagModule,
     NzSpinModule,
     NzGridModule,
-    NzTooltipModule
+    NzTooltipModule,
+    I18nPipe
   ],
   templateUrl: './booking-form.component.html',
   styles: [
@@ -85,6 +88,7 @@ export class BookingFormComponent implements OnInit {
   private modalRef = inject(NzModalRef);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
+  private i18n = inject(ALAIN_I18N_TOKEN);
 
   form!: FormGroup;
   branchId: string | null = null;
@@ -107,7 +111,7 @@ export class BookingFormComponent implements OnInit {
       const jsonPayload = decodeURIComponent(
         atob(base64)
           .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
           .join('')
       );
       const payload = JSON.parse(jsonPayload);
@@ -125,7 +129,7 @@ export class BookingFormComponent implements OnInit {
       if (id) {
         this.loadData();
       } else {
-        this.message.error('Không tìm thấy thông tin chi nhánh hiện tại. Vui lòng chọn chi nhánh.');
+        this.message.error(this.i18n.fanyi('booking.branch-required'));
       }
     });
 
@@ -161,7 +165,7 @@ export class BookingFormComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.message.error('Lỗi khi tải danh sách bàn.');
+        this.message.error(this.i18n.fanyi('booking.tables-load-failed'));
         this.cdr.markForCheck();
       }
     });
@@ -169,14 +173,12 @@ export class BookingFormComponent implements OnInit {
     this.bookingService.getBookingsByBranch(this.branchId, { page: 1, size: 1000 }).subscribe({
       next: bookingRes => {
         // Filter out cancelled or expired bookings for conflict checking
-        this.allBookings = bookingRes.data.filter(
-          b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED
-        );
+        this.allBookings = bookingRes.data.filter(b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED);
         this.checkDataLoaded();
       },
       error: () => {
         this.loading = false;
-        this.message.error('Lỗi khi tải lịch sử đặt bàn.');
+        this.message.error(this.i18n.fanyi('booking.history-load-failed'));
         this.cdr.markForCheck();
       }
     });
@@ -206,7 +208,7 @@ export class BookingFormComponent implements OnInit {
       this.tablesWithAvailability = this.allTables.map(t => ({
         ...t,
         isAvailable: false,
-        reason: 'Vui lòng chọn thời gian, số khách và thời lượng dùng bữa.'
+        reason: this.i18n.fanyi('booking.availability-incomplete')
       }));
       this.cdr.markForCheck();
       return;
@@ -222,7 +224,10 @@ export class BookingFormComponent implements OnInit {
         return {
           ...table,
           isAvailable: false,
-          reason: `Sức chứa nhỏ (${table.capacity} chỗ < ${guestCountVal} khách)`
+          reason: this.i18n.fanyi('booking.capacity-insufficient', {
+            capacity: table.capacity,
+            guests: guestCountVal
+          })
         };
       }
 
@@ -246,7 +251,10 @@ export class BookingFormComponent implements OnInit {
         return {
           ...table,
           isAvailable: false,
-          reason: `Đã có khách đặt lúc ${overlapTime} (SĐT: ${overlappingBooking.customerPhone})`
+          reason: this.i18n.fanyi('booking.table-conflict', {
+            time: overlapTime,
+            phone: overlappingBooking.customerPhone
+          })
         };
       }
 
@@ -288,8 +296,8 @@ export class BookingFormComponent implements OnInit {
     this.cdr.markForCheck();
 
     const rawForm = this.form.value;
-    const nameStr = rawForm.customerName ? `Khách: ${rawForm.customerName.trim()}. ` : '';
-    const noteStr = rawForm.note ? `Ghi chú: ${rawForm.note.trim()}` : '';
+    const nameStr = rawForm.customerName ? `${this.i18n.fanyi('booking.customer-prefix')}: ${rawForm.customerName.trim()}. ` : '';
+    const noteStr = rawForm.note ? `${this.i18n.fanyi('booking.note-prefix')}: ${rawForm.note.trim()}` : '';
 
     const request = {
       branchId: this.branchId,
@@ -303,13 +311,12 @@ export class BookingFormComponent implements OnInit {
     this.bookingService.createBooking(request).subscribe({
       next: () => {
         this.submitting = false;
-        this.message.success('Đặt bàn thành công!');
+        this.message.success(this.i18n.fanyi('booking.create-success'));
         this.modalRef.close(true);
       },
       error: err => {
         this.submitting = false;
-        const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi tạo đặt bàn.';
-        this.message.error(msg);
+        this.message.error(getHttpErrorMessage(this.i18n, err, 'booking.create-failed'));
         this.cdr.markForCheck();
       }
     });

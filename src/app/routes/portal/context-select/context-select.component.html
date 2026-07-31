@@ -1,6 +1,6 @@
-<page-header [title]="'Chọn tổ chức'" />
+<page-header [title]="'context.select-title' | i18n" />
 <nz-card>
-  <p nz-typography class="context-subtitle">Vui lòng chọn tổ chức để tiếp tục sử dụng hệ thống</p>
+  <p nz-typography class="context-subtitle">{{ 'context.select-description' | i18n }}</p>
 
   <nz-spin [nzSpinning]="loading$ | async">
     <div class="context-grid">
@@ -8,14 +8,16 @@
         <div class="context-item">
           <nz-card [nzTitle]="ctx.organizationName" nzHoverable>
             @if (ctx.branchName) {
-              <p><strong>Chi nhánh:</strong> {{ ctx.branchName }}</p>
+              <p
+                ><strong>{{ 'context.branch' | i18n }}:</strong> {{ ctx.branchName }}</p
+              >
             }
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 12px">
               <nz-tag nzColor="blue">{{ ctx.role }}</nz-tag>
             </div>
             <button nz-button nzType="primary" nzBlock (click)="selectContext(ctx)" [nzLoading]="loading$ | async">
               <span nz-icon nzType="check-circle" nzTheme="outline"></span>
-              Chọn
+              {{ 'action.select' | i18n }}
             </button>
           </nz-card>
         </div>

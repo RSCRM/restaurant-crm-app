@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { I18nPipe } from '@delon/theme';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -20,27 +21,27 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     </div>
     <nz-dropdown-menu #iconMenu="nzDropdownMenu">
       <div nz-menu class="wd-xl animated jello">
-        <nz-spin [nzSpinning]="loading()" [nzTip]="'正在读取数据...'">
+        <nz-spin [nzSpinning]="loading()" [nzTip]="'common.loading' | i18n">
           <div nz-row [nzJustify]="'center'" [nzAlign]="'middle'" class="app-icons">
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="calendar" class="bg-error text-white" />
-              <small>Calendar</small>
+              <small>{{ 'shortcut.calendar' | i18n }}</small>
             </div>
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="file" class="bg-geekblue text-white" />
-              <small>Files</small>
+              <small>{{ 'shortcut.files' | i18n }}</small>
             </div>
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="cloud" class="bg-success text-white" />
-              <small>Cloud</small>
+              <small>{{ 'shortcut.cloud' | i18n }}</small>
             </div>
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="star" class="bg-magenta text-white" />
-              <small>Star</small>
+              <small>{{ 'shortcut.star' | i18n }}</small>
             </div>
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="team" class="bg-purple text-white" />
-              <small>Team</small>
+              <small>{{ 'shortcut.team' | i18n }}</small>
             </div>
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="scan" class="bg-warning text-white" />
@@ -48,11 +49,11 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
             </div>
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="pay-circle" class="bg-cyan text-white" />
-              <small>Pay</small>
+              <small>{{ 'shortcut.pay' | i18n }}</small>
             </div>
             <div nz-col [nzSpan]="6">
               <nz-icon nzType="printer" class="bg-grey text-white" />
-              <small>Print</small>
+              <small>{{ 'shortcut.print' | i18n }}</small>
             </div>
           </div>
         </nz-spin>
@@ -60,7 +61,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     </nz-dropdown-menu>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NzDropdownModule, NzIconModule, NzMenuModule, NzGridModule, NzSpinModule]
+  imports: [NzDropdownModule, NzIconModule, NzMenuModule, NzGridModule, NzSpinModule, I18nPipe]
 })
 export class HeaderIcon {
   protected loading = signal(true);

@@ -1,8 +1,12 @@
-<page-header [title]="'Thông tin cá nhân'" [action]="actionTpl">
+<page-header [title]="'profile.personal-profile' | i18n" [action]="actionTpl">
   <ng-template #actionTpl>
+    <button nz-button nzType="primary" (click)="editing = !editing">
+      <span nz-icon nzType="edit"></span>
+      {{ (editing ? 'action.cancel' : 'action.edit') | i18n }}
+    </button>
     <button nz-button nzType="default" (click)="loadProfile()" [nzLoading]="loading">
       <span nz-icon nzType="reload"></span>
-      Tải lại
+      {{ 'action.reload' | i18n }}
     </button>
   </ng-template>
 </page-header>
@@ -23,63 +27,76 @@
           <h2 class="user-name">
             {{ profile.fullName || profile.username }}
             <nz-tag [nzColor]="getStatusColor(profile.status)">
-              {{ getStatusText(profile.status) }}
+              {{ getStatusText(profile.status) | i18n }}
             </nz-tag>
           </h2>
           <p class="user-username">&#64;{{ profile.username }}</p>
         </div>
       </div>
 
-      <nz-card nzTitle="Thông tin chi tiết" class="detail-card" [nzBordered]="false">
+      @if (editing) {
+        <nz-card [nzTitle]="'profile.update-info' | i18n" class="detail-card" [nzBordered]="false">
+          <div style="display: grid; gap: 16px; max-width: 480px">
+            <label>
+              {{ 'profile.fullname' | i18n }}
+              <input nz-input [(ngModel)]="fullName" maxlength="100" />
+            </label>
+            <label>
+              {{ 'profile.phone' | i18n }}
+              <input nz-input [(ngModel)]="phone" maxlength="20" />
+            </label>
+            <button nz-button nzType="primary" (click)="save()" [nzLoading]="loading">{{ 'action.save' | i18n }}</button>
+          </div>
+        </nz-card>
+      }
+
+      <nz-card [nzTitle]="'profile.detail-info' | i18n" class="detail-card" [nzBordered]="false">
         <sv-container col="2" size="large">
-          <sv label="Mã tài khoản">
-            <code>{{ profile.id }}</code>
-          </sv>
-          <sv label="Tên đăng nhập">
+          <sv [label]="'profile.username' | i18n">
             <strong>{{ profile.username }}</strong>
           </sv>
-          <sv label="Họ và tên">
+          <sv [label]="'profile.fullname' | i18n">
             @if (profile.fullName) {
               <span>{{ profile.fullName }}</span>
             } @else {
-              <span class="text-placeholder">Chưa cập nhật</span>
+              <span class="text-placeholder">{{ 'profile.not-updated' | i18n }}</span>
             }
           </sv>
-          <sv label="Email">
+          <sv [label]="'profile.email' | i18n">
             <a [href]="'mailto:' + profile.email">{{ profile.email }}</a>
           </sv>
-          <sv label="Số điện thoại">
+          <sv [label]="'profile.phone' | i18n">
             @if (profile.phone) {
               <span>{{ profile.phone }}</span>
             } @else {
-              <span class="text-placeholder">Chưa cập nhật</span>
+              <span class="text-placeholder">{{ 'profile.not-updated' | i18n }}</span>
             }
           </sv>
-          <sv label="Trạng thái">
+          <sv [label]="'profile.status' | i18n">
             <nz-tag [nzColor]="getStatusColor(profile.status)">
-              {{ getStatusText(profile.status) }}
+              {{ getStatusText(profile.status) | i18n }}
             </nz-tag>
           </sv>
-          <sv label="Ngày tạo tài khoản">
+          <sv [label]="'profile.createdAt' | i18n">
             {{ profile.createdAt | date: 'dd/MM/yyyy HH:mm:ss' }}
           </sv>
         </sv-container>
       </nz-card>
 
       <!-- Roles & Permissions Card -->
-      <nz-card nzTitle="Vai trò & Quyền hạn" class="roles-card" [nzBordered]="false">
+      <nz-card [nzTitle]="'profile.roles-permissions' | i18n" class="roles-card" [nzBordered]="false">
         @if (profile.roles.length > 0) {
           <div class="roles-list">
             @for (role of profile.roles; track role.id) {
               <div class="role-item">
                 <nz-tag nzColor="blue" class="role-tag">
                   <span nz-icon nzType="safety-certificate" nzTheme="outline"></span>
-                  {{ role.roleName }}
+                  {{ translateCode('role', role.roleName) }}
                 </nz-tag>
                 @if (role.permissions.length > 0) {
                   <div class="permission-chips">
                     @for (permission of role.permissions; track permission.id) {
-                      <span class="perm-chip">{{ permission.permissionName }}</span>
+                      <span class="perm-chip">{{ translateCode('permission', permission.permissionName) }}</span>
                     }
                   </div>
                 }
@@ -87,7 +104,7 @@
             }
           </div>
         } @else {
-          <span class="text-placeholder">Chưa được gán vai trò nào</span>
+          <span class="text-placeholder">{{ 'profile.no-roles' | i18n }}</span>
         }
       </nz-card>
     </div>

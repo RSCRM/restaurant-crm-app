@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { contextGuard } from '../auth/guards/context.guard';
 import { permissionGuard } from '../auth/guards/permission.guard';
 
@@ -30,7 +31,7 @@ export const routes: Routes = [
   },
   {
     path: 'booking',
-    canActivate: [contextGuard],
+    canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./booking/booking.component').then(m => m.BookingComponent)
   },
   {
@@ -40,8 +41,8 @@ export const routes: Routes = [
   },
   {
     path: 'employee',
-    canActivate: [contextGuard, permissionGuard('STAFF_MANAGE')],
-    loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
+    canActivate: [contextGuard, permissionGuard('PROFILE_VIEW')],
+    loadComponent: () => import('../admin/user/user.component').then(m => m.UserComponent)
   },
   {
     path: 'invoice',

@@ -1,27 +1,21 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 
-import { LicenseService } from '../license.service';
 import { BillingCycle, LicenseResponse, LicenseStatus } from '../license.model';
+import { LicenseService } from '../license.service';
 
 @Component({
   selector: 'app-license-form',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    NzButtonModule
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzInputNumberModule, NzSelectModule, NzButtonModule, I18nPipe],
   templateUrl: './license-form.component.html'
 })
 export class LicenseFormComponent implements OnInit {
@@ -30,6 +24,7 @@ export class LicenseFormComponent implements OnInit {
   private licenseService = inject(LicenseService);
   private message = inject(NzMessageService);
   private modalData = inject<LicenseResponse | null>(NZ_MODAL_DATA, { optional: true });
+  private i18n = inject(ALAIN_I18N_TOKEN);
 
   isEdit = false;
   loading = false;
@@ -73,40 +68,44 @@ export class LicenseFormComponent implements OnInit {
     const raw = this.form.getRawValue();
 
     if (this.isEdit && this.modalData) {
-      this.licenseService.updateLicense(this.modalData.id, {
-        description: raw.description,
-        price: raw.price,
-        billingCycle: raw.billingCycle,
-        maxBranch: raw.maxBranch,
-        maxEmployee: raw.maxEmployee,
-        status: raw.status
-      }).subscribe({
-        next: () => {
-          this.message.success('Cập nhật license thành công');
-          this.modalRef.destroy(true);
-        },
-        error: () => {
-          this.loading = false;
-        }
-      });
+      this.licenseService
+        .updateLicense(this.modalData.id, {
+          description: raw.description,
+          price: raw.price,
+          billingCycle: raw.billingCycle,
+          maxBranch: raw.maxBranch,
+          maxEmployee: raw.maxEmployee,
+          status: raw.status
+        })
+        .subscribe({
+          next: () => {
+            this.message.success(this.i18n.fanyi('license.update-success'));
+            this.modalRef.destroy(true);
+          },
+          error: () => {
+            this.loading = false;
+          }
+        });
     } else {
-      this.licenseService.createLicense({
-        code: raw.code,
-        name: raw.name,
-        description: raw.description,
-        price: raw.price,
-        billingCycle: raw.billingCycle,
-        maxBranch: raw.maxBranch,
-        maxEmployee: raw.maxEmployee
-      }).subscribe({
-        next: () => {
-          this.message.success('Tạo license thành công');
-          this.modalRef.destroy(true);
-        },
-        error: () => {
-          this.loading = false;
-        }
-      });
+      this.licenseService
+        .createLicense({
+          code: raw.code,
+          name: raw.name,
+          description: raw.description,
+          price: raw.price,
+          billingCycle: raw.billingCycle,
+          maxBranch: raw.maxBranch,
+          maxEmployee: raw.maxEmployee
+        })
+        .subscribe({
+          next: () => {
+            this.message.success(this.i18n.fanyi('license.create-success'));
+            this.modalRef.destroy(true);
+          },
+          error: () => {
+            this.loading = false;
+          }
+        });
     }
   }
 
