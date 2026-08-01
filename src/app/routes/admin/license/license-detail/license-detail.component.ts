@@ -145,7 +145,8 @@ export class LicenseDetailComponent implements OnInit {
   }
 
   renewSubscription(subscriptionId: string): void {
-    this.licenseService.renewSubscription(subscriptionId).pipe(
+    this.licenseService.renewSubscription(subscriptionId)
+    .pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(() => {
         this.message.error('Gia hạn subscription thất bại');
@@ -158,7 +159,8 @@ export class LicenseDetailComponent implements OnInit {
   }
 
   revokeSubscription(subscriptionId: string): void {
-    this.licenseService.revokeSubscription(subscriptionId).pipe(
+    this.licenseService.revokeSubscription(subscriptionId)
+    .pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(() => {
         this.message.error('Thu hồi subscription thất bại');
@@ -172,7 +174,8 @@ export class LicenseDetailComponent implements OnInit {
 
   lockLicense(): void {
     if (!this.license) return;
-    this.licenseService.lockLicense(this.license.id).pipe(
+    this.licenseService.lockLicense(this.license.id)
+    .pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(() => {
         this.message.error('Khóa license thất bại');
@@ -186,7 +189,8 @@ export class LicenseDetailComponent implements OnInit {
 
   reactivateLicense(): void {
     if (!this.license) return;
-    this.licenseService.reactivateLicense(this.license.id).pipe(
+    this.licenseService.reactivateLicense(this.license.id)
+    .pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(() => {
         this.message.error('Mở khóa license thất bại');
