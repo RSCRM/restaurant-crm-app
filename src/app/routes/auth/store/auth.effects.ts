@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { catchError, exhaustMap, map, of, switchMap, tap } from 'rxjs';
@@ -13,7 +12,6 @@ import { AuthService } from '../services/auth.service';
 export class AuthEffects {
   private actions$ = inject(Actions);
   private authService = inject(AuthService);
-  private router = inject(Router);
   private notification = inject(NzNotificationService);
 
   // Init: Restore auth state from localStorage on app startup
@@ -72,23 +70,21 @@ export class AuthEffects {
   );
 
   // Step 2: After login success → persist accessToken & systemRoles, redirect by role
+  // Force full page reload to ensure clean layout switch (portal ↔ admin)
   loginSuccess$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap({
-          next: ({ accessToken, contexts, systemRoles }) => {
-            this.authService.setAccessToken(accessToken);
-            this.authService.setContexts(contexts);
-            this.authService.setSystemRoles(systemRoles);
-            if (systemRoles.includes('ADMIN')) {
-              // ADMIN: use accessToken as the main API token
-              this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
-              this.router.navigate(['/admin/dashboard']);
-            } else {
-              // USER: redirect to context-select within portal
-              this.router.navigate(['/portal/context-select']);
-            }
+        tap(({ accessToken, systemRoles }) => {
+          this.authService.setAccessToken(accessToken);
+          this.authService.setSystemRoles(systemRoles);
+          if (systemRoles.includes('ADMIN')) {
+            // ADMIN: use accessToken as the main API token
+            this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
+            window.location.href = '/#/admin/dashboard';
+          } else {
+            // USER: redirect to context-select within portal
+            window.location.href = '/#/portal/context-select';
           }
         })
       ),
@@ -136,10 +132,9 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.selectContextSuccess),
-        tap({
-          next: () => {
-            this.router.navigate(['/portal/dashboard']);
-          }
+        tap(() => {
+          // Reload to ensure portal layout picks up the new context state
+          window.location.href = '/#/portal/dashboard';
         })
       ),
     { dispatch: false }
@@ -169,10 +164,11 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.logoutSuccess),
-        tap({
-          next: () => {
-            this.router.navigate(['/auth/login']);
-          }
+        tap(() => {
+          // Force full page reload to clear all Angular component state,
+          // subscriptions, and singleton services (MenuService, SettingsService).
+          // This prevents stale portal layout from persisting when logging in as admin.
+          window.location.href = '/#/auth/login';
         })
       ),
     { dispatch: false }

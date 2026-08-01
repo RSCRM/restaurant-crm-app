@@ -5,6 +5,7 @@ import { ExceptionModule, ExceptionType } from '@delon/abc/exception';
 @Component({
   selector: 'app-exception',
   templateUrl: './exception.component.html',
+  styleUrl: './exception.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ExceptionModule]
 })

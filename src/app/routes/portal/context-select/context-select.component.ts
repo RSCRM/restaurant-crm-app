@@ -11,6 +11,8 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { combineLatest, map } from 'rxjs';
 
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { I18nPipe } from '@delon/theme';
 import { AuthActions } from '../../auth/store/auth.actions';
 import { selectAuthLoading, selectContexts, selectSelectedContext } from '../../auth/store/auth.selectors';
 import { ContextInfo, SelectedContext } from '../../auth/store/auth.state';
@@ -28,7 +30,8 @@ import { ContextInfo, SelectedContext } from '../../auth/store/auth.state';
     NzIconModule,
     NzSpinModule,
     NzEmptyModule,
-    PageHeaderModule
+    PageHeaderModule,
+    I18nPipe
   ],
   templateUrl: './context-select.component.html',
   styleUrl: './context-select.component.less'

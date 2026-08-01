@@ -10,6 +10,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
@@ -30,6 +31,8 @@ interface DashboardSummary {
   bookings: number;
   newCustomers: number;
 }
+import { I18nPipe } from '@delon/theme';
+
 
 @Component({
   selector: 'app-portal-dashboard',
@@ -48,6 +51,8 @@ interface DashboardSummary {
     NzSelectModule,
     NzSkeletonModule,
     NzStatisticModule,
+    I18nPipe,
+    NzTypographyModule,
     NzTagModule
   ],
   templateUrl: './portal-dashboard.component.html',

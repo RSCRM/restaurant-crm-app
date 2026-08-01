@@ -1,9 +1,9 @@
-<page-header [title]="'Quản lý License'" />
+<page-header [title]="'app.license.title' | i18n" />
 <nz-card>
-  <div style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
+  <div class="toolbar">
     <button nz-button nzType="primary" (click)="openCreate()">
       <span nz-icon nzType="plus" nzTheme="outline"></span>
-      Tạo License
+      {{ 'app.license.create' | i18n }}
     </button>
   </div>
   <st
@@ -20,12 +20,12 @@
   >
     <ng-template st-row="billingCycle" let-item>
       <nz-tag [nzColor]="item.billingCycle === 'YEARLY' ? 'blue' : 'green'">
-        {{ item.billingCycle === 'YEARLY' ? 'Hàng năm' : 'Hàng tháng' }}
+        {{ item.billingCycle === 'YEARLY' ? ('app.license.billing.yearly' | i18n) : ('app.license.billing.monthly' | i18n) }}
       </nz-tag>
     </ng-template>
     <ng-template st-row="status" let-item>
       <nz-tag [nzColor]="item.status === 'ACTIVE' ? 'success' : 'error'">
-        {{ item.status === 'ACTIVE' ? 'Hoạt động' : 'Khóa' }}
+        {{ item.status === 'ACTIVE' ? ('app.license.status.active' | i18n) : ('app.license.status.locked' | i18n) }}
       </nz-tag>
     </ng-template>
   </st>

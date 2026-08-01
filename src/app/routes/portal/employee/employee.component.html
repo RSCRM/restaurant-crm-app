@@ -1,8 +1,21 @@
-<page-header [title]="'employee.title' | i18n" />
+<page-header [title]="'app.portal.employee.title' | i18n" />
 
 <div class="employee-page">
+  <nz-card class="employee-intro-card">
+    <h2 nz-typography>
+      {{ 'app.portal.employee.title' | i18n }}
+    </h2>
+
+    <p nz-typography>
+      {{ 'app.portal.employee.desc' | i18n }}
+    </p>
+  </nz-card>
+
   @if (errorMessageKey) {
-    <nz-alert nzType="error" [nzMessage]="errorMessageKey | i18n" nzShowIcon />
+    <nz-alert
+      nzType="error"
+      [nzMessage]="errorMessageKey | i18n"
+      nzShowIcon />
   }
 
   <nz-card>
@@ -14,21 +27,38 @@
             [(ngModel)]="keyword"
             [placeholder]="'employee.placeholders.search' | i18n"
             (ngModelChange)="onKeywordChange($event)"
-            (keyup.enter)="search()"
-          />
+            (keyup.enter)="search()" />
         </nz-input-group>
 
-        <nz-select [(ngModel)]="filterRole" [nzPlaceHolder]="'employee.filters.role' | i18n" (ngModelChange)="search()">
-          <nz-option [nzValue]="null" [nzLabel]="'employee.filters.allRoles' | i18n"></nz-option>
+        <nz-select
+          [(ngModel)]="filterRole"
+          [nzPlaceHolder]="'employee.filters.role' | i18n"
+          (ngModelChange)="search()">
+
+          <nz-option
+            [nzValue]="null"
+            [nzLabel]="'employee.filters.allRoles' | i18n" />
+
           @for (role of roles; track role.id) {
-            <nz-option [nzValue]="role.id" [nzLabel]="role.name"></nz-option>
+            <nz-option
+              [nzValue]="role.id"
+              [nzLabel]="role.name" />
           }
         </nz-select>
 
-        <nz-select [(ngModel)]="filterStatus" [nzPlaceHolder]="'employee.filters.status' | i18n" (ngModelChange)="search()">
-          <nz-option [nzValue]="null" [nzLabel]="'employee.filters.allStatuses' | i18n"></nz-option>
+        <nz-select
+          [(ngModel)]="filterStatus"
+          [nzPlaceHolder]="'employee.filters.status' | i18n"
+          (ngModelChange)="search()">
+
+          <nz-option
+            [nzValue]="null"
+            [nzLabel]="'employee.filters.allStatuses' | i18n" />
+
           @for (status of statuses; track status) {
-            <nz-option [nzValue]="status" [nzLabel]="('employee.status.' + status.toLowerCase()) | i18n"></nz-option>
+            <nz-option
+              [nzValue]="status"
+              [nzLabel]="('employee.status.' + status.toLowerCase()) | i18n" />
           }
         </nz-select>
 
@@ -37,28 +67,66 @@
             [(ngModel)]="filterBranchId"
             [nzPlaceHolder]="'employee.filters.branch' | i18n"
             [nzLoading]="loadingBranches"
-            (ngModelChange)="search()"
-          >
-            <nz-option [nzValue]="null" [nzLabel]="'employee.filters.allBranches' | i18n"></nz-option>
+            (ngModelChange)="search()">
+
+            <nz-option
+              [nzValue]="null"
+              [nzLabel]="'employee.filters.allBranches' | i18n" />
+
             @for (branch of branches; track branch.id) {
-              <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName"></nz-option>
+              <nz-option
+                [nzValue]="branch.id"
+                [nzLabel]="branch.branchName" />
             }
           </nz-select>
         }
       </div>
 
       <div class="employee-toolbar-actions">
-        <button nz-button type="button" (click)="reset()" [disabled]="loading">
-          <span nz-icon nzType="undo" nzTheme="outline"></span>
+        <button
+          nz-button
+          type="button"
+          (click)="reset()"
+          [disabled]="loading">
+
+          <span
+            nz-icon
+            nzType="undo"
+            nzTheme="outline">
+          </span>
+
           {{ 'employee.actions.reset' | i18n }}
         </button>
-        <button nz-button type="button" (click)="reload()" [disabled]="loading">
-          <span nz-icon nzType="reload" nzTheme="outline"></span>
+
+        <button
+          nz-button
+          type="button"
+          (click)="reload()"
+          [disabled]="loading">
+
+          <span
+            nz-icon
+            nzType="reload"
+            nzTheme="outline">
+          </span>
+
           {{ 'common.reload' | i18n }}
         </button>
+
         @if (canManage()) {
-          <button nz-button nzType="primary" type="button" (click)="openCreate()" [disabled]="loading">
-            <span nz-icon nzType="plus" nzTheme="outline"></span>
+          <button
+            nz-button
+            nzType="primary"
+            type="button"
+            (click)="openCreate()"
+            [disabled]="loading">
+
+            <span
+              nz-icon
+              nzType="plus"
+              nzTheme="outline">
+            </span>
+
             {{ 'employee.actions.create' | i18n }}
           </button>
         }
@@ -66,7 +134,9 @@
     </div>
 
     @if (loading && !firstLoaded) {
-      <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 8 }" />
+      <nz-skeleton
+        [nzActive]="true"
+        [nzParagraph]="{ rows: 8 }" />
     } @else {
       <st
         [columns]="columns"
@@ -75,57 +145,145 @@
         [ps]="pageSize"
         [pi]="currentPage"
         [loading]="loading"
-        [page]="{ show: true, showSize: true }"
-        [scroll]="{ x: '1840px' }"
-        (change)="onSTChange($event)"
-      >
-        <ng-template st-row="employeeId" let-item>
-          {{ item.employeeCode || item.employeeId || item.id || ('common.emptyValue' | i18n) }}
+        [page]="{
+          show: true,
+          showSize: true
+        }"
+        [scroll]="{
+          x: '1840px'
+        }"
+        (change)="onSTChange($event)">
+
+        <ng-template
+          st-row="employeeId"
+          let-item>
+
+          {{
+            item.employeeCode
+              || item.employeeId
+              || item.id
+              || ('common.emptyValue' | i18n)
+          }}
         </ng-template>
 
-        <ng-template st-row="identity" let-item>
-          <button nz-button nzType="link" type="button" class="employee-name" (click)="openDetail(item)">
-            {{ item.fullName || item.username || ('common.emptyValue' | i18n) }}
+        <ng-template
+          st-row="identity"
+          let-item>
+
+          <button
+            nz-button
+            nzType="link"
+            type="button"
+            class="employee-name"
+            (click)="openDetail(item)">
+
+            {{
+              item.fullName
+                || item.username
+                || ('common.emptyValue' | i18n)
+            }}
           </button>
         </ng-template>
 
-        <ng-template st-row="branch" let-item>
-          <span>{{ item.branchName || ('common.emptyValue' | i18n) }}</span>
+        <ng-template
+          st-row="branch"
+          let-item>
+
+          <span>
+            {{
+              item.branchName
+                || ('common.emptyValue' | i18n)
+            }}
+          </span>
+
           @if (item.branchId) {
-            <div class="employee-cell-subtext">{{ item.branchId }}</div>
+            <div class="employee-cell-subtext">
+              {{ item.branchId }}
+            </div>
           }
         </ng-template>
 
-        <ng-template st-row="role" let-item>
-          <app-employee-role-badge [role]="item.orgRoleName || item.role" />
+        <ng-template
+          st-row="role"
+          let-item>
+
+          <app-employee-role-badge
+            [role]="item.orgRoleName || item.role" />
         </ng-template>
 
-        <ng-template st-row="status" let-item>
-          <app-employee-status-badge [status]="item.status" />
+        <ng-template
+          st-row="status"
+          let-item>
+
+          <app-employee-status-badge
+            [status]="item.status" />
         </ng-template>
 
-        <ng-template st-row="userStatus" let-item>
-          <nz-tag [nzColor]="getUserStatusColor(item)">{{ getUserStatusKey(item) | i18n }}</nz-tag>
+        <ng-template
+          st-row="userStatus"
+          let-item>
+
+          <nz-tag
+            [nzColor]="getUserStatusColor(item)">
+
+            {{ getUserStatusKey(item) | i18n }}
+          </nz-tag>
         </ng-template>
 
-        <ng-template st-row="endDate" let-item>
-          {{ item.endDate || ('common.emptyValue' | i18n) }}
+        <ng-template
+          st-row="endDate"
+          let-item>
+
+          {{
+            item.endDate
+              || ('common.emptyValue' | i18n)
+          }}
         </ng-template>
 
-        <ng-template st-row="updatedAt" let-item>
-          {{ item.updatedAt ? (item.updatedAt | date:'yyyy-MM-dd HH:mm') : ('common.emptyValue' | i18n) }}
+        <ng-template
+          st-row="updatedAt"
+          let-item>
+
+          {{
+            item.updatedAt
+              ? (item.updatedAt | date: 'yyyy-MM-dd HH:mm')
+              : ('common.emptyValue' | i18n)
+          }}
         </ng-template>
 
-        <ng-template st-row="actions" let-item>
+        <ng-template
+          st-row="actions"
+          let-item>
+
           <div class="employee-row-actions">
-            <button nz-button nzType="link" type="button" (click)="openDetail(item)">
-              <span nz-icon nzType="eye" nzTheme="outline"></span>
+            <button
+              nz-button
+              nzType="link"
+              type="button"
+              (click)="openDetail(item)">
+
+              <span
+                nz-icon
+                nzType="eye"
+                nzTheme="outline">
+              </span>
+
               {{ 'employee.actions.detail' | i18n }}
             </button>
 
             @if (canManage()) {
-              <button nz-button nzType="link" type="button" (click)="openEdit(item)">
-                <span nz-icon nzType="edit" nzTheme="outline"></span>
+              <button
+                nz-button
+                nzType="link"
+                type="button"
+                (click)="openEdit(item)">
+
+                <span
+                  nz-icon
+                  nzType="edit"
+                  nzTheme="outline">
+                </span>
+
                 {{ 'employee.actions.edit' | i18n }}
               </button>
 
@@ -136,9 +294,14 @@
                   type="button"
                   nz-popconfirm
                   [nzPopconfirmTitle]="'employee.confirm.disable' | i18n"
-                  (nzOnConfirm)="disableEmployee(item)"
-                >
-                  <span nz-icon nzType="lock" nzTheme="outline"></span>
+                  (nzOnConfirm)="disableEmployee(item)">
+
+                  <span
+                    nz-icon
+                    nzType="lock"
+                    nzTheme="outline">
+                  </span>
+
                   {{ 'employee.actions.disable' | i18n }}
                 </button>
               } @else {
@@ -148,9 +311,14 @@
                   type="button"
                   nz-popconfirm
                   [nzPopconfirmTitle]="'employee.confirm.enable' | i18n"
-                  (nzOnConfirm)="enableEmployee(item)"
-                >
-                  <span nz-icon nzType="unlock" nzTheme="outline"></span>
+                  (nzOnConfirm)="enableEmployee(item)">
+
+                  <span
+                    nz-icon
+                    nzType="unlock"
+                    nzTheme="outline">
+                  </span>
+
                   {{ 'employee.actions.enable' | i18n }}
                 </button>
               }
@@ -162,9 +330,14 @@
                 type="button"
                 nz-popconfirm
                 [nzPopconfirmTitle]="'employee.confirm.delete' | i18n"
-                (nzOnConfirm)="deleteEmployee(item)"
-              >
-                <span nz-icon nzType="delete" nzTheme="outline"></span>
+                (nzOnConfirm)="deleteEmployee(item)">
+
+                <span
+                  nz-icon
+                  nzType="delete"
+                  nzTheme="outline">
+                </span>
+
                 {{ 'employee.actions.delete' | i18n }}
               </button>
             }
@@ -173,7 +346,8 @@
       </st>
 
       @if (!loading && firstLoaded && data.length === 0) {
-        <nz-empty [nzNotFoundContent]="'employee.empty' | i18n" />
+        <nz-empty
+          [nzNotFoundContent]="'employee.empty' | i18n" />
       }
     }
   </nz-card>

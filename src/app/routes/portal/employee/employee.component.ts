@@ -11,6 +11,7 @@ import { Store } from '@ngrx/store';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -34,6 +35,8 @@ import { EmployeeRoleBadgeComponent } from './employee-role-badge/employee-role-
 import { EmployeeService } from './employee.service';
 import { EmployeeStatusBadgeComponent } from './employee-status-badge/employee-status-badge.component';
 
+import { I18nPipe } from '@delon/theme';
+
 @Component({
   selector: 'app-employee',
   standalone: true,
@@ -55,6 +58,7 @@ import { EmployeeStatusBadgeComponent } from './employee-status-badge/employee-s
     NzSkeletonModule,
     NzTagModule,
     STModule,
+    NzTypographyModule,
     EmployeeRoleBadgeComponent,
     EmployeeStatusBadgeComponent
   ],
