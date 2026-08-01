@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -10,17 +8,31 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { I18nPipe } from '@delon/theme';
+import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { LicenseFormComponent } from './license-form/license-form.component';
-import { LicenseResponse, PagingResponse } from './license.model';
 import { LicenseService } from './license.service';
+import { LicenseResponse, PagingResponse } from './license.model';
 
 @Component({
   selector: 'app-license',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PageHeaderModule, NzCardModule, NzButtonModule, NzIconModule, NzTagModule, NzPopconfirmModule, STModule, I18nPipe],
-  templateUrl: './license.component.html'
+  imports: [
+    PageHeaderModule,
+    NzCardModule,
+    NzButtonModule,
+    NzIconModule,
+    NzTagModule,
+    NzPopconfirmModule,
+    STModule,
+    I18nPipe
+  ],
+  templateUrl: './license.component.html',
+  styleUrl: './license.component.less'
 })
 export class LicenseComponent implements OnInit {
   @ViewChild('st') st!: STComponent;
@@ -30,78 +42,79 @@ export class LicenseComponent implements OnInit {
   private message = inject(NzMessageService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-  private i18n = inject(ALAIN_I18N_TOKEN);
+  private destroyRef = inject(DestroyRef);
 
   data: LicenseResponse[] = [];
   total = 0;
   currentPage = 1;
   pageSize = 10;
   loading = false;
+  searchValue = '';
 
   columns: STColumn[] = [
-    { title: this.i18n.fanyi('license.code'), index: 'code', width: 120 },
-    { title: this.i18n.fanyi('license.name'), index: 'name', width: 180 },
+    { title: { i18n: 'app.license.code' }, index: 'code', width: 120 },
+    { title: { i18n: 'app.license.name' }, index: 'name', width: 180 },
     {
-      title: this.i18n.fanyi('license.price'),
+      title: { i18n: 'app.license.price' },
       index: 'price',
       width: 130,
       type: 'number',
       format: item => `${item.price?.toLocaleString('vi-VN')} ₫`
     },
-    { title: this.i18n.fanyi('license.billing-cycle'), index: 'billingCycle', width: 100, render: 'billingCycle' },
+    { title: { i18n: 'app.license.billingCycle' }, index: 'billingCycle', width: 100, render: 'billingCycle' },
     {
-      title: this.i18n.fanyi('license.max-branches'),
+      title: { i18n: 'app.license.maxBranch' },
       index: 'maxBranch',
       width: 100,
-      format: item => (item.maxBranch === -1 ? '∞' : item.maxBranch)
+      format: item => item.maxBranch === -1 ? '∞' : item.maxBranch
     },
     {
-      title: this.i18n.fanyi('license.max-employees'),
+      title: { i18n: 'app.license.maxEmployee' },
       index: 'maxEmployee',
       width: 100,
-      format: item => (item.maxEmployee === -1 ? '∞' : item.maxEmployee)
+      format: item => item.maxEmployee === -1 ? '∞' : item.maxEmployee
     },
-    { title: this.i18n.fanyi('profile.status'), index: 'status', width: 110, render: 'status' },
+    { title: { i18n: 'app.license.status' }, index: 'status', width: 110, render: 'status' },
     {
-      title: this.i18n.fanyi('profile.createdAt'),
+      title: { i18n: 'app.license.createdAt' },
       index: 'createdAt',
       width: 160,
       type: 'date'
     },
     {
-      title: this.i18n.fanyi('user.action'),
+      title: { i18n: 'app.license.detail' },
       width: 280,
       fixed: 'right',
       buttons: [
         {
-          text: this.i18n.fanyi('user.action.edit'),
+          i18n: 'app.license.edit',
           icon: 'edit',
           iif: item => item.status === 'ACTIVE',
           click: item => this.openEdit(item)
         },
         {
-          text: this.i18n.fanyi('user.action.detail'),
+          i18n: 'app.license.detail',
           icon: 'eye',
           click: item => this.goToDetail(item)
         },
         {
-          text: this.i18n.fanyi('action.lock'),
+          i18n: 'app.license.lock',
           icon: 'lock',
           iif: item => item.status === 'ACTIVE',
-          pop: this.i18n.fanyi('license.confirm-lock'),
+          pop: { titleI18n: 'app.license.lockConfirm' },
           click: item => this.lockLicense(item)
         },
         {
-          text: this.i18n.fanyi('action.unlock'),
+          i18n: 'app.license.unlock',
           icon: 'unlock',
           iif: item => item.status !== 'ACTIVE',
-          pop: this.i18n.fanyi('license.confirm-unlock'),
+          pop: { titleI18n: 'app.license.unlockConfirm' },
           click: item => this.reactivateLicense(item)
         },
         {
-          text: this.i18n.fanyi('action.delete'),
+          i18n: 'app.license.delete',
           icon: 'delete',
-          pop: this.i18n.fanyi('license.confirm-delete'),
+          pop: { titleI18n: 'app.license.deleteConfirm' },
           click: item => this.deleteLicense(item)
         }
       ]
@@ -114,25 +127,29 @@ export class LicenseComponent implements OnInit {
 
   loadData(): void {
     this.loading = true;
-    this.licenseService
-      .getLicenses({
-        page: this.currentPage,
-        size: this.pageSize,
-        direction: 'DESC',
-        field: 'createdAt'
+    this.cdr.markForCheck();
+    this.licenseService.getLicenses({
+      page: this.currentPage,
+      size: this.pageSize,
+      direction: 'DESC',
+      field: 'createdAt',
+      search: this.searchValue
+    }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.data = [];
+        this.total = 0;
+        return EMPTY;
+      }),
+      finalize(() => {
+        this.loading = false;
+        this.cdr.markForCheck();
       })
-      .subscribe({
-        next: (res: PagingResponse<LicenseResponse>) => {
-          this.data = res.data;
-          this.total = res.totalElement;
-          this.loading = false;
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        }
-      });
+    ).subscribe((res: PagingResponse<LicenseResponse>) => {
+      this.data = res.data;
+      this.total = res.totalElement;
+      this.cdr.markForCheck();
+    });
   }
 
   onSTChange(e: STChange): void {
@@ -175,29 +192,41 @@ export class LicenseComponent implements OnInit {
   }
 
   lockLicense(license: LicenseResponse): void {
-    this.licenseService.lockLicense(license.id).subscribe({
-      next: () => {
-        this.message.success(this.i18n.fanyi('license.lock-success'));
-        this.loadData();
-      }
+    this.licenseService.lockLicense(license.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Khóa license thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Khóa license thành công');
+      this.loadData();
     });
   }
 
   reactivateLicense(license: LicenseResponse): void {
-    this.licenseService.reactivateLicense(license.id).subscribe({
-      next: () => {
-        this.message.success(this.i18n.fanyi('license.unlock-success'));
-        this.loadData();
-      }
+    this.licenseService.reactivateLicense(license.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Mở khóa license thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Mở khóa license thành công');
+      this.loadData();
     });
   }
 
   deleteLicense(license: LicenseResponse): void {
-    this.licenseService.deleteLicense(license.id).subscribe({
-      next: () => {
-        this.message.success(this.i18n.fanyi('license.delete-success'));
-        this.loadData();
-      }
+    this.licenseService.deleteLicense(license.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Xóa license thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Xóa license thành công');
+      this.loadData();
     });
   }
 }

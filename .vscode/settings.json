@@ -26,11 +26,11 @@
   "eslint.validate": ["typescript", "html"],
   "[html]": {
     "editor.formatOnSave": false,
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    "editor.defaultFormatter": "vscode.html-language-features"
   },
   "[typescript]": {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.defaultFormatter": "vscode.typescript-language-features",
   },
   "css.validate": false,
   "less.validate": false,

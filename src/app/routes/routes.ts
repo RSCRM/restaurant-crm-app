@@ -6,7 +6,11 @@ import { LayoutAdmin } from '../layout/admin/admin';
 import { LayoutPortal } from '../layout/portal/portal';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+  { 
+    path: '', 
+    redirectTo: 'auth/login', 
+    pathMatch: 'full' 
+  },
   {
     path: 'auth',
     loadChildren: () => import('./auth/routes').then(m => m.routes)
@@ -23,6 +27,12 @@ export const routes: Routes = [
     canActivate: [authGuard, portalGuard],
     loadChildren: () => import('./portal/routes').then(m => m.routes)
   },
-  { path: 'exception', loadChildren: () => import('./exception/routes').then(m => m.routes) },
-  { path: '**', redirectTo: 'exception/404' }
+  { 
+    path: 'exception', 
+    loadChildren: () => import('./exception/routes').then(m => m.routes) 
+  },
+  { 
+    path: '**', 
+    redirectTo: 'exception/404' 
+  }
 ];

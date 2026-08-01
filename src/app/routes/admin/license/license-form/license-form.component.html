@@ -1,89 +1,77 @@
 <div class="modal-header">
-  <div class="modal-title">{{ (isEdit ? 'license.update' : 'license.create') | i18n }}</div>
+  <div class="modal-title">{{ isEdit ? ('app.form.update' | i18n) : ('app.license.create' | i18n) }}</div>
 </div>
 <form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
   <nz-form-item>
-    <nz-form-label [nzRequired]="!isEdit">{{ 'license.code' | i18n }}</nz-form-label>
-    <nz-form-control [nzErrorTip]="'license.validation.code' | i18n">
-      <input nz-input formControlName="code" [placeholder]="'license.placeholder.code' | i18n" />
+    <nz-form-label [nzRequired]="!isEdit">{{ 'app.form.code.label' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.error.code.required' | i18n">
+      <input nz-input formControlName="code" [placeholder]="'app.form.code.placeholder' | i18n" />
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item>
-    <nz-form-label [nzRequired]="!isEdit">{{ 'license.name' | i18n }}</nz-form-label>
-    <nz-form-control [nzErrorTip]="'license.validation.name' | i18n">
-      <input nz-input formControlName="name" [placeholder]="'license.placeholder.name' | i18n" />
+    <nz-form-label [nzRequired]="!isEdit">{{ 'app.form.name.label' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.error.name.required' | i18n">
+      <input nz-input formControlName="name" [placeholder]="'app.form.name.placeholder' | i18n" />
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item>
-    <nz-form-label>{{ 'license.description' | i18n }}</nz-form-label>
+    <nz-form-label>{{ 'app.form.description.label' | i18n }}</nz-form-label>
     <nz-form-control>
-      <textarea
-        nz-input
-        formControlName="description"
-        [nzAutosize]="{ minRows: 2, maxRows: 4 }"
-        [placeholder]="'license.placeholder.description' | i18n"
-      ></textarea>
+      <textarea nz-input formControlName="description" [nzAutosize]="{ minRows: 2, maxRows: 4 }" [placeholder]="'app.form.description.placeholder' | i18n"></textarea>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item>
-    <nz-form-label [nzRequired]="true">{{ 'license.price-vnd' | i18n }}</nz-form-label>
-    <nz-form-control [nzErrorTip]="'license.validation.price' | i18n">
-      <nz-input-number
-        formControlName="price"
-        [nzMin]="0"
-        [nzStep]="1000"
-        [nzFormatter]="formatterCurrency"
-        [nzParser]="parserCurrency"
-        style="width: 100%"
-      />
+    <nz-form-label [nzRequired]="true">{{ 'app.form.price.label' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.error.price.required' | i18n">
+      <nz-input-number formControlName="price" [nzMin]="0" [nzStep]="1000" [nzFormatter]="formatterCurrency" [nzParser]="parserCurrency" class="full-width"></nz-input-number>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item>
-    <nz-form-label [nzRequired]="true">{{ 'license.billing-cycle' | i18n }}</nz-form-label>
-    <nz-form-control [nzErrorTip]="'license.validation.billing-cycle' | i18n">
-      <nz-select formControlName="billingCycle" [nzPlaceHolder]="'license.select-billing-cycle' | i18n">
-        <nz-option nzValue="MONTHLY" [nzLabel]="'billing.monthly' | i18n" />
-        <nz-option nzValue="YEARLY" [nzLabel]="'billing.yearly' | i18n" />
+    <nz-form-label [nzRequired]="true">{{ 'app.form.billingCycle.label' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.error.billingCycle.required' | i18n">
+      <nz-select formControlName="billingCycle" [nzPlaceHolder]="'app.form.billingCycle.placeholder' | i18n">
+        <nz-option nzValue="MONTHLY" [nzLabel]="'app.license.billing.monthly' | i18n"></nz-option>
+        <nz-option nzValue="YEARLY" [nzLabel]="'app.license.billing.yearly' | i18n"></nz-option>
       </nz-select>
     </nz-form-control>
   </nz-form-item>
 
-  <div style="display: flex; gap: 16px">
-    <nz-form-item style="flex: 1">
-      <nz-form-label [nzRequired]="true">{{ 'license.max-branches' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'license.validation.unlimited' | i18n">
-        <nz-input-number formControlName="maxBranch" [nzMin]="-1" style="width: 100%" />
+  <div class="form-row">
+    <nz-form-item class="form-row-item">
+      <nz-form-label [nzRequired]="true">{{ 'app.form.maxBranch.label' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'app.error.maxBranch.hint' | i18n">
+        <nz-input-number formControlName="maxBranch" [nzMin]="-1" class="full-width"></nz-input-number>
       </nz-form-control>
     </nz-form-item>
 
-    <nz-form-item style="flex: 1">
-      <nz-form-label [nzRequired]="true">{{ 'license.max-employees' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'license.validation.unlimited' | i18n">
-        <nz-input-number formControlName="maxEmployee" [nzMin]="-1" style="width: 100%" />
+    <nz-form-item class="form-row-item">
+      <nz-form-label [nzRequired]="true">{{ 'app.form.maxEmployee.label' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'app.error.maxBranch.hint' | i18n">
+        <nz-input-number formControlName="maxEmployee" [nzMin]="-1" class="full-width"></nz-input-number>
       </nz-form-control>
     </nz-form-item>
   </div>
 
   @if (isEdit) {
     <nz-form-item>
-      <nz-form-label [nzRequired]="true">{{ 'profile.status' | i18n }}</nz-form-label>
+      <nz-form-label [nzRequired]="true">{{ 'app.form.status.label' | i18n }}</nz-form-label>
       <nz-form-control>
         <nz-select formControlName="status">
-          <nz-option nzValue="ACTIVE" [nzLabel]="'status.active' | i18n" />
-          <nz-option nzValue="LOCKED" [nzLabel]="'status.locked' | i18n" />
+          <nz-option nzValue="ACTIVE" [nzLabel]="'app.license.status.active' | i18n"></nz-option>
+          <nz-option nzValue="LOCKED" [nzLabel]="'app.license.status.locked' | i18n"></nz-option>
         </nz-select>
       </nz-form-control>
     </nz-form-item>
   }
 
-  <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px">
-    <button nz-button type="button" (click)="close()">{{ 'action.cancel' | i18n }}</button>
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.form.cancel' | i18n }}</button>
     <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="loading" [disabled]="form.invalid">
-      {{ (isEdit ? 'action.update' : 'action.create') | i18n }}
+      {{ isEdit ? ('app.form.update' | i18n) : ('app.form.create' | i18n) }}
     </button>
   </div>
 </form>

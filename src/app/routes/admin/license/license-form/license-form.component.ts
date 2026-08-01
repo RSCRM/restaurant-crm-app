@@ -1,30 +1,43 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { I18nPipe } from '@delon/theme';
+import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { BillingCycle, LicenseResponse, LicenseStatus } from '../license.model';
 import { LicenseService } from '../license.service';
+import { BillingCycle, LicenseResponse, LicenseStatus } from '../license.model';
 
 @Component({
   selector: 'app-license-form',
   standalone: true,
-  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzInputNumberModule, NzSelectModule, NzButtonModule, I18nPipe],
-  templateUrl: './license-form.component.html'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    NzFormModule,
+    NzInputModule,
+    NzInputNumberModule,
+    NzSelectModule,
+    NzButtonModule,
+    I18nPipe
+  ],
+  templateUrl: './license-form.component.html',
+  styleUrl: './license-form.component.less'
 })
 export class LicenseFormComponent implements OnInit {
   private fb = inject(NonNullableFormBuilder);
   private modalRef = inject(NzModalRef);
   private licenseService = inject(LicenseService);
   private message = inject(NzMessageService);
+  private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
   private modalData = inject<LicenseResponse | null>(NZ_MODAL_DATA, { optional: true });
-  private i18n = inject(ALAIN_I18N_TOKEN);
 
   isEdit = false;
   loading = false;
@@ -65,47 +78,54 @@ export class LicenseFormComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.loading = true;
+    this.cdr.markForCheck();
     const raw = this.form.getRawValue();
 
     if (this.isEdit && this.modalData) {
-      this.licenseService
-        .updateLicense(this.modalData.id, {
-          description: raw.description,
-          price: raw.price,
-          billingCycle: raw.billingCycle,
-          maxBranch: raw.maxBranch,
-          maxEmployee: raw.maxEmployee,
-          status: raw.status
+      this.licenseService.updateLicense(this.modalData.id, {
+        description: raw.description,
+        price: raw.price,
+        billingCycle: raw.billingCycle,
+        maxBranch: raw.maxBranch,
+        maxEmployee: raw.maxEmployee,
+        status: raw.status
+      }).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Cập nhật license thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
         })
-        .subscribe({
-          next: () => {
-            this.message.success(this.i18n.fanyi('license.update-success'));
-            this.modalRef.destroy(true);
-          },
-          error: () => {
-            this.loading = false;
-          }
-        });
+      ).subscribe(() => {
+        this.message.success('Cập nhật license thành công');
+        this.modalRef.destroy(true);
+      });
     } else {
-      this.licenseService
-        .createLicense({
-          code: raw.code,
-          name: raw.name,
-          description: raw.description,
-          price: raw.price,
-          billingCycle: raw.billingCycle,
-          maxBranch: raw.maxBranch,
-          maxEmployee: raw.maxEmployee
+      this.licenseService.createLicense({
+        code: raw.code,
+        name: raw.name,
+        description: raw.description,
+        price: raw.price,
+        billingCycle: raw.billingCycle,
+        maxBranch: raw.maxBranch,
+        maxEmployee: raw.maxEmployee
+      }).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Tạo license thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
         })
-        .subscribe({
-          next: () => {
-            this.message.success(this.i18n.fanyi('license.create-success'));
-            this.modalRef.destroy(true);
-          },
-          error: () => {
-            this.loading = false;
-          }
-        });
+      ).subscribe(() => {
+        this.message.success('Tạo license thành công');
+        this.modalRef.destroy(true);
+      });
     }
   }
 

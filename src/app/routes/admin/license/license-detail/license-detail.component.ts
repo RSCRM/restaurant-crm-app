@@ -1,9 +1,7 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
@@ -11,12 +9,16 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { I18nPipe } from '@delon/theme';
+import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { LicenseDetailResponse, LicenseResponse, OrganizationSubscriptionResponse, SubscriptionStatus } from '../license.model';
-import { LicenseService } from '../license.service';
 import { SubscriptionFormComponent } from '../subscription-form/subscription-form.component';
+import { LicenseService } from '../license.service';
+import { LicenseDetailResponse, LicenseResponse, LicenseStatus, SubscriptionStatus } from '../license.model';
 
 @Component({
   selector: 'app-license-detail',
@@ -35,7 +37,8 @@ import { SubscriptionFormComponent } from '../subscription-form/subscription-for
     STModule,
     I18nPipe
   ],
-  templateUrl: './license-detail.component.html'
+  templateUrl: './license-detail.component.html',
+  styleUrl: './license-detail.component.less'
 })
 export class LicenseDetailComponent implements OnInit {
   @ViewChild('st') st!: STComponent;
@@ -46,12 +49,12 @@ export class LicenseDetailComponent implements OnInit {
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
-  private i18n = inject(ALAIN_I18N_TOKEN);
+  private destroyRef = inject(DestroyRef);
 
   license: LicenseResponse | null = null;
   loading = true;
 
-  subscriptions: OrganizationSubscriptionResponse[] = [];
+  subscriptions: { organization: { id: string; name: string }; subscription: any }[] = [];
   subTotal = 0;
   subCurrentPage = 1;
   subPageSize = 10;
@@ -60,31 +63,31 @@ export class LicenseDetailComponent implements OnInit {
   licenseId = '';
 
   subColumns: STColumn[] = [
-    { title: this.i18n.fanyi('organization.title-short'), index: 'organization.name', width: 180 },
-    { title: this.i18n.fanyi('subscription.start-date'), index: 'subscription.startDate', width: 120, type: 'date' },
-    { title: this.i18n.fanyi('subscription.end-date'), index: 'subscription.endDate', width: 120, type: 'date' },
-    { title: this.i18n.fanyi('profile.status'), render: 'status', width: 110 },
-    { title: this.i18n.fanyi('license.billing-cycle'), render: 'billingCycle', width: 100 },
-    { title: this.i18n.fanyi('license.price'), render: 'price', width: 130 },
-    { title: this.i18n.fanyi('license.max-branches-short'), render: 'maxBranch', width: 100 },
-    { title: this.i18n.fanyi('license.max-employees-short'), render: 'maxEmployee', width: 100 },
+    { title: { i18n: 'app.common.orgName' }, index: 'organization.name', width: 180 },
+    { title: { i18n: 'app.license.createdAt' }, index: 'subscription.startDate', width: 120, type: 'date' },
+    { title: { i18n: 'app.license.updatedAt' }, index: 'subscription.endDate', width: 120, type: 'date' },
+    { title: { i18n: 'app.license.status' }, render: 'status', width: 110 },
+    { title: { i18n: 'app.license.billingCycle' }, render: 'billingCycle', width: 100 },
+    { title: { i18n: 'app.license.price' }, render: 'price', width: 130 },
+    { title: { i18n: 'app.license.maxBranch' }, render: 'maxBranch', width: 100 },
+    { title: { i18n: 'app.license.maxEmployee' }, render: 'maxEmployee', width: 100 },
     {
-      title: this.i18n.fanyi('user.action'),
+      title: { i18n: 'app.license.detail' },
       width: 180,
       fixed: 'right',
       buttons: [
         {
-          text: this.i18n.fanyi('subscription.renew'),
+          i18n: 'app.subscription.renew',
           icon: 'reload',
           iif: item => item.subscription.status !== 'REVOKED',
-          pop: this.i18n.fanyi('subscription.confirm-renew'),
+          pop: { titleI18n: 'app.subscription.renewConfirm' },
           click: item => this.renewSubscription(item.subscription.id)
         },
         {
-          text: this.i18n.fanyi('subscription.revoke'),
+          i18n: 'app.subscription.revoke',
           icon: 'stop',
           iif: item => item.subscription.status !== 'REVOKED',
-          pop: this.i18n.fanyi('subscription.confirm-revoke'),
+          pop: { titleI18n: 'app.subscription.revokeConfirm' },
           click: item => this.revokeSubscription(item.subscription.id)
         }
       ]
@@ -99,18 +102,22 @@ export class LicenseDetailComponent implements OnInit {
   loadDetail(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.licenseService.getLicenseDetail(this.licenseId, this.subCurrentPage - 1, this.subPageSize).subscribe({
-      next: (res: LicenseDetailResponse) => {
-        this.license = res.license;
-        this.subscriptions = res.organizations;
-        this.subTotal = res.pagination.totalElements;
+    this.licenseService.getLicenseDetail(this.licenseId, this.subCurrentPage - 1, this.subPageSize).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.license = null;
+        this.subscriptions = [];
+        return EMPTY;
+      }),
+      finalize(() => {
         this.loading = false;
         this.cdr.markForCheck();
-      },
-      error: () => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      }
+      })
+    ).subscribe((res: LicenseDetailResponse) => {
+      this.license = res.license;
+      this.subscriptions = res.organizations;
+      this.subTotal = res.pagination.totalElements;
+      this.cdr.markForCheck();
     });
   }
 
@@ -138,66 +145,78 @@ export class LicenseDetailComponent implements OnInit {
   }
 
   renewSubscription(subscriptionId: string): void {
-    this.licenseService.renewSubscription(subscriptionId).subscribe({
-      next: () => {
-        this.message.success(this.i18n.fanyi('subscription.renew-success'));
-        this.loadDetail();
-      }
+    this.licenseService.renewSubscription(subscriptionId)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Gia hạn subscription thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Gia hạn subscription thành công');
+      this.loadDetail();
     });
   }
 
   revokeSubscription(subscriptionId: string): void {
-    this.licenseService.revokeSubscription(subscriptionId).subscribe({
-      next: () => {
-        this.message.success(this.i18n.fanyi('subscription.revoke-success'));
-        this.loadDetail();
-      }
+    this.licenseService.revokeSubscription(subscriptionId)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Thu hồi subscription thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Thu hồi subscription thành công');
+      this.loadDetail();
     });
   }
 
   lockLicense(): void {
     if (!this.license) return;
-    this.licenseService.lockLicense(this.license.id).subscribe({
-      next: () => {
-        this.message.success(this.i18n.fanyi('license.lock-success'));
-        this.loadDetail();
-      }
+    this.licenseService.lockLicense(this.license.id)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Khóa license thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Khóa license thành công');
+      this.loadDetail();
     });
   }
 
   reactivateLicense(): void {
     if (!this.license) return;
-    this.licenseService.reactivateLicense(this.license.id).subscribe({
-      next: () => {
-        this.message.success(this.i18n.fanyi('license.unlock-success'));
-        this.loadDetail();
-      }
+    this.licenseService.reactivateLicense(this.license.id)
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Mở khóa license thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Mở khóa license thành công');
+      this.loadDetail();
     });
   }
 
   getSubStatusColor(status: SubscriptionStatus): string {
     switch (status) {
-      case SubscriptionStatus.ACTIVE:
-        return 'success';
-      case SubscriptionStatus.EXPIRED:
-        return 'warning';
-      case SubscriptionStatus.REVOKED:
-        return 'error';
-      default:
-        return 'default';
+      case SubscriptionStatus.ACTIVE: return 'success';
+      case SubscriptionStatus.EXPIRED: return 'warning';
+      case SubscriptionStatus.REVOKED: return 'error';
+      default: return 'default';
     }
   }
 
   getSubStatusText(status: SubscriptionStatus): string {
     switch (status) {
-      case SubscriptionStatus.ACTIVE:
-        return this.i18n.fanyi('status.active');
-      case SubscriptionStatus.EXPIRED:
-        return this.i18n.fanyi('status.expired');
-      case SubscriptionStatus.REVOKED:
-        return this.i18n.fanyi('status.revoked');
-      default:
-        return status;
+      case SubscriptionStatus.ACTIVE: return 'app.subscription.status.active';
+      case SubscriptionStatus.EXPIRED: return 'app.subscription.status.expired';
+      case SubscriptionStatus.REVOKED: return 'app.subscription.status.revoked';
+      default: return status;
     }
   }
 
