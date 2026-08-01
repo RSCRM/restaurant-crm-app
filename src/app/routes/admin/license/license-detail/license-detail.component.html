@@ -1,6 +1,6 @@
 @if (loading) {
   <div class="loading-container">
-    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+    <nz-spin nzSimple [nzSize]="'large'" />
   </div>
 } @else if (license) {
   <page-header [title]="'License: ' + license.name" [action]="actionTpl" />
@@ -33,8 +33,12 @@
           {{ license.status === 'ACTIVE' ? ('app.license.status.active' | i18n) : ('app.license.status.locked' | i18n) }}
         </nz-tag>
       </nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.license.createdAt' | i18n">{{ license.createdAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.license.updatedAt' | i18n">{{ license.updatedAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.createdAt' | i18n">{{
+        license.createdAt | date: 'dd/MM/yyyy HH:mm'
+      }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.updatedAt' | i18n">{{
+        license.updatedAt | date: 'dd/MM/yyyy HH:mm'
+      }}</nz-descriptions-item>
     </nz-descriptions>
 
     <div class="action-bar">
@@ -54,12 +58,7 @@
 
   <nz-card [nzTitle]="'app.subscription.title' | i18n">
     <div class="toolbar">
-      <button
-        nz-button
-        nzType="primary"
-        (click)="openGrantSubscription()"
-        [disabled]="license.status === 'LOCKED'"
-      >
+      <button nz-button nzType="primary" (click)="openGrantSubscription()" [disabled]="license.status === 'LOCKED'">
         <span nz-icon nzType="plus" nzTheme="outline"></span>
         {{ 'app.subscription.create' | i18n }}
       </button>
@@ -83,9 +82,7 @@
       <ng-template st-row="billingCycle" let-item>
         {{ item.subscription.billingCycle === 'YEARLY' ? ('app.license.billing.yearly' | i18n) : ('app.license.billing.monthly' | i18n) }}
       </ng-template>
-      <ng-template st-row="price" let-item>
-        {{ item.subscription.price?.toLocaleString('vi-VN') }} ₫
-      </ng-template>
+      <ng-template st-row="price" let-item> {{ item.subscription.price?.toLocaleString('vi-VN') }} ₫ </ng-template>
       <ng-template st-row="maxBranch" let-item>
         {{ item.subscription.maxBranch === -1 ? '∞' : item.subscription.maxBranch }}
       </ng-template>

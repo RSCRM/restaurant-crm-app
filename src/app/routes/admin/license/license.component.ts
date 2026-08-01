@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -8,29 +11,17 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { I18nPipe } from '@delon/theme';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { LicenseFormComponent } from './license-form/license-form.component';
-import { LicenseService } from './license.service';
 import { LicenseResponse, PagingResponse } from './license.model';
+import { LicenseService } from './license.service';
 
 @Component({
   selector: 'app-license',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    PageHeaderModule,
-    NzCardModule,
-    NzButtonModule,
-    NzIconModule,
-    NzTagModule,
-    NzPopconfirmModule,
-    STModule,
-    I18nPipe
-  ],
+  imports: [PageHeaderModule, NzCardModule, NzButtonModule, NzIconModule, NzTagModule, NzPopconfirmModule, STModule, I18nPipe],
   templateUrl: './license.component.html',
   styleUrl: './license.component.less'
 })
@@ -66,13 +57,13 @@ export class LicenseComponent implements OnInit {
       title: { i18n: 'app.license.maxBranch' },
       index: 'maxBranch',
       width: 100,
-      format: item => item.maxBranch === -1 ? '∞' : item.maxBranch
+      format: item => (item.maxBranch === -1 ? '∞' : item.maxBranch)
     },
     {
       title: { i18n: 'app.license.maxEmployee' },
       index: 'maxEmployee',
       width: 100,
-      format: item => item.maxEmployee === -1 ? '∞' : item.maxEmployee
+      format: item => (item.maxEmployee === -1 ? '∞' : item.maxEmployee)
     },
     { title: { i18n: 'app.license.status' }, index: 'status', width: 110, render: 'status' },
     {
@@ -128,28 +119,31 @@ export class LicenseComponent implements OnInit {
   loadData(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.licenseService.getLicenses({
-      page: this.currentPage,
-      size: this.pageSize,
-      direction: 'DESC',
-      field: 'createdAt',
-      search: this.searchValue
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.data = [];
-        this.total = 0;
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
+    this.licenseService
+      .getLicenses({
+        page: this.currentPage,
+        size: this.pageSize,
+        direction: 'DESC',
+        field: 'createdAt',
+        search: this.searchValue
       })
-    ).subscribe((res: PagingResponse<LicenseResponse>) => {
-      this.data = res.data;
-      this.total = res.totalElement;
-      this.cdr.markForCheck();
-    });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.data = [];
+          this.total = 0;
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((res: PagingResponse<LicenseResponse>) => {
+        this.data = res.data;
+        this.total = res.totalElement;
+        this.cdr.markForCheck();
+      });
   }
 
   onSTChange(e: STChange): void {
@@ -192,41 +186,50 @@ export class LicenseComponent implements OnInit {
   }
 
   lockLicense(license: LicenseResponse): void {
-    this.licenseService.lockLicense(license.id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Khóa license thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Khóa license thành công');
-      this.loadData();
-    });
+    this.licenseService
+      .lockLicense(license.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Khóa license thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Khóa license thành công');
+        this.loadData();
+      });
   }
 
   reactivateLicense(license: LicenseResponse): void {
-    this.licenseService.reactivateLicense(license.id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Mở khóa license thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Mở khóa license thành công');
-      this.loadData();
-    });
+    this.licenseService
+      .reactivateLicense(license.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Mở khóa license thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Mở khóa license thành công');
+        this.loadData();
+      });
   }
 
   deleteLicense(license: LicenseResponse): void {
-    this.licenseService.deleteLicense(license.id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Xóa license thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Xóa license thành công');
-      this.loadData();
-    });
+    this.licenseService
+      .deleteLicense(license.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Xóa license thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Xóa license thành công');
+        this.loadData();
+      });
   }
 }

@@ -2,6 +2,9 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
@@ -9,16 +12,13 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { I18nPipe } from '@delon/theme';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { SubscriptionFormComponent } from '../subscription-form/subscription-form.component';
+import { LicenseDetailResponse, LicenseResponse, OrganizationSubscriptionResponse, SubscriptionStatus } from '../license.model';
 import { LicenseService } from '../license.service';
-import { LicenseDetailResponse, LicenseResponse, LicenseStatus, SubscriptionStatus } from '../license.model';
+import { SubscriptionFormComponent } from '../subscription-form/subscription-form.component';
 
 @Component({
   selector: 'app-license-detail',
@@ -54,7 +54,7 @@ export class LicenseDetailComponent implements OnInit {
   license: LicenseResponse | null = null;
   loading = true;
 
-  subscriptions: { organization: { id: string; name: string }; subscription: any }[] = [];
+  subscriptions: OrganizationSubscriptionResponse[] = [];
   subTotal = 0;
   subCurrentPage = 1;
   subPageSize = 10;
@@ -102,23 +102,26 @@ export class LicenseDetailComponent implements OnInit {
   loadDetail(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.licenseService.getLicenseDetail(this.licenseId, this.subCurrentPage - 1, this.subPageSize).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.license = null;
-        this.subscriptions = [];
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
+    this.licenseService
+      .getLicenseDetail(this.licenseId, this.subCurrentPage - 1, this.subPageSize)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.license = null;
+          this.subscriptions = [];
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((res: LicenseDetailResponse) => {
+        this.license = res.license;
+        this.subscriptions = res.organizations;
+        this.subTotal = res.pagination.totalElements;
         this.cdr.markForCheck();
-      })
-    ).subscribe((res: LicenseDetailResponse) => {
-      this.license = res.license;
-      this.subscriptions = res.organizations;
-      this.subTotal = res.pagination.totalElements;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   onSubSTChange(e: STChange): void {
@@ -145,78 +148,94 @@ export class LicenseDetailComponent implements OnInit {
   }
 
   renewSubscription(subscriptionId: string): void {
-    this.licenseService.renewSubscription(subscriptionId)
-    .pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Gia hạn subscription thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Gia hạn subscription thành công');
-      this.loadDetail();
-    });
+    this.licenseService
+      .renewSubscription(subscriptionId)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Gia hạn subscription thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Gia hạn subscription thành công');
+        this.loadDetail();
+      });
   }
 
   revokeSubscription(subscriptionId: string): void {
-    this.licenseService.revokeSubscription(subscriptionId)
-    .pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Thu hồi subscription thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Thu hồi subscription thành công');
-      this.loadDetail();
-    });
+    this.licenseService
+      .revokeSubscription(subscriptionId)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Thu hồi subscription thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Thu hồi subscription thành công');
+        this.loadDetail();
+      });
   }
 
   lockLicense(): void {
     if (!this.license) return;
-    this.licenseService.lockLicense(this.license.id)
-    .pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Khóa license thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Khóa license thành công');
-      this.loadDetail();
-    });
+    this.licenseService
+      .lockLicense(this.license.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Khóa license thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Khóa license thành công');
+        this.loadDetail();
+      });
   }
 
   reactivateLicense(): void {
     if (!this.license) return;
-    this.licenseService.reactivateLicense(this.license.id)
-    .pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Mở khóa license thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Mở khóa license thành công');
-      this.loadDetail();
-    });
+    this.licenseService
+      .reactivateLicense(this.license.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Mở khóa license thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Mở khóa license thành công');
+        this.loadDetail();
+      });
   }
 
   getSubStatusColor(status: SubscriptionStatus): string {
     switch (status) {
-      case SubscriptionStatus.ACTIVE: return 'success';
-      case SubscriptionStatus.EXPIRED: return 'warning';
-      case SubscriptionStatus.REVOKED: return 'error';
-      default: return 'default';
+      case SubscriptionStatus.ACTIVE:
+        return 'success';
+      case SubscriptionStatus.EXPIRED:
+        return 'warning';
+      case SubscriptionStatus.REVOKED:
+        return 'error';
+      default:
+        return 'default';
     }
   }
 
   getSubStatusText(status: SubscriptionStatus): string {
     switch (status) {
-      case SubscriptionStatus.ACTIVE: return 'app.subscription.status.active';
-      case SubscriptionStatus.EXPIRED: return 'app.subscription.status.expired';
-      case SubscriptionStatus.REVOKED: return 'app.subscription.status.revoked';
-      default: return status;
+      case SubscriptionStatus.ACTIVE:
+        return 'app.subscription.status.active';
+      case SubscriptionStatus.EXPIRED:
+        return 'app.subscription.status.expired';
+      case SubscriptionStatus.REVOKED:
+        return 'app.subscription.status.revoked';
+      default:
+        return status;
     }
   }
 

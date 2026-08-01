@@ -175,8 +175,6 @@
   "app.admin.dashboard.title": "Admin Dashboard",
   "app.admin.organization.title": "Organization Management",
   "app.admin.organization.desc": "Manage organization information",
-  "app.admin.user.title": "User Management",
-  "app.admin.user.desc": "Manage user accounts",
   "app.common.orgName": "Organization",
   "app.common.branchName": "Branch",
   "app.analysis.test": "Gongzhuan No.{{no}} shop",

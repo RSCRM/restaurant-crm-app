@@ -19,14 +19,26 @@
   <nz-form-item>
     <nz-form-label>{{ 'app.form.description.label' | i18n }}</nz-form-label>
     <nz-form-control>
-      <textarea nz-input formControlName="description" [nzAutosize]="{ minRows: 2, maxRows: 4 }" [placeholder]="'app.form.description.placeholder' | i18n"></textarea>
+      <textarea
+        nz-input
+        formControlName="description"
+        [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+        [placeholder]="'app.form.description.placeholder' | i18n"
+      ></textarea>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item>
     <nz-form-label [nzRequired]="true">{{ 'app.form.price.label' | i18n }}</nz-form-label>
     <nz-form-control [nzErrorTip]="'app.error.price.required' | i18n">
-      <nz-input-number formControlName="price" [nzMin]="0" [nzStep]="1000" [nzFormatter]="formatterCurrency" [nzParser]="parserCurrency" class="full-width"></nz-input-number>
+      <nz-input-number
+        formControlName="price"
+        [nzMin]="0"
+        [nzStep]="1000"
+        [nzFormatter]="formatterCurrency"
+        [nzParser]="parserCurrency"
+        class="full-width"
+      />
     </nz-form-control>
   </nz-form-item>
 
@@ -34,8 +46,8 @@
     <nz-form-label [nzRequired]="true">{{ 'app.form.billingCycle.label' | i18n }}</nz-form-label>
     <nz-form-control [nzErrorTip]="'app.error.billingCycle.required' | i18n">
       <nz-select formControlName="billingCycle" [nzPlaceHolder]="'app.form.billingCycle.placeholder' | i18n">
-        <nz-option nzValue="MONTHLY" [nzLabel]="'app.license.billing.monthly' | i18n"></nz-option>
-        <nz-option nzValue="YEARLY" [nzLabel]="'app.license.billing.yearly' | i18n"></nz-option>
+        <nz-option nzValue="MONTHLY" [nzLabel]="'app.license.billing.monthly' | i18n" />
+        <nz-option nzValue="YEARLY" [nzLabel]="'app.license.billing.yearly' | i18n" />
       </nz-select>
     </nz-form-control>
   </nz-form-item>
@@ -44,14 +56,14 @@
     <nz-form-item class="form-row-item">
       <nz-form-label [nzRequired]="true">{{ 'app.form.maxBranch.label' | i18n }}</nz-form-label>
       <nz-form-control [nzErrorTip]="'app.error.maxBranch.hint' | i18n">
-        <nz-input-number formControlName="maxBranch" [nzMin]="-1" class="full-width"></nz-input-number>
+        <nz-input-number formControlName="maxBranch" [nzMin]="-1" class="full-width" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item class="form-row-item">
       <nz-form-label [nzRequired]="true">{{ 'app.form.maxEmployee.label' | i18n }}</nz-form-label>
       <nz-form-control [nzErrorTip]="'app.error.maxBranch.hint' | i18n">
-        <nz-input-number formControlName="maxEmployee" [nzMin]="-1" class="full-width"></nz-input-number>
+        <nz-input-number formControlName="maxEmployee" [nzMin]="-1" class="full-width" />
       </nz-form-control>
     </nz-form-item>
   </div>
@@ -61,8 +73,8 @@
       <nz-form-label [nzRequired]="true">{{ 'app.form.status.label' | i18n }}</nz-form-label>
       <nz-form-control>
         <nz-select formControlName="status">
-          <nz-option nzValue="ACTIVE" [nzLabel]="'app.license.status.active' | i18n"></nz-option>
-          <nz-option nzValue="LOCKED" [nzLabel]="'app.license.status.locked' | i18n"></nz-option>
+          <nz-option nzValue="ACTIVE" [nzLabel]="'app.license.status.active' | i18n" />
+          <nz-option nzValue="LOCKED" [nzLabel]="'app.license.status.locked' | i18n" />
         </nz-select>
       </nz-form-control>
     </nz-form-item>
