@@ -7,6 +7,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { I18nPipe } from '@delon/theme';
 
 import { AuthActions } from '../store/auth.actions';
 import { selectAuthError, selectAuthLoading } from '../store/auth.selectors';
@@ -14,7 +15,16 @@ import { selectAuthError, selectAuthLoading } from '../store/auth.selectors';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [AsyncPipe, ReactiveFormsModule, NzFormModule, NzInputModule, NzButtonModule, NzTypographyModule, NzAlertModule],
+  imports: [
+    AsyncPipe, 
+    ReactiveFormsModule, 
+    NzFormModule, 
+    NzInputModule, 
+    NzButtonModule, 
+    NzTypographyModule, 
+    NzAlertModule, 
+    I18nPipe
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.less'
 })

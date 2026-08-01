@@ -59,6 +59,6 @@ yarn-error.log
 .pnp.*
 
 .eslintcache
-
-# Backend
 /crm
+/ng-alain
+/ng-alain/

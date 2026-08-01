@@ -30,6 +30,7 @@ interface DashboardSummary {
   bookings: number;
   newCustomers: number;
 }
+import { I18nPipe } from '@delon/theme';
 
 @Component({
   selector: 'app-portal-dashboard',
@@ -48,7 +49,9 @@ interface DashboardSummary {
     NzSelectModule,
     NzSkeletonModule,
     NzStatisticModule,
-    NzTagModule
+    NzTypographyModule,
+    NzTagModule,
+    I18nPipe
   ],
   templateUrl: './portal-dashboard.component.html',
   styleUrl: './portal-dashboard.component.less'

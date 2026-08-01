@@ -60,24 +60,28 @@ export class LayoutPortal implements OnInit {
     this.menuService.add([
       {
         text: 'Tổ chức',
-        group: true,
-        hideInBreadcrumb: true,
-        children: [{ text: 'Chọn tổ chức', icon: 'bank', link: '/portal/context-select' }]
-      },
-      {
-        text: 'Quản lý nhà hàng',
+        i18n: 'menu.context.group',
         group: true,
         hideInBreadcrumb: true,
         children: [
-          { text: 'Dashboard', i18n: 'menu.dashboard', icon: 'dashboard', link: '/portal/dashboard', disabled: !hasContext },
-          { text: 'Chi nhánh', icon: 'fork', link: '/portal/branch', disabled: !hasContext },
-          { text: 'Quản lý Đơn hàng', icon: 'shopping-cart', link: '/portal/order', disabled: !hasContext },
-          { text: 'Quản lý Thực đơn', icon: 'coffee', link: '/portal/menu', disabled: !hasContext },
-          { text: 'Quản lý Bàn', icon: 'table', link: '/portal/table', disabled: !hasContext },
-          { text: 'Đặt bàn', icon: 'calendar', link: '/portal/booking', disabled: !hasContext },
-          { text: 'Kho hàng', icon: 'database', link: '/portal/inventory', disabled: !hasContext },
-          { text: 'Nhân viên', icon: 'team', link: '/portal/employee', disabled: !hasContext },
-          { text: 'Hóa đơn', icon: 'file-text', link: '/portal/invoice', disabled: !hasContext }
+          { text: 'Chọn tổ chức', i18n: 'menu.context.select', icon: 'bank', link: '/portal/context-select' }
+        ]
+      },
+      {
+        text: 'Quản lý nhà hàng',
+        i18n: 'menu.portal.group',
+        group: true,
+        hideInBreadcrumb: true,
+        children: [
+          { text: 'Dashboard', i18n: 'menu.portal.dashboard', icon: 'dashboard', link: '/portal/dashboard', disabled: !hasContext },
+          { text: 'Chi nhánh', i18n: 'branch.title', icon: 'fork', link: '/portal/branch', disabled: !hasContext },
+          { text: 'Quản lý Đơn hàng', i18n: 'menu.portal.order', icon: 'shopping-cart', link: '/portal/order', disabled: !hasContext },
+          { text: 'Quản lý Thực đơn', i18n: 'menu.portal.menu', icon: 'coffee', link: '/portal/menu', disabled: !hasContext },
+          { text: 'Quản lý Bàn', i18n: 'menu.portal.table', icon: 'table', link: '/portal/table', disabled: !hasContext },
+          { text: 'Đặt bàn', i18n: 'menu.portal.booking', icon: 'calendar', link: '/portal/booking', disabled: !hasContext },
+          { text: 'Kho hàng', i18n: 'menu.portal.inventory', icon: 'database', link: '/portal/inventory', disabled: !hasContext },
+          { text: 'Nhân viên', i18n: 'menu.portal.employee', icon: 'team', link: '/portal/employee', disabled: !hasContext },
+          { text: 'Hóa đơn', i18n: 'menu.portal.invoice', icon: 'file-text', link: '/portal/invoice', disabled: !hasContext }
         ]
       }
     ]);

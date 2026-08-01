@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
+import { environment } from '@env/environment';
 import { Observable, map } from 'rxjs';
 
 import { ApiResponse } from '../../auth/models/auth.model';
@@ -15,21 +16,25 @@ import {
   UpdateLicenseRequest
 } from './license.model';
 
+const API = environment.api['apiPrefix'];
+
 @Injectable({ providedIn: 'root' })
 export class LicenseService {
   private http = inject(HttpClient);
 
-  private readonly LICENSE_API = '/api/v1/admin/licenses';
-  private readonly SUBSCRIPTION_API = '/api/v1/admin/subscriptions';
+  private readonly LICENSE_API = `${API}/admin/licenses`;
+  private readonly SUBSCRIPTION_API = `${API}/admin/subscriptions`;
 
   // === License endpoints ===
 
   getLicenses(params: PagingParams): Observable<PagingResponse<LicenseResponse>> {
     let httpParams = new HttpParams()
       .set('page', params.page.toString())
-      .set('size', params.size.toString());
+      .set('size', params.size.toString())
+      .set('search', params.search || '');
     if (params.direction) httpParams = httpParams.set('direction', params.direction);
     if (params.field) httpParams = httpParams.set('field', params.field);
+
 
     return this.http
       .get<ApiResponse<PagingResponse<LicenseResponse>>>(this.LICENSE_API, { params: httpParams })

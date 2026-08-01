@@ -120,4 +120,6 @@ export interface PagingParams {
   size: number;
   direction?: 'ASC' | 'DESC';
   field?: string;
+
+  search?: string;
 }

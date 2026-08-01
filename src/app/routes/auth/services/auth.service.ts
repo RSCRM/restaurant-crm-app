@@ -1,10 +1,13 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN } from '@delon/auth';
+import { environment } from '@env/environment';
 import { Observable, map } from 'rxjs';
 
 import { ApiResponse, ContextSelectionRequest, ContextSelectionResponse, LoginRequest, LoginResponse } from '../models/auth.model';
 import type { ContextInfo, SelectedContext } from '../store/auth.state';
+
+const API = environment.api['apiPrefix'];
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -12,23 +15,21 @@ export class AuthService {
   private tokenService = inject(DA_SERVICE_TOKEN);
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http
-      .post<ApiResponse<LoginResponse>>('/api/v1/auth/login', request, {
-        context: new HttpContext().set(ALLOW_ANONYMOUS, true)
-      })
-      .pipe(map(res => this.unwrapData(res, 'Đăng nhập thất bại')));
+
+    return this.http.post<ApiResponse<LoginResponse>>(`${API}/auth/login`, request, {
+      context: new HttpContext().set(ALLOW_ANONYMOUS, true)
+    }).pipe(map(res => res.data));
   }
 
   selectContext(request: ContextSelectionRequest, accessToken: string): Observable<ContextSelectionResponse> {
-    return this.http
-      .post<ApiResponse<ContextSelectionResponse>>('/api/v1/auth/context', request, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      })
-      .pipe(map(res => this.unwrapData(res, 'Chọn context thất bại')));
+    return this.http.post<ApiResponse<ContextSelectionResponse>>(`${API}/auth/context`, request, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).pipe(map(res => res.data));
   }
 
   logout(): Observable<void> {
-    return this.http.post<ApiResponse<void>>('/api/v1/auth/logout', {}).pipe(map(() => undefined));
+    return this.http.post<ApiResponse<void>>(`${API}/auth/logout`, {})
+      .pipe(map(() => undefined));
   }
 
   setToken(token: string, expiresInMs: number): void {
