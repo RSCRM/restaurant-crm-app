@@ -1,0 +1,25 @@
+<div style="padding: 24px">
+  <h2 nz-typography>{{ 'portal.dashboard.title' | i18n }}</h2>
+  <div nz-row [nzGutter]="[16, 16]">
+    <div nz-col [nzSpan]="6">
+      <nz-card>
+        <nz-statistic [nzValue]="0" [nzTitle]="'portal.dashboard.orders-today' | i18n" nzPrefix="" />
+      </nz-card>
+    </div>
+    <div nz-col [nzSpan]="6">
+      <nz-card>
+        <nz-statistic [nzValue]="0" [nzTitle]="'portal.dashboard.revenue' | i18n" nzPrefix="$" />
+      </nz-card>
+    </div>
+    <div nz-col [nzSpan]="6">
+      <nz-card>
+        <nz-statistic [nzValue]="0" [nzTitle]="'portal.dashboard.bookings' | i18n" />
+      </nz-card>
+    </div>
+    <div nz-col [nzSpan]="6">
+      <nz-card>
+        <nz-statistic [nzValue]="0" [nzTitle]="'portal.dashboard.new-customers' | i18n" />
+      </nz-card>
+    </div>
+  </div>
+</div>

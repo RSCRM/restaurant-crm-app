@@ -1,0 +1,32 @@
+<page-header [title]="'license.management' | i18n" />
+<nz-card>
+  <div style="margin-bottom: 16px; display: flex; justify-content: flex-end">
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus" nzTheme="outline"></span>
+      {{ 'license.create' | i18n }}
+    </button>
+  </div>
+  <st
+    #st
+    [columns]="columns"
+    [data]="data"
+    [total]="total"
+    [ps]="pageSize"
+    [pi]="currentPage"
+    [loading]="loading"
+    [page]="{ show: true, showSize: true }"
+    [scroll]="{ x: '1200px' }"
+    (change)="onSTChange($event)"
+  >
+    <ng-template st-row="billingCycle" let-item>
+      <nz-tag [nzColor]="item.billingCycle === 'YEARLY' ? 'blue' : 'green'">
+        {{ (item.billingCycle === 'YEARLY' ? 'billing.yearly' : 'billing.monthly') | i18n }}
+      </nz-tag>
+    </ng-template>
+    <ng-template st-row="status" let-item>
+      <nz-tag [nzColor]="item.status === 'ACTIVE' ? 'success' : 'error'">
+        {{ (item.status === 'ACTIVE' ? 'status.active' : 'status.locked') | i18n }}
+      </nz-tag>
+    </ng-template>
+  </st>
+</nz-card>

@@ -99,6 +99,29 @@ export const USERS = {
     address: 'XX区XXX路 XX 号',
     phone: '你猜-你猜你猜猜猜'
   },
+  'GET /api/v1/profile/me': {
+    success: true,
+    errorMessage: null,
+    data: {
+      id: 'usr_10001',
+      fullName: 'Quản trị viên Hệ thống',
+      username: 'admin',
+      email: 'admin@restaurant-crm.com',
+      phone: '0901234567',
+      status: 'ACTIVE',
+      roles: [
+        {
+          id: 'role_admin',
+          roleName: 'ROLE_ADMIN',
+          permissions: [
+            { id: 'p1', permissionName: 'Quản lý người dùng', code: 'USER_MANAGE' },
+            { id: 'p2', permissionName: 'Quản lý chi nhánh', code: 'BRANCH_MANAGE' }
+          ]
+        }
+      ],
+      createdAt: '2026-01-15T08:30:00Z'
+    }
+  },
   'POST /user/avatar': 'ok',
   'POST /login/account': (req: MockRequest) => {
     const data = req.body;

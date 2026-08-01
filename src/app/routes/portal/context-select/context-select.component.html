@@ -1,0 +1,27 @@
+<page-header [title]="'context.select-title' | i18n" />
+<nz-card>
+  <p nz-typography class="context-subtitle">{{ 'context.select-description' | i18n }}</p>
+
+  <nz-spin [nzSpinning]="loading$ | async">
+    <div class="context-grid">
+      @for (ctx of contexts$ | async; track ctx.organizationId) {
+        <div class="context-item">
+          <nz-card [nzTitle]="ctx.organizationName" nzHoverable>
+            @if (ctx.branchName) {
+              <p
+                ><strong>{{ 'context.branch' | i18n }}:</strong> {{ ctx.branchName }}</p
+              >
+            }
+            <div style="margin-bottom: 12px">
+              <nz-tag nzColor="blue">{{ ctx.role }}</nz-tag>
+            </div>
+            <button nz-button nzType="primary" nzBlock (click)="selectContext(ctx)" [nzLoading]="loading$ | async">
+              <span nz-icon nzType="check-circle" nzTheme="outline"></span>
+              {{ 'action.select' | i18n }}
+            </button>
+          </nz-card>
+        </div>
+      }
+    </div>
+  </nz-spin>
+</nz-card>

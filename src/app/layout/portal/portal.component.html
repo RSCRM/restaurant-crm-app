@@ -1,0 +1,41 @@
+<layout-default [options]="options" [asideUser]="asideUserTpl" [content]="contentTpl" [customError]="null">
+  <layout-default-header-item direction="right">
+    <div class="alain-default__nav-item">
+      <header-i18n />
+    </div>
+  </layout-default-header-item>
+  <layout-default-header-item direction="right">
+    <div class="alain-default__nav-item">
+      <nz-badge [nzCount]="notificationCount" nzSize="small">
+        <span nz-icon nzType="bell" nzTheme="outline"></span>
+      </nz-badge>
+    </div>
+  </layout-default-header-item>
+  <layout-default-header-item direction="right">
+    <div class="alain-default__nav-item" nz-dropdown [nzDropdownMenu]="userMenu" nzPlacement="bottomRight">
+      <nz-avatar [nzSrc]="(user$ | async)?.avatar || ''" nzSize="small" class="alain-default__nav-item-avatar" />
+      <span class="alain-default__nav-item-text">{{ (user$ | async)?.fullName || 'User' }}</span>
+    </div>
+    <nz-dropdown-menu #userMenu="nzDropdownMenu">
+      <ul nz-menu>
+        <li nz-menu-item routerLink="/portal/profile">
+          <span nz-icon nzType="user" nzTheme="outline" class="mr-sm"></span>
+          {{ 'profile.personal-profile' | i18n }}
+        </li>
+        <li nz-menu-divider></li>
+        <li nz-menu-item (click)="logout()">{{ 'menu.account.logout' | i18n }}</li>
+      </ul>
+    </nz-dropdown-menu>
+  </layout-default-header-item>
+  <ng-template #asideUserTpl>
+    <div class="alain-default__aside-user">
+      <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="(user$ | async)?.avatar || ''" />
+      <div class="alain-default__aside-user-info">
+        <strong>{{ (user$ | async)?.fullName || 'User' }}</strong>
+      </div>
+    </div>
+  </ng-template>
+  <ng-template #contentTpl>
+    <router-outlet />
+  </ng-template>
+</layout-default>

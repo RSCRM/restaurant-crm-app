@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { I18nPipe } from '@delon/theme';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -20,13 +20,14 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 export class HeaderClearStorage {
   private readonly modalSrv = inject(NzModalService);
   private readonly messageSrv = inject(NzMessageService);
+  private readonly i18n = inject(ALAIN_I18N_TOKEN);
 
   protected _click(): void {
     this.modalSrv.confirm({
-      nzTitle: 'Make sure clear all local storage?',
+      nzTitle: this.i18n.fanyi('storage.confirm-clear'),
       nzOnOk: () => {
         localStorage.clear();
-        this.messageSrv.success('Clear Finished!');
+        this.messageSrv.success(this.i18n.fanyi('storage.clear-success'));
       }
     });
   }

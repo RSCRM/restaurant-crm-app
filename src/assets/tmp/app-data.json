@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "FE",
-    "description": "Front-end base built on ng-alain"
+    "name": "Restaurant CRM",
+    "description": "Restaurant CRM Management System"
   },
   "user": {
     "name": "Admin",
@@ -19,7 +19,7 @@
           "text": "Dashboard",
           "i18n": "menu.dashboard",
           "icon": "anticon-dashboard",
-          "link": "/dashboard/welcome"
+          "link": "/portal/dashboard"
         }
       ]
     }

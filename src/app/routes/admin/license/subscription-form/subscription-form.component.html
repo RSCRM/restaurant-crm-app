@@ -1,0 +1,25 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'subscription.grant' | i18n }}</div>
+</div>
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'subscription.organization-id' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'subscription.validation.organization-id' | i18n">
+      <input nz-input formControlName="organizationId" [placeholder]="'subscription.placeholder.organization-id' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'subscription.start-date' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker formControlName="startDate" style="width: 100%" [nzPlaceHolder]="'subscription.placeholder.start-date' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px">
+    <button nz-button type="button" (click)="close()">{{ 'action.cancel' | i18n }}</button>
+    <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ 'subscription.grant' | i18n }}
+    </button>
+  </div>
+</form>

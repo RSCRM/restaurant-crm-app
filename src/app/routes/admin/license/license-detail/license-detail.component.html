@@ -1,0 +1,90 @@
+@if (loading) {
+  <div style="display: flex; justify-content: center; align-items: center; height: 400px">
+    <nz-spin nzSimple [nzSize]="'large'" />
+  </div>
+} @else if (license) {
+  <page-header [title]="'License: ' + license.name" [action]="actionTpl" />
+  <ng-template #actionTpl>
+    <button nz-button (click)="goBack()">
+      <span nz-icon nzType="arrow-left" nzTheme="outline"></span>
+      {{ 'action.back' | i18n }}
+    </button>
+  </ng-template>
+
+  <nz-card [nzTitle]="'license.information' | i18n" style="margin-bottom: 16px">
+    <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item [nzTitle]="'license.code' | i18n">{{ license.code }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'license.name' | i18n">{{ license.name }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'license.description' | i18n">{{ license.description || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'license.price' | i18n">{{ license.price.toLocaleString('vi-VN') }} ₫</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'license.billing-cycle' | i18n">
+        <nz-tag [nzColor]="license.billingCycle === 'YEARLY' ? 'blue' : 'green'">
+          {{ (license.billingCycle === 'YEARLY' ? 'billing.yearly' : 'billing.monthly') | i18n }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'license.max-branches' | i18n">
+        {{ license.maxBranch === -1 ? ('common.unlimited' | i18n) : license.maxBranch }}
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'license.max-employees' | i18n">
+        {{ license.maxEmployee === -1 ? ('common.unlimited' | i18n) : license.maxEmployee }}
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'profile.status' | i18n">
+        <nz-tag [nzColor]="license.status === 'ACTIVE' ? 'success' : 'error'">
+          {{ (license.status === 'ACTIVE' ? 'status.active' : 'status.locked') | i18n }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'profile.createdAt' | i18n">{{ license.createdAt | date: 'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'common.updated-at' | i18n">{{ license.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+
+    <div style="margin-top: 16px; display: flex; gap: 8px">
+      @if (license.status === 'ACTIVE') {
+        <button nz-button nzType="default" (click)="lockLicense()">
+          <span nz-icon nzType="lock" nzTheme="outline"></span>
+          {{ 'action.lock' | i18n }}
+        </button>
+      } @else {
+        <button nz-button nzType="default" (click)="reactivateLicense()">
+          <span nz-icon nzType="unlock" nzTheme="outline"></span>
+          {{ 'action.unlock' | i18n }}
+        </button>
+      }
+    </div>
+  </nz-card>
+
+  <nz-card [nzTitle]="'subscription.list' | i18n">
+    <div style="margin-bottom: 16px; display: flex; justify-content: flex-end">
+      <button nz-button nzType="primary" (click)="openGrantSubscription()" [disabled]="license.status === 'LOCKED'">
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+        {{ 'subscription.grant' | i18n }}
+      </button>
+    </div>
+    <st
+      #st
+      [columns]="subColumns"
+      [data]="subscriptions"
+      [total]="subTotal"
+      [ps]="subPageSize"
+      [pi]="subCurrentPage"
+      [loading]="subLoading"
+      [page]="{ show: true, showSize: true }"
+      (change)="onSubSTChange($event)"
+    >
+      <ng-template st-row="status" let-item>
+        <nz-tag [nzColor]="getSubStatusColor(item.subscription.status)">
+          {{ getSubStatusText(item.subscription.status) }}
+        </nz-tag>
+      </ng-template>
+      <ng-template st-row="billingCycle" let-item>
+        {{ (item.subscription.billingCycle === 'YEARLY' ? 'billing.yearly' : 'billing.monthly') | i18n }}
+      </ng-template>
+      <ng-template st-row="price" let-item> {{ item.subscription.price?.toLocaleString('vi-VN') }} ₫ </ng-template>
+      <ng-template st-row="maxBranch" let-item>
+        {{ item.subscription.maxBranch === -1 ? '∞' : item.subscription.maxBranch }}
+      </ng-template>
+      <ng-template st-row="maxEmployee" let-item>
+        {{ item.subscription.maxEmployee === -1 ? '∞' : item.subscription.maxEmployee }}
+      </ng-template>
+    </st>
+  </nz-card>
+}

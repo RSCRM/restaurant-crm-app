@@ -40,10 +40,10 @@ describe('Service: I18n', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('should working', () => {
-    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['zh-CN']);
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['vi-VN']);
     genModule();
     expect(srv).toBeTruthy();
-    expect(srv.defaultLang).toBe('zh-CN');
+    expect(srv.defaultLang).toBe('vi-VN');
     srv.fanyi('a');
     srv.fanyi('a', {});
   });
@@ -58,15 +58,15 @@ describe('Service: I18n', () => {
   });
 
   it('should be used browser as default language', () => {
-    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['zh-TW']);
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['en-US']);
     genModule();
-    expect(srv.defaultLang).toBe('zh-TW');
+    expect(srv.defaultLang).toBe('en-US');
   });
 
   it('should be use default language when the browser language is not in the list', () => {
-    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['es-419']);
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-FR']);
     genModule();
-    expect(srv.defaultLang).toBe('zh-CN');
+    expect(srv.defaultLang).toBe('vi-VN');
   });
 
   it('should be trigger notify when changed language', () => {

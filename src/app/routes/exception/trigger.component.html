@@ -1,0 +1,8 @@
+<div class="pt-lg">
+  <nz-card>
+    @for (t of types; track $index) {
+      <button (click)="go(t)" nz-button nzDanger>{{ 'exception.trigger' | i18n }} {{ t }}</button>
+    }
+    <button nz-button nzType="link" (click)="refresh()">{{ 'exception.trigger-refresh' | i18n }}</button>
+  </nz-card>
+</div>

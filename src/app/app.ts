@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { NavigationEnd, NavigationError, RouteConfigLoadStart, Router, RouterOutlet } from '@angular/router';
-import { TitleService, VERSION as VERSION_ALAIN, stepPreloader } from '@delon/theme';
+import { ALAIN_I18N_TOKEN, TitleService, VERSION as VERSION_ALAIN, stepPreloader } from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { VERSION as VERSION_ZORRO } from 'ng-zorro-antd/version';
@@ -18,6 +18,7 @@ export class App {
   private readonly router = inject(Router);
   private readonly titleSrv = inject(TitleService);
   private readonly modalSrv = inject(NzModalService);
+  private readonly i18n = inject(ALAIN_I18N_TOKEN);
   protected ngAlainVersion = VERSION_ALAIN.full;
   protected ngZorroVersion = VERSION_ZORRO.full;
 
@@ -31,11 +32,13 @@ export class App {
       }
       if (configLoad && ev instanceof NavigationError) {
         this.modalSrv.confirm({
-          nzTitle: `提醒`,
-          nzContent: environment.production ? `应用可能已发布新版本，请点击刷新才能生效。` : `无法加载路由：${ev.url}`,
+          nzTitle: this.i18n.fanyi('app.update-title'),
+          nzContent: environment.production
+            ? this.i18n.fanyi('app.update-content')
+            : this.i18n.fanyi('app.route-load-failed', { url: ev.url }),
           nzCancelDisabled: false,
-          nzOkText: '刷新',
-          nzCancelText: '忽略',
+          nzOkText: this.i18n.fanyi('action.reload'),
+          nzCancelText: this.i18n.fanyi('action.ignore'),
           nzOnOk: () => location.reload()
         });
       }
