@@ -58,10 +58,10 @@ export class LayoutAdmin implements OnInit {
         group: true,
         hideInBreadcrumb: true,
         children: [
-          { text: 'Dashboard', i18n: 'menu.admin.dashboard', icon: 'dashboard', link: '/admin/dashboard' },
-          { text: 'Quản lý License', i18n: 'menu.admin.license', icon: 'safety-certificate', link: '/admin/license' },
-          { text: 'Quản lý Tổ chức', i18n: 'menu.admin.organization', icon: 'bank', link: '/admin/organization' },
-          { text: 'Quản lý Người dùng', i18n: 'menu.admin.user', icon: 'team', link: '/admin/user' }
+          { text: 'Dashboard', i18n: 'menu.admin.dashboard', link: '/admin/dashboard' },
+          { text: 'Quản lý License', i18n: 'menu.admin.license', link: '/admin/license' },
+          { text: 'Quản lý Tổ chức', i18n: 'menu.admin.organization', link: '/admin/organization' },
+          { text: 'Quản lý Người dùng', i18n: 'menu.admin.user', link: '/admin/user' }
         ]
       }
     ]);

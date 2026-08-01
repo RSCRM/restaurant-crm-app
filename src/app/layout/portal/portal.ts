@@ -65,7 +65,7 @@ export class LayoutPortal implements OnInit {
         hideInBreadcrumb: true,
 
         children: [
-          { text: 'Chọn tổ chức', i18n: 'menu.context.select', icon: 'bank', link: '/portal/context-select' }
+          { text: 'Chọn tổ chức', i18n: 'menu.context.select', link: '/portal/context-select' }
         ]
       },
       {
@@ -74,15 +74,15 @@ export class LayoutPortal implements OnInit {
         group: true,
         hideInBreadcrumb: true,
         children: [
-          { text: 'Dashboard', i18n: 'menu.portal.dashboard', icon: 'dashboard', link: '/portal/dashboard', disabled: !hasContext },
+          { text: 'Dashboard', i18n: 'menu.portal.dashboard', link: '/portal/dashboard', disabled: !hasContext },
           { text: 'Chi nhánh', i18n: 'branch.title', icon: 'fork', link: '/portal/branch', disabled: !hasContext },
-          { text: 'Quản lý Đơn hàng', i18n: 'menu.portal.order', icon: 'shopping-cart', link: '/portal/order', disabled: !hasContext },
-          { text: 'Quản lý Thực đơn', i18n: 'menu.portal.menu', icon: 'coffee', link: '/portal/menu', disabled: !hasContext },
-          { text: 'Quản lý Bàn', i18n: 'menu.portal.table', icon: 'table', link: '/portal/table', disabled: !hasContext },
-          { text: 'Đặt bàn', i18n: 'menu.portal.booking', icon: 'calendar', link: '/portal/booking', disabled: !hasContext },
-          { text: 'Kho hàng', i18n: 'menu.portal.inventory', icon: 'database', link: '/portal/inventory', disabled: !hasContext },
-          { text: 'Nhân viên', i18n: 'menu.portal.employee', icon: 'team', link: '/portal/employee', disabled: !hasContext },
-          { text: 'Hóa đơn', i18n: 'menu.portal.invoice', icon: 'file-text', link: '/portal/invoice', disabled: !hasContext }
+          { text: 'Quản lý Đơn hàng', i18n: 'menu.portal.order', link: '/portal/order', disabled: !hasContext },
+          { text: 'Quản lý Thực đơn', i18n: 'menu.portal.menu', link: '/portal/menu', disabled: !hasContext },
+          { text: 'Quản lý Bàn', i18n: 'menu.portal.table', link: '/portal/table', disabled: !hasContext },
+          { text: 'Đặt bàn', i18n: 'menu.portal.booking', link: '/portal/booking', disabled: !hasContext },
+          { text: 'Kho hàng', i18n: 'menu.portal.inventory', link: '/portal/inventory', disabled: !hasContext },
+          { text: 'Nhân viên', i18n: 'menu.portal.employee', link: '/portal/employee', disabled: !hasContext },
+          { text: 'Hóa đơn', i18n: 'menu.portal.invoice', link: '/portal/invoice', disabled: !hasContext }
         ]
       }
     ]);
