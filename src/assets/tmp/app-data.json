@@ -1,27 +1,12 @@
 {
   "app": {
     "name": "Restaurant CRM",
-    "description": "Restaurant CRM Management System"
+    "description": "Restaurant Management System"
   },
   "user": {
     "name": "Admin",
     "avatar": "./assets/tmp/img/avatar.jpg",
     "email": "admin@example.com"
   },
-  "menu": [
-    {
-      "text": "Main",
-      "i18n": "menu.main",
-      "group": true,
-      "hideInBreadcrumb": true,
-      "children": [
-        {
-          "text": "Dashboard",
-          "i18n": "menu.dashboard",
-          "icon": "anticon-dashboard",
-          "link": "/portal/dashboard"
-        }
-      ]
-    }
-  ]
+  "menu": []
 }

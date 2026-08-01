@@ -1,6 +1,6 @@
 <div class="login-container">
   <div class="login-card">
-    <h2 nz-typography>Đăng nhập</h2>
+    <h2 nz-typography>{{ 'app.login.title' | i18n }}</h2>
 
     @if (error$ | async; as error) {
       <nz-alert nzType="error" [nzMessage]="error" nzShowIcon class="mb-md"></nz-alert>
@@ -10,7 +10,7 @@
       <nz-form-item>
         <nz-form-control nzHasFeedback>
           <nz-input-group nzPrefixIcon="user">
-            <input nz-input formControlName="email" placeholder="Email" type="email" />
+            <input nz-input formControlName="email" [placeholder]="'app.login.email.placeholder' | i18n" type="email" />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -18,13 +18,13 @@
       <nz-form-item>
         <nz-form-control nzHasFeedback>
           <nz-input-group nzPrefixIcon="lock">
-            <input nz-input formControlName="password" placeholder="Mật khẩu" type="password" />
+            <input nz-input formControlName="password" [placeholder]="'app.login.password.placeholder' | i18n" type="password" />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
 
       <button nz-button nzType="primary" nzBlock [nzLoading]="loading$ | async" type="submit">
-        Đăng nhập
+        {{ 'app.login.login' | i18n }}
       </button>
     </form>
   </div>

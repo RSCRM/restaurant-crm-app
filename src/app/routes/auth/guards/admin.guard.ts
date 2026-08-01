@@ -13,7 +13,7 @@ export const adminGuard: CanActivateFn = () => {
     take(1),
     map(isAdmin => {
       if (isAdmin) return true;
-      return router.createUrlTree(['/portal/dashboard']);
+      return router.createUrlTree(['/auth/login']);
     })
   );
 };
