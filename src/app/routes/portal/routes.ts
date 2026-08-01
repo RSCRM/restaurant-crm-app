@@ -50,6 +50,11 @@ export const routes: Routes = [
     loadComponent: () => import('./invoice/invoice.component').then(m => m.InvoiceComponent)
   },
   {
+    path: 'attendance',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
+  },
+  {
     path: 'profile',
     loadComponent: () => import('../account/profile/profile.component').then(m => m.ProfileComponent)
   }

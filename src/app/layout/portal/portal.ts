@@ -87,7 +87,10 @@ export class LayoutPortal implements OnInit {
             ? [{ text: 'Inventory', i18n: 'menu.inventory', icon: 'database', link: '/portal/inventory' }]
             : []),
           ...(permissions.has('PROFILE_VIEW') ? [{ text: 'Employees', i18n: 'menu.employee', icon: 'team', link: '/portal/employee' }] : []),
-          ...(permissions.has('PAYMENT_READ') ? [{ text: 'Invoices', i18n: 'menu.invoice', icon: 'file-text', link: '/portal/invoice' }] : [])
+          ...(permissions.has('PAYMENT_READ') ? [{ text: 'Invoices', i18n: 'menu.invoice', icon: 'file-text', link: '/portal/invoice' }] : []),
+          ...(permissions.has('ATTENDANCE_SELF_READ') || permissions.has('ATTENDANCE_SELF_WRITE') || permissions.has('ATTENDANCE_QR_DISPLAY')
+            ? [{ text: 'Attendance', i18n: 'menu.attendance', icon: 'clock-circle', link: '/portal/attendance' }]
+            : [])
         ]
       }
     ]);
