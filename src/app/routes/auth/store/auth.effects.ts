@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { catchError, exhaustMap, map, of, switchMap, tap } from 'rxjs';
@@ -11,7 +10,6 @@ import { AuthActions } from './auth.actions';
 export class AuthEffects {
   private actions$ = inject(Actions);
   private authService = inject(AuthService);
-  private router = inject(Router);
   private notification = inject(NzNotificationService);
 
   // Init: Restore auth state from localStorage on app startup
@@ -58,6 +56,7 @@ export class AuthEffects {
   );
 
   // Step 2: After login success → persist accessToken & systemRoles, redirect by role
+  // Force full page reload to ensure clean layout switch (portal ↔ admin)
   loginSuccess$ = createEffect(
     () =>
       this.actions$.pipe(
@@ -68,10 +67,10 @@ export class AuthEffects {
           if (systemRoles.includes('ADMIN')) {
             // ADMIN: use accessToken as the main API token
             this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
-            this.router.navigate(['/admin/dashboard']);
+            window.location.href = '/#/admin/dashboard';
           } else {
             // USER: redirect to context-select within portal
-            this.router.navigate(['/portal/context-select']);
+            window.location.href = '/#/portal/context-select';
           }
         })
       ),
@@ -106,7 +105,8 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.selectContextSuccess),
         tap(() => {
-          this.router.navigate(['/portal/dashboard']);
+          // Reload to ensure portal layout picks up the new context state
+          window.location.href = '/#/portal/dashboard';
         })
       ),
     { dispatch: false }
@@ -137,7 +137,10 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.logoutSuccess),
         tap(() => {
-          this.router.navigate(['/auth/login']);
+          // Force full page reload to clear all Angular component state,
+          // subscriptions, and singleton services (MenuService, SettingsService).
+          // This prevents stale portal layout from persisting when logging in as admin.
+          window.location.href = '/#/auth/login';
         })
       ),
     { dispatch: false }

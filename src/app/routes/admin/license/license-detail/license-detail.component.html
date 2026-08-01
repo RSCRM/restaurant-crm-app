@@ -1,5 +1,5 @@
 @if (loading) {
-  <div style="display: flex; justify-content: center; align-items: center; height: 400px;">
+  <div class="loading-container">
     <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
   </div>
 } @else if (license) {
@@ -7,53 +7,53 @@
   <ng-template #actionTpl>
     <button nz-button (click)="goBack()">
       <span nz-icon nzType="arrow-left" nzTheme="outline"></span>
-      Quay lại
+      {{ 'app.license.back' | i18n }}
     </button>
   </ng-template>
 
-  <nz-card nzTitle="Thông tin License" style="margin-bottom: 16px;">
+  <nz-card [nzTitle]="'app.license.info' | i18n" class="mb-16">
     <nz-descriptions nzBordered [nzColumn]="2">
-      <nz-descriptions-item nzTitle="Mã License">{{ license.code }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Tên License">{{ license.name }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Mô tả">{{ license.description || '-' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Giá">{{ license.price?.toLocaleString('vi-VN') }} ₫</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Chu kỳ thanh toán">
+      <nz-descriptions-item [nzTitle]="'app.license.code' | i18n">{{ license.code }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.name' | i18n">{{ license.name }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.description' | i18n">{{ license.description || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.price' | i18n">{{ license.price?.toLocaleString('vi-VN') }} ₫</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.billingCycle' | i18n">
         <nz-tag [nzColor]="license.billingCycle === 'YEARLY' ? 'blue' : 'green'">
-          {{ license.billingCycle === 'YEARLY' ? 'Hàng năm' : 'Hàng tháng' }}
+          {{ license.billingCycle === 'YEARLY' ? ('app.license.billing.yearly' | i18n) : ('app.license.billing.monthly' | i18n) }}
         </nz-tag>
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Chi nhánh tối đa">
-        {{ license.maxBranch === -1 ? 'Không giới hạn' : license.maxBranch }}
+      <nz-descriptions-item [nzTitle]="'app.license.maxBranch' | i18n">
+        {{ license.maxBranch === -1 ? ('app.license.unlimited' | i18n) : license.maxBranch }}
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Nhân viên tối đa">
-        {{ license.maxEmployee === -1 ? 'Không giới hạn' : license.maxEmployee }}
+      <nz-descriptions-item [nzTitle]="'app.license.maxEmployee' | i18n">
+        {{ license.maxEmployee === -1 ? ('app.license.unlimited' | i18n) : license.maxEmployee }}
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Trạng thái">
+      <nz-descriptions-item [nzTitle]="'app.license.status' | i18n">
         <nz-tag [nzColor]="license.status === 'ACTIVE' ? 'success' : 'error'">
-          {{ license.status === 'ACTIVE' ? 'Hoạt động' : 'Khóa' }}
+          {{ license.status === 'ACTIVE' ? ('app.license.status.active' | i18n) : ('app.license.status.locked' | i18n) }}
         </nz-tag>
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Ngày tạo">{{ license.createdAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="Cập nhật">{{ license.updatedAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.createdAt' | i18n">{{ license.createdAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.license.updatedAt' | i18n">{{ license.updatedAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
     </nz-descriptions>
 
-    <div style="margin-top: 16px; display: flex; gap: 8px;">
+    <div class="action-bar">
       @if (license.status === 'ACTIVE') {
         <button nz-button nzType="default" (click)="lockLicense()">
           <span nz-icon nzType="lock" nzTheme="outline"></span>
-          Khóa
+          {{ 'app.license.lock' | i18n }}
         </button>
       } @else {
         <button nz-button nzType="default" (click)="reactivateLicense()">
           <span nz-icon nzType="unlock" nzTheme="outline"></span>
-          Mở khóa
+          {{ 'app.license.unlock' | i18n }}
         </button>
       }
     </div>
   </nz-card>
 
-  <nz-card nzTitle="Danh sách Subscription">
-    <div style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
+  <nz-card [nzTitle]="'app.subscription.title' | i18n">
+    <div class="toolbar">
       <button
         nz-button
         nzType="primary"
@@ -61,7 +61,7 @@
         [disabled]="license.status === 'LOCKED'"
       >
         <span nz-icon nzType="plus" nzTheme="outline"></span>
-        Cấp Subscription
+        {{ 'app.subscription.create' | i18n }}
       </button>
     </div>
     <st
@@ -77,11 +77,11 @@
     >
       <ng-template st-row="status" let-item>
         <nz-tag [nzColor]="getSubStatusColor(item.subscription.status)">
-          {{ getSubStatusText(item.subscription.status) }}
+          {{ getSubStatusText(item.subscription.status) | i18n }}
         </nz-tag>
       </ng-template>
       <ng-template st-row="billingCycle" let-item>
-        {{ item.subscription.billingCycle === 'YEARLY' ? 'Hàng năm' : 'Hàng tháng' }}
+        {{ item.subscription.billingCycle === 'YEARLY' ? ('app.license.billing.yearly' | i18n) : ('app.license.billing.monthly' | i18n) }}
       </ng-template>
       <ng-template st-row="price" let-item>
         {{ item.subscription.price?.toLocaleString('vi-VN') }} ₫

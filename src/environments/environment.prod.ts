@@ -5,6 +5,7 @@ export const environment = {
   useHash: true,
   api: {
     baseUrl: '',
+    apiPrefix: '/api/v1',
     refreshTokenEnabled: true,
     refreshTokenType: 're-request'
   }

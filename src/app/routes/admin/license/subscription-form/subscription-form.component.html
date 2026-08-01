@@ -1,25 +1,25 @@
 <div class="modal-header">
-  <div class="modal-title">Cấp Subscription</div>
+  <div class="modal-title">{{ 'app.subscription.create' | i18n }}</div>
 </div>
 <form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
   <nz-form-item>
-    <nz-form-label [nzRequired]="true">ID Tổ chức</nz-form-label>
-    <nz-form-control nzErrorTip="Vui lòng nhập ID tổ chức">
-      <input nz-input formControlName="organizationId" placeholder="Nhập ID tổ chức" />
+    <nz-form-label [nzRequired]="true">{{ 'app.form.orgId.label' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.error.orgId.required' | i18n">
+      <input nz-input formControlName="organizationId" [placeholder]="'app.form.orgId.placeholder' | i18n" />
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item>
-    <nz-form-label>Ngày bắt đầu</nz-form-label>
+    <nz-form-label>{{ 'app.form.startDate.label' | i18n }}</nz-form-label>
     <nz-form-control>
-      <nz-date-picker formControlName="startDate" style="width: 100%;" nzPlaceHolder="Chọn ngày (mặc định: hôm nay)"></nz-date-picker>
+      <nz-date-picker formControlName="startDate" class="full-width" [nzPlaceHolder]="'app.form.startDate.placeholder' | i18n"></nz-date-picker>
     </nz-form-control>
   </nz-form-item>
 
-  <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
-    <button nz-button type="button" (click)="close()">Hủy</button>
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.form.cancel' | i18n }}</button>
     <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="loading" [disabled]="form.invalid">
-      Cấp Subscription
+      {{ 'app.form.grant' | i18n }}
     </button>
   </div>
 </form>

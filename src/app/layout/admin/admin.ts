@@ -1,8 +1,8 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
+import { I18nPipe, MenuService, SettingsService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -27,7 +27,7 @@ import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
   ],
   templateUrl: './admin.component.html'
 })
-export class LayoutAdmin {
+export class LayoutAdmin implements OnInit {
   private store = inject(Store);
   private router = inject(Router);
   private settingsService = inject(SettingsService);
@@ -43,16 +43,25 @@ export class LayoutAdmin {
 
   constructor() {
     this.settingsService.setUser({ name: 'Admin', avatar: '' });
+  }
+
+  ngOnInit(): void {
+    this.buildMenu();
+  }
+
+  private buildMenu(): void {
+    this.menuService.clear();
     this.menuService.add([
       {
         text: 'Admin',
+        i18n: 'menu.admin.group',
         group: true,
         hideInBreadcrumb: true,
         children: [
-          { text: 'Dashboard', i18n: 'menu.dashboard', icon: 'dashboard', link: '/admin/dashboard' },
-          { text: 'Quản lý License', icon: 'safety-certificate', link: '/admin/license' },
-          { text: 'Quản lý Tổ chức', icon: 'bank', link: '/admin/organization' },
-          { text: 'Quản lý Người dùng', icon: 'team', link: '/admin/user' }
+          { text: 'Dashboard', i18n: 'menu.admin.dashboard', icon: 'dashboard', link: '/admin/dashboard' },
+          { text: 'Quản lý License', i18n: 'menu.admin.license', icon: 'safety-certificate', link: '/admin/license' },
+          { text: 'Quản lý Tổ chức', i18n: 'menu.admin.organization', icon: 'bank', link: '/admin/organization' },
+          { text: 'Quản lý Người dùng', i18n: 'menu.admin.user', icon: 'team', link: '/admin/user' }
         ]
       }
     ]);

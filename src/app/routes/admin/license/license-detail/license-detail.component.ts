@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -12,6 +13,8 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
+import { I18nPipe } from '@delon/theme';
+import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { SubscriptionFormComponent } from '../subscription-form/subscription-form.component';
 import { LicenseService } from '../license.service';
@@ -31,9 +34,11 @@ import { LicenseDetailResponse, LicenseResponse, LicenseStatus, SubscriptionStat
     NzDescriptionsModule,
     NzPopconfirmModule,
     NzSpinModule,
-    STModule
+    STModule,
+    I18nPipe
   ],
-  templateUrl: './license-detail.component.html'
+  templateUrl: './license-detail.component.html',
+  styleUrl: './license-detail.component.less'
 })
 export class LicenseDetailComponent implements OnInit {
   @ViewChild('st') st!: STComponent;
@@ -44,6 +49,7 @@ export class LicenseDetailComponent implements OnInit {
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   license: LicenseResponse | null = null;
   loading = true;
@@ -57,31 +63,31 @@ export class LicenseDetailComponent implements OnInit {
   licenseId = '';
 
   subColumns: STColumn[] = [
-    { title: 'Tổ chức', index: 'organization.name', width: 180 },
-    { title: 'Ngày bắt đầu', index: 'subscription.startDate', width: 120, type: 'date' },
-    { title: 'Ngày kết thúc', index: 'subscription.endDate', width: 120, type: 'date' },
-    { title: 'Trạng thái', render: 'status', width: 110 },
-    { title: 'Chu kỳ', render: 'billingCycle', width: 100 },
-    { title: 'Giá', render: 'price', width: 130 },
-    { title: 'CN tối đa', render: 'maxBranch', width: 100 },
-    { title: 'NV tối đa', render: 'maxEmployee', width: 100 },
+    { title: { i18n: 'app.common.orgName' }, index: 'organization.name', width: 180 },
+    { title: { i18n: 'app.license.createdAt' }, index: 'subscription.startDate', width: 120, type: 'date' },
+    { title: { i18n: 'app.license.updatedAt' }, index: 'subscription.endDate', width: 120, type: 'date' },
+    { title: { i18n: 'app.license.status' }, render: 'status', width: 110 },
+    { title: { i18n: 'app.license.billingCycle' }, render: 'billingCycle', width: 100 },
+    { title: { i18n: 'app.license.price' }, render: 'price', width: 130 },
+    { title: { i18n: 'app.license.maxBranch' }, render: 'maxBranch', width: 100 },
+    { title: { i18n: 'app.license.maxEmployee' }, render: 'maxEmployee', width: 100 },
     {
-      title: 'Thao tác',
+      title: { i18n: 'app.license.detail' },
       width: 180,
       fixed: 'right',
       buttons: [
         {
-          text: 'Gia hạn',
+          i18n: 'app.subscription.renew',
           icon: 'reload',
           iif: item => item.subscription.status !== 'REVOKED',
-          pop: 'Gia hạn subscription này?',
+          pop: { titleI18n: 'app.subscription.renewConfirm' },
           click: item => this.renewSubscription(item.subscription.id)
         },
         {
-          text: 'Thu hồi',
+          i18n: 'app.subscription.revoke',
           icon: 'stop',
           iif: item => item.subscription.status !== 'REVOKED',
-          pop: 'Thu hồi subscription này? Hành động này không thể hoàn tác.',
+          pop: { titleI18n: 'app.subscription.revokeConfirm' },
           click: item => this.revokeSubscription(item.subscription.id)
         }
       ]
@@ -96,18 +102,22 @@ export class LicenseDetailComponent implements OnInit {
   loadDetail(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.licenseService.getLicenseDetail(this.licenseId, this.subCurrentPage - 1, this.subPageSize).subscribe({
-      next: (res: LicenseDetailResponse) => {
-        this.license = res.license;
-        this.subscriptions = res.organizations;
-        this.subTotal = res.pagination.totalElements;
+    this.licenseService.getLicenseDetail(this.licenseId, this.subCurrentPage - 1, this.subPageSize).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.license = null;
+        this.subscriptions = [];
+        return EMPTY;
+      }),
+      finalize(() => {
         this.loading = false;
         this.cdr.markForCheck();
-      },
-      error: () => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      }
+      })
+    ).subscribe((res: LicenseDetailResponse) => {
+      this.license = res.license;
+      this.subscriptions = res.organizations;
+      this.subTotal = res.pagination.totalElements;
+      this.cdr.markForCheck();
     });
   }
 
@@ -135,40 +145,56 @@ export class LicenseDetailComponent implements OnInit {
   }
 
   renewSubscription(subscriptionId: string): void {
-    this.licenseService.renewSubscription(subscriptionId).subscribe({
-      next: () => {
-        this.message.success('Gia hạn subscription thành công');
-        this.loadDetail();
-      }
+    this.licenseService.renewSubscription(subscriptionId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Gia hạn subscription thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Gia hạn subscription thành công');
+      this.loadDetail();
     });
   }
 
   revokeSubscription(subscriptionId: string): void {
-    this.licenseService.revokeSubscription(subscriptionId).subscribe({
-      next: () => {
-        this.message.success('Thu hồi subscription thành công');
-        this.loadDetail();
-      }
+    this.licenseService.revokeSubscription(subscriptionId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Thu hồi subscription thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Thu hồi subscription thành công');
+      this.loadDetail();
     });
   }
 
   lockLicense(): void {
     if (!this.license) return;
-    this.licenseService.lockLicense(this.license.id).subscribe({
-      next: () => {
-        this.message.success('Khóa license thành công');
-        this.loadDetail();
-      }
+    this.licenseService.lockLicense(this.license.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Khóa license thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Khóa license thành công');
+      this.loadDetail();
     });
   }
 
   reactivateLicense(): void {
     if (!this.license) return;
-    this.licenseService.reactivateLicense(this.license.id).subscribe({
-      next: () => {
-        this.message.success('Mở khóa license thành công');
-        this.loadDetail();
-      }
+    this.licenseService.reactivateLicense(this.license.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Mở khóa license thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Mở khóa license thành công');
+      this.loadDetail();
     });
   }
 
@@ -183,9 +209,9 @@ export class LicenseDetailComponent implements OnInit {
 
   getSubStatusText(status: SubscriptionStatus): string {
     switch (status) {
-      case SubscriptionStatus.ACTIVE: return 'Hoạt động';
-      case SubscriptionStatus.EXPIRED: return 'Hết hạn';
-      case SubscriptionStatus.REVOKED: return 'Đã thu hồi';
+      case SubscriptionStatus.ACTIVE: return 'app.subscription.status.active';
+      case SubscriptionStatus.EXPIRED: return 'app.subscription.status.expired';
+      case SubscriptionStatus.REVOKED: return 'app.subscription.status.revoked';
       default: return status;
     }
   }
