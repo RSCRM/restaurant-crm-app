@@ -1,0 +1,78 @@
+<div class="modal-header">
+  <div class="modal-title">
+    @if (mode === 'create') {
+      {{ 'app.user.create' | i18n }}
+    } @else {
+      {{ 'app.user.editRoles' | i18n }}
+    }
+  </div>
+</div>
+
+@if (mode === 'create') {
+  <form nz-form [formGroup]="createForm" (ngSubmit)="submit()" nzLayout="vertical">
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">{{ 'app.user.form.username' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'app.user.form.usernameError' | i18n">
+        <input nz-input formControlName="username" [placeholder]="'app.user.form.usernamePlaceholder' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">{{ 'app.user.form.password' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'app.user.form.passwordError' | i18n">
+        <input nz-input type="password" formControlName="password" [placeholder]="'app.user.form.passwordPlaceholder' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">{{ 'app.user.form.email' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'app.user.form.emailError' | i18n">
+        <input nz-input formControlName="email" [placeholder]="'app.user.form.emailPlaceholder' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">{{ 'app.user.form.fullName' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'app.user.form.fullNameError' | i18n">
+        <input nz-input formControlName="fullName" [placeholder]="'app.user.form.fullNamePlaceholder' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">{{ 'app.user.form.phone' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'app.user.form.phoneError' | i18n">
+        <input nz-input formControlName="phone" [placeholder]="'app.user.form.phonePlaceholder' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <div class="modal-footer">
+      <button nz-button type="button" (click)="close()">{{ 'app.form.cancel' | i18n }}</button>
+      <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="loading" [disabled]="createForm.invalid">
+        {{ 'app.form.create' | i18n }}
+      </button>
+    </div>
+  </form>
+} @else {
+  <!-- Edit Roles Mode -->
+  <div class="user-info">
+    <p><strong>{{ 'app.user.username' | i18n }}:</strong> {{ user?.username }}</p>
+    <p><strong>{{ 'app.user.email' | i18n }}:</strong> {{ user?.email }}</p>
+    <p><strong>{{ 'app.user.status' | i18n }}:</strong> {{ user?.status }}</p>
+  </div>
+
+  <form nz-form [formGroup]="rolesForm" (ngSubmit)="submit()" nzLayout="vertical">
+    <nz-form-item>
+      <nz-form-label>{{ 'app.user.form.roleIds' | i18n }}</nz-form-label>
+      <nz-form-control>
+        <input nz-input formControlName="roleIds" [placeholder]="'app.user.form.roleIdsPlaceholder' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <div class="modal-footer">
+      <button nz-button type="button" (click)="close()">{{ 'app.form.cancel' | i18n }}</button>
+      <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="loading">
+        {{ 'app.form.update' | i18n }}
+      </button>
+    </div>
+  </form>
+}
