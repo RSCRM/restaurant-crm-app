@@ -35,4 +35,64 @@
       <nz-empty [nzNotFoundContent]="'table.empty' | i18n" />
     }
   </nz-spin>
+  <h2>{{ 'table.search.title' | i18n }}</h2>
+  <nz-card class="filter-card">
+    <div class="filters">
+      <div class="filter-field keyword-field">
+        <span>{{ 'table.search.keyword' | i18n }}</span>
+        <input nz-input [(ngModel)]="keyword" [placeholder]="'table.search.keyword' | i18n" (keyup.enter)="search(true)" />
+      </div>
+
+      <div class="filter-field">
+        <span>{{ 'table.status' | i18n }}</span>
+        <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear>
+          <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
+          <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
+          <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
+        </nz-select>
+      </div>
+
+      <div class="filter-field">
+        <span>{{ 'table.capacity' | i18n }}</span>
+        <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" />
+      </div>
+
+      <div class="filter-actions">
+        <button nz-button nzType="primary" [nzLoading]="loading" (click)="search(true)">{{ 'table.search.action' | i18n }}</button>
+        <button nz-button [disabled]="loading" (click)="reset()">{{ 'table.search.reset' | i18n }}</button>
+      </div>
+    </div>
+  </nz-card>
+
+  <nz-table
+    #table
+    [nzData]="tables"
+    [nzLoading]="loading"
+    [nzFrontPagination]="false"
+    [nzTotal]="total"
+    [nzPageIndex]="page"
+    [nzPageSize]="size"
+    (nzQueryParams)="onQuery($event)"
+  >
+    <thead>
+      <tr>
+        <th>{{ 'table.number' | i18n }}</th>
+        <th>{{ 'table.area' | i18n }}</th>
+        <th>{{ 'table.capacity' | i18n }}</th>
+        <th>{{ 'table.status' | i18n }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of table.data; track item.id) {
+        <tr>
+          <td>{{ item.tableNumber }}</td>
+          <td>{{ item.areaName }}</td>
+          <td>{{ item.capacity }}</td>
+          <td
+            ><nz-tag [nzColor]="statusColor(item.status)">{{ 'table.status.' + item.status.toLowerCase() | i18n }}</nz-tag></td
+          >
+        </tr>
+      }
+    </tbody>
+  </nz-table>
 </div>
