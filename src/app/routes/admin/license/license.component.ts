@@ -1,12 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
@@ -15,7 +22,7 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { LicenseFormComponent } from './license-form/license-form.component';
 import { LicenseService } from './license.service';
-import { LicenseResponse, PagingResponse } from './license.model';
+import { BillingCycle, LicenseResponse, LicenseSearchRequest, LicenseStatus, PagingResponse } from './license.model';
 
 @Component({
   selector: 'app-license',
@@ -28,6 +35,13 @@ import { LicenseResponse, PagingResponse } from './license.model';
     NzIconModule,
     NzTagModule,
     NzPopconfirmModule,
+    NzFormModule,
+    NzGridModule,
+    NzInputModule,
+    NzInputNumberModule,
+    NzSelectModule,
+    NzDatePickerModule,
+    FormsModule,
     STModule,
     I18nPipe
   ],
@@ -44,12 +58,29 @@ export class LicenseComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
 
+  // Table state
   data: LicenseResponse[] = [];
   total = 0;
   currentPage = 1;
   pageSize = 10;
   loading = false;
-  searchValue = '';
+
+  // Filter state
+  filter: LicenseSearchRequest = {};
+  showFilter = false;
+
+  // Enum options for selects
+  statusOptions = [
+    { label: 'Tất cả', value: null },
+    { label: 'Active', value: LicenseStatus.ACTIVE },
+    { label: 'Locked', value: LicenseStatus.LOCKED }
+  ];
+
+  billingCycleOptions = [
+    { label: 'Tất cả', value: null },
+    { label: 'Monthly', value: BillingCycle.MONTHLY },
+    { label: 'Yearly', value: BillingCycle.YEARLY }
+  ];
 
   columns: STColumn[] = [
     { title: { i18n: 'app.license.code' }, index: 'code', width: 120 },
@@ -82,7 +113,7 @@ export class LicenseComponent implements OnInit {
       type: 'date'
     },
     {
-      title: { i18n: 'app.license.detail' },
+      title: { i18n: 'app.license.actions' },
       width: 280,
       fixed: 'right',
       buttons: [
@@ -128,13 +159,12 @@ export class LicenseComponent implements OnInit {
   loadData(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.licenseService.getLicenses({
-      page: this.currentPage,
-      size: this.pageSize,
-      direction: 'DESC',
-      field: 'createdAt',
-      search: this.searchValue
-    }).pipe(
+
+    this.licenseService.searchLicenses(
+      this.filter,
+      this.currentPage,
+      this.pageSize
+    ).pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(() => {
         this.data = [];
@@ -162,6 +192,27 @@ export class LicenseComponent implements OnInit {
       this.loadData();
     }
   }
+
+  search(): void {
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  clearFilter(): void {
+    this.filter = {};
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  toggleFilter(): void {
+    this.showFilter = !this.showFilter;
+  }
+
+  get hasActiveFilter(): boolean {
+    return Object.values(this.filter).some(v => v !== null && v !== undefined && v !== '');
+  }
+
+  priceFormatter = (value: number) => value != null ? `${value.toLocaleString('vi-VN')} ₫` : '';
 
   openCreate(): void {
     const modalRef = this.modal.create({
