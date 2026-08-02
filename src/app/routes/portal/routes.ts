@@ -41,8 +41,12 @@ export const routes: Routes = [
   },
   {
     path: 'employee',
-    canActivate: [contextGuard, permissionGuard('STAFF_MANAGE')],
+    canActivate: [contextGuard, permissionGuard('PROFILE_VIEW')],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
   },
   {
     path: 'invoice',
@@ -58,5 +62,8 @@ export const routes: Routes = [
     path: 'attendance',
     canActivate: [contextGuard],
     loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
+    path: 'schedule',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./schedule/schedule.component').then(m => m.ScheduleComponent)
   }
 ];

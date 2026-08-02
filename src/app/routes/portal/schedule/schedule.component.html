@@ -1,0 +1,46 @@
+<page-header [title]="(managerMode ? 'schedule.staff-title' : 'schedule.title') | i18n" />
+
+<nz-card>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px">
+    <button nz-button (click)="showToday()">{{ 'schedule.today' | i18n }}</button>
+    <button nz-button (click)="showThisWeek()">{{ 'schedule.this-week' | i18n }}</button>
+    @if (managerMode) {
+      <nz-select
+        style="min-width: 220px"
+        nzAllowClear
+        [nzPlaceHolder]="'schedule.select-employee' | i18n"
+        [(ngModel)]="selectedEmployeeId"
+        (ngModelChange)="filterByEmployee()"
+      >
+        <nz-option [nzValue]="null" [nzLabel]="'schedule.all-employees' | i18n" />
+        @for (employee of employees; track employee.id) {
+          <nz-option [nzValue]="employee.id" [nzLabel]="employee.name" />
+        }
+      </nz-select>
+    }
+    <nz-range-picker [(ngModel)]="dateRange" />
+    <button nz-button nzType="primary" (click)="load()">
+      <span nz-icon nzType="search"></span>
+      {{ 'schedule.view' | i18n }}
+    </button>
+  </div>
+
+  <st [columns]="columns" [data]="schedules" [loading]="loading" [page]="{ show: false }">
+    <ng-template st-row="date" let-item>{{ item.workDate | date: 'dd/MM/yyyy' }}</ng-template>
+    <ng-template st-row="time" let-item>{{ item.startTime.slice(0, 5) }}–{{ item.endTime.slice(0, 5) }}</ng-template>
+    <ng-template st-row="note" let-item>{{ item.note || '-' }}</ng-template>
+    <ng-template st-row="status" let-item>
+      @switch (getStatus(item)) {
+        @case ('current') {
+          <nz-tag nzColor="processing">{{ 'schedule.status.current' | i18n }}</nz-tag>
+        }
+        @case ('upcoming') {
+          <nz-tag nzColor="blue">{{ 'schedule.status.upcoming' | i18n }}</nz-tag>
+        }
+        @default {
+          <nz-tag>{{ 'schedule.status.completed' | i18n }}</nz-tag>
+        }
+      }
+    </ng-template>
+  </st>
+</nz-card>

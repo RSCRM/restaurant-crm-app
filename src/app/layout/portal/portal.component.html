@@ -77,6 +77,8 @@
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <ul nz-menu>
+        <li nz-menu-item routerLink="/portal/profile">{{ 'profile.personal-profile' | i18n }}</li>
+        <li nz-menu-divider></li>
         <li nz-menu-item (click)="logout()">{{ 'menu.account.logout' | i18n }}</li>
       </ul>
     </nz-dropdown-menu>

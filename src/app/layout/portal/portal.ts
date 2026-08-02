@@ -1,6 +1,6 @@
 import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
 import { Store } from '@ngrx/store';
@@ -28,6 +28,7 @@ import { NotificationService } from '../../routes/portal/notification/notificati
     CommonModule,
     AsyncPipe,
     DatePipe,
+    RouterLink,
     RouterOutlet,
     LayoutDefaultModule,
     NzIconModule,
@@ -179,6 +180,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
           { text: 'Hóa đơn', i18n: 'menu.portal.invoice', link: '/portal/invoice', disabled: !hasContext },
           { text: 'Khách hàng', i18n: 'menu.portal.customer', link: '/portal/customer', disabled: !hasContext },
           { text: 'Điểm danh', i18n: 'menu.attendance', link: '/portal/attendance', disabled: !hasContext }
+          { text: 'Lịch làm việc', i18n: 'menu.schedule', link: '/portal/schedule', disabled: !hasContext }
         ]
       }
     ]);
