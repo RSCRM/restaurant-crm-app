@@ -372,5 +372,10 @@
   "action.reload": "Reload",
   "action.save": "Save",
   "action.cancel": "Cancel",
+  "table.close.title": "Close table",
+  "table.close.description": "End an active table session and make the table available",
+  "table.close.select": "Select occupied table",
+  "table.close.action": "Close table",
+  "table.close.empty": "No occupied tables",
   "validation.standard.required": "Please enter a metric"
 }

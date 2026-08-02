@@ -1,6 +1,23 @@
 <div class="page-container">
   <nz-card>
-    <h2 nz-typography>{{ 'app.portal.table.title' | i18n }}</h2>
-    <p nz-typography>{{ 'app.portal.table.desc' | i18n }}</p>
+    <h2>{{ 'table.close.title' | i18n }}</h2>
+    <p>{{ 'table.close.description' | i18n }}</p>
+
+    <nz-spin [nzSpinning]="loading">
+      <div class="close-form">
+        <nz-select [(ngModel)]="selectedTableId" [nzPlaceHolder]="'table.close.select' | i18n">
+          @for (table of tables; track table.id) {
+            <nz-option [nzValue]="table.id" [nzLabel]="table.tableNumber + ' - ' + table.areaName" />
+          }
+        </nz-select>
+        <button nz-button nzType="primary" nzDanger [nzLoading]="closing" (click)="confirmClose()">
+          {{ 'table.close.action' | i18n }}
+        </button>
+      </div>
+
+      @if (!loading && !tables.length) {
+        <p>{{ 'table.close.empty' | i18n }}</p>
+      }
+    </nz-spin>
   </nz-card>
 </div>

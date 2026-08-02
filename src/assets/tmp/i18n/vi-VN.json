@@ -264,5 +264,10 @@
   "action.reload": "Tải lại",
   "action.save": "Lưu",
   "action.cancel": "Hủy",
+  "table.close.title": "Đóng bàn",
+  "table.close.description": "Kết thúc phiên phục vụ và chuyển bàn về trạng thái trống",
+  "table.close.select": "Chọn bàn đang phục vụ",
+  "table.close.action": "Đóng bàn",
+  "table.close.empty": "Không có bàn đang phục vụ",
   "validation.standard.required": "Vui lòng nhập chỉ số"
 }

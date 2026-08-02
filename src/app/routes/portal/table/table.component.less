@@ -1,3 +1,19 @@
 .page-container {
   padding: 24px;
 }
+
+.close-form {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0;
+
+  nz-select {
+    width: min(480px, 100%);
+  }
+}
+
+@media (max-width: 576px) {
+  .close-form {
+    flex-direction: column;
+  }
+}
