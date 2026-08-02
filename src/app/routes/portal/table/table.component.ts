@@ -10,6 +10,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { finalize, Subscription } from 'rxjs';
 
 import { RestaurantTableStatus, TableSearchItem } from './table.model';
 import { TableService } from './table.service';
@@ -41,12 +42,12 @@ export class TableComponent implements OnInit {
   keyword = '';
   status: RestaurantTableStatus | null = null;
   minCapacity: number | null = null;
-  maxCapacity: number | null = null;
   page = 1;
   size = 10;
   total = 0;
   loading = false;
   tables: TableSearchItem[] = [];
+  private searchSubscription?: Subscription;
 
   ngOnInit(): void {
     this.search();
@@ -54,32 +55,30 @@ export class TableComponent implements OnInit {
 
   search(resetPage = false): void {
     if (resetPage) this.page = 1;
-    if (this.minCapacity != null && this.maxCapacity != null && this.minCapacity > this.maxCapacity) {
-      this.message.warning('Sức chứa tối thiểu không thể lớn hơn tối đa');
-      return;
-    }
-
+    this.searchSubscription?.unsubscribe();
     this.loading = true;
-    this.tableService
+    this.searchSubscription = this.tableService
       .search({
         keyword: this.keyword.trim() || undefined,
         status: this.status ?? undefined,
         minCapacity: this.minCapacity ?? undefined,
-        maxCapacity: this.maxCapacity ?? undefined,
         page: this.page,
         size: this.size
       })
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
       .subscribe({
         next: result => {
           this.tables = result.data;
           this.total = result.totalElement;
-          this.loading = false;
           this.cdr.markForCheck();
         },
         error: () => {
-          this.loading = false;
           this.message.error('Không thể tìm kiếm bàn');
-          this.cdr.markForCheck();
         }
       });
   }
@@ -88,7 +87,6 @@ export class TableComponent implements OnInit {
     this.keyword = '';
     this.status = null;
     this.minCapacity = null;
-    this.maxCapacity = null;
     this.search(true);
   }
 

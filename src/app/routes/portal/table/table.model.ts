@@ -21,7 +21,6 @@ export interface TableSearchParams {
   keyword?: string;
   status?: RestaurantTableStatus;
   minCapacity?: number;
-  maxCapacity?: number;
   page: number;
   size: number;
 }

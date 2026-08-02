@@ -16,7 +16,6 @@ export class TableService {
     if (filters.keyword) params = params.set('keyword', filters.keyword);
     if (filters.status) params = params.set('status', filters.status);
     if (filters.minCapacity != null) params = params.set('minCapacity', filters.minCapacity);
-    if (filters.maxCapacity != null) params = params.set('maxCapacity', filters.maxCapacity);
 
     return this.http
       .get<ApiResponse<PagingResponse<TableSearchItem>>>(`${this.api}/search`, { params })
