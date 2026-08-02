@@ -22,13 +22,17 @@
       <button nz-button nzType="default" (click)="toggleFilter()">
         <span nz-icon nzType="filter" nzTheme="outline"></span>
         {{ 'app.license.filter' | i18n }}
-        <span *ngIf="hasActiveFilter" class="filter-badge"></span>
+        @if (hasActiveFilter) {
+          <span class="filter-badge"></span>
+        }
       </button>
 
-      <button *ngIf="hasActiveFilter" nz-button nzType="default" nzDanger (click)="clearFilter()">
-        <span nz-icon nzType="close-circle" nzTheme="outline"></span>
-        {{ 'app.license.clearFilter' | i18n }}
-      </button>
+      @if (hasActiveFilter) {
+        <button nz-button nzType="default" nzDanger (click)="clearFilter()">
+          <span nz-icon nzType="close-circle" nzTheme="outline"></span>
+          {{ 'app.license.clearFilter' | i18n }}
+        </button>
+      }
     </div>
 
     <button nz-button nzType="primary" (click)="openCreate()">
@@ -218,7 +222,7 @@
     [ps]="pageSize"
     [pi]="currentPage"
     [loading]="loading"
-    [page]="{ show: true, showSize: true }"
+    [page]="{ show: true, showSize: true, front: false }"
     [scroll]="{ x: '1200px' }"
     (change)="onSTChange($event)"
   >
