@@ -1,4 +1,4 @@
-<page-header [title]="'booking.management' | i18n" />
+<page-header [title]="'Quản lý Đặt bàn'" />
 
 <nz-card>
   <!-- Search/Filter Controls -->
@@ -12,7 +12,7 @@
               nz-input
               [(ngModel)]="searchPhone"
               name="searchPhone"
-              [placeholder]="'booking.search-phone' | i18n"
+              placeholder="Tìm theo SĐT khách..."
               style="width: 200px"
               (keyup.enter)="search()"
             />
@@ -22,33 +22,29 @@
 
       <!-- Status Selection -->
       <nz-form-item style="margin-right: 16px">
-        <nz-form-label>{{ 'profile.status' | i18n }}</nz-form-label>
+        <nz-form-label>Trạng thái</nz-form-label>
         <nz-form-control>
-          <nz-select [(ngModel)]="filterStatus" name="filterStatus" style="width: 150px" (ngModelChange)="filterData()">
-            <nz-option nzValue="ALL" [nzLabel]="'common.all' | i18n" />
-            <nz-option nzValue="PENDING" [nzLabel]="'booking.status.pending' | i18n" />
-            <nz-option nzValue="CONFIRMED" [nzLabel]="'booking.status.confirmed' | i18n" />
-            <nz-option nzValue="SEATED" [nzLabel]="'booking.status.seated' | i18n" />
-            <nz-option nzValue="CANCELLED" [nzLabel]="'booking.status.cancelled' | i18n" />
-            <nz-option nzValue="EXPIRED" [nzLabel]="'booking.status.expired' | i18n" />
+          <nz-select [(ngModel)]="filterStatus" name="filterStatus" style="width: 170px" (ngModelChange)="filterData()">
+            <nz-option nzValue="ALL" nzLabel="Tất cả" />
+            <nz-option nzValue="PENDING" nzLabel="Chờ phục vụ (Pending)" />
+            <nz-option nzValue="CONFIRMED" nzLabel="Đã xác nhận (Confirmed)" />
+            <nz-option nzValue="SEATED" nzLabel="Đã nhận bàn (Seated)" />
+            <nz-option nzValue="CANCELLED" nzLabel="Đã hủy (Cancelled)" />
+            <nz-option nzValue="EXPIRED" nzLabel="Hết hạn (Expired)" />
           </nz-select>
         </nz-form-control>
       </nz-form-item>
 
       <!-- Search / Reset Buttons -->
       <nz-form-item>
-        <button nz-button nzType="primary" (click)="search()"> <span nz-icon nzType="search"></span>{{ 'action.search' | i18n }} </button>
-        <button nz-button nzType="default" (click)="reset()" style="margin-left: 8px">
-          {{ 'action.reset' | i18n }}
-        </button>
+        <button nz-button nzType="primary" (click)="search()"> <span nz-icon nzType="search"></span>Tìm kiếm </button>
+        <button nz-button nzType="default" (click)="reset()" style="margin-left: 8px">Làm mới</button>
       </nz-form-item>
 
-      <!-- Add Booking Button (Protected by local permission check) -->
+      <!-- Add Booking Button -->
       <div style="margin-left: auto; display: flex; align-items: center">
         @if (hasCreatePermission) {
-          <button nz-button nzType="primary" (click)="openCreateBooking()">
-            <span nz-icon nzType="plus"></span>{{ 'booking.create' | i18n }}
-          </button>
+          <button nz-button nzType="primary" (click)="openCreateBooking()"> <span nz-icon nzType="plus"></span>Tạo Đặt Bàn </button>
         }
       </div>
     </form>
@@ -101,25 +97,20 @@
                   : 'processing'
         "
       >
-        {{ 'booking.status.' + item.status.toLowerCase() | i18n }}
+        {{ item.status }}
       </nz-tag>
     </ng-template>
 
     <!-- Custom render for Actions column -->
     <ng-template st-row="actions" let-item>
-      <!-- Control buttons -->
       <div style="display: flex; gap: 8px; align-items: center">
-        <!-- Nhận bàn (Seated) -->
         @if (item.status === 'CONFIRMED' || item.status === 'PENDING') {
-          <button nz-button nzType="primary" nzSize="small" (click)="updateStatus(item, bookingStatus.SEATED)">
-            {{ 'booking.seat' | i18n }}
-          </button>
+          <button nz-button nzType="primary" nzSize="small" (click)="updateStatus(item, bookingStatus.SEATED)">Nhận bàn</button>
         }
 
-        <!-- Hủy đặt bàn (Cancel) -->
         @if (hasUpdatePermission && (item.status === 'CONFIRMED' || item.status === 'PENDING')) {
           <button nz-button nzType="default" nzDanger nzSize="small" (click)="updateStatus(item, bookingStatus.CANCELLED)">
-            {{ 'booking.cancel' | i18n }}
+            Hủy đặt
           </button>
         }
       </div>

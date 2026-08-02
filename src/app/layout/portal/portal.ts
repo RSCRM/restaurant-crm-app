@@ -1,27 +1,34 @@
-import { AsyncPipe } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
 import { Store } from '@ngrx/store';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { combineLatest } from 'rxjs';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { combineLatest, Subscription } from 'rxjs';
 
 import { AuthActions } from '../../routes/auth/store/auth.actions';
-import { selectAuthUser, selectHasContext, selectPermissions } from '../../routes/auth/store/auth.selectors';
+import { selectAuthUser, selectContextToken, selectHasContext, selectPermissions } from '../../routes/auth/store/auth.selectors';
+import { NotificationResponse, NotificationStatus } from '../../routes/portal/notification/notification.model';
+import { NotificationService } from '../../routes/portal/notification/notification.service';
 import { HeaderI18n } from '../basic/widgets/i18n';
 
 @Component({
   selector: 'app-portal-layout',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CommonModule,
     AsyncPipe,
-    RouterLink,
+    DatePipe,
     RouterOutlet,
     LayoutDefaultModule,
     NzIconModule,
@@ -29,20 +36,33 @@ import { HeaderI18n } from '../basic/widgets/i18n';
     NzMenuModule,
     NzAvatarModule,
     NzBadgeModule,
+    NzTagModule,
+    NzButtonModule,
+    NzCardModule,
     I18nPipe,
     HeaderI18n
   ],
   templateUrl: './portal.component.html'
 })
-export class LayoutPortal implements OnInit {
+export class LayoutPortal implements OnInit, OnDestroy {
   private store = inject(Store);
+  private router = inject(Router);
   private settingsService = inject(SettingsService);
   private menuService = inject(MenuService);
-  private destroyRef = inject(DestroyRef);
+  private notificationService = inject(NotificationService);
+  private message = inject(NzMessageService);
+  private cdr = inject(ChangeDetectorRef);
 
   user$ = this.store.select(selectAuthUser);
   hasContext$ = this.store.select(selectHasContext);
+
+  notifications: NotificationResponse[] = [];
   notificationCount = 0;
+  branchId: string | null = null;
+
+  private sseSub: Subscription | null = null;
+  private tokenSub: Subscription | null = null;
+  private menuSub: Subscription | null = null;
 
   protected options: LayoutDefaultOptions = {
     logoExpanded: `./assets/logo-full.svg`,
@@ -54,49 +74,127 @@ export class LayoutPortal implements OnInit {
     this.settingsService.setUser({ name: 'User', avatar: '' });
   }
 
+  private parseTokenPayload(token: string | null): Record<string, unknown> | null {
+    if (!token) return null;
+    try {
+      const base64Url = token.split('.')[1];
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) base64 += '=';
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }
+
   ngOnInit(): void {
-    combineLatest([this.store.select(selectHasContext), this.store.select(selectPermissions)])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([hasContext, permissions]) => this.buildMenu(hasContext, new Set(permissions)));
+    this.tokenSub = this.store.select(selectContextToken).subscribe(token => {
+      const payload = this.parseTokenPayload(token);
+      if (payload) {
+        this.branchId = (payload['branchId'] as string) || null;
+        if (this.branchId) {
+          this.loadNotificationHistory();
+          this.subscribeRealtimeNotifications();
+        }
+      }
+    });
+
+    this.menuSub = combineLatest([this.store.select(selectHasContext), this.store.select(selectPermissions)]).subscribe(
+      ([hasContext, permissions]) => this.buildMenu(hasContext, new Set(permissions))
+    );
+  }
+
+  ngOnDestroy(): void {
+    if (this.sseSub) {
+      this.sseSub.unsubscribe();
+    }
+    if (this.tokenSub) {
+      this.tokenSub.unsubscribe();
+    }
+    if (this.menuSub) {
+      this.menuSub.unsubscribe();
+    }
+  }
+
+  private loadNotificationHistory(): void {
+    if (!this.branchId) return;
+
+    this.notificationService.getNotifications(this.branchId, { page: 1, size: 10 }).subscribe({
+      next: res => {
+        this.notifications = res.data;
+        this.notificationCount = this.notifications.filter(n => n.status === 'UNREAD').length;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private subscribeRealtimeNotifications(): void {
+    if (!this.branchId) return;
+
+    if (this.sseSub) {
+      this.sseSub.unsubscribe();
+    }
+
+    this.sseSub = this.notificationService.subscribeBranchNotifications(this.branchId).subscribe({
+      next: notif => {
+        this.notifications = [notif, ...this.notifications];
+        this.notificationCount += 1;
+        this.message.info(`🔔 ${notif.content}`, { nzDuration: 6000 });
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  markAllAsRead(): void {
+    this.notifications = this.notifications.map(n => ({ ...n, status: NotificationStatus.READ }));
+    this.notificationCount = 0;
+    this.cdr.markForCheck();
   }
 
   private buildMenu(hasContext: boolean, permissions: Set<string>): void {
     this.menuService.clear();
     this.menuService.add([
       {
-        text: 'Organization',
-        i18n: 'menu.organization',
+        text: 'Tổ chức',
+        i18n: 'menu.context.group',
         group: true,
         hideInBreadcrumb: true,
-        children: [{ text: 'Select organization', i18n: 'menu.select-organization', icon: 'bank', link: '/portal/context-select' }]
+        children: [{ text: 'Chọn tổ chức', i18n: 'menu.context.select', link: '/portal/context-select' }]
       },
       {
-        text: 'Restaurant management',
-        i18n: 'menu.restaurant-management',
+        text: 'Quản lý nhà hàng',
+        i18n: 'menu.portal.group',
         group: true,
         hideInBreadcrumb: true,
         children: [
-          { text: 'Dashboard', i18n: 'menu.dashboard', icon: 'dashboard', link: '/portal/dashboard', disabled: !hasContext },
-          ...(permissions.has('ORDER_READ')
-            ? [{ text: 'Order management', i18n: 'menu.order', icon: 'shopping-cart', link: '/portal/order' }]
+          { text: 'Dashboard', i18n: 'menu.portal.dashboard', link: '/portal/dashboard', disabled: !hasContext },
+          { text: 'Quản lý Đơn hàng', i18n: 'menu.portal.order', link: '/portal/order', disabled: !hasContext },
+          { text: 'Quản lý Thực đơn', i18n: 'menu.portal.menu', link: '/portal/menu', disabled: !hasContext },
+          { text: 'Quản lý Bàn', i18n: 'menu.portal.table', link: '/portal/table', disabled: !hasContext },
+          { text: 'Đặt bàn', i18n: 'menu.portal.booking', link: '/portal/booking', disabled: !hasContext },
+          { text: 'Kho hàng', i18n: 'menu.portal.inventory', link: '/portal/inventory', disabled: !hasContext },
+          ...(permissions.has('PROFILE_VIEW')
+            ? [{ text: 'Nhân viên', i18n: 'menu.portal.employee', link: '/portal/employee', disabled: !hasContext }]
             : []),
-          ...(permissions.has('MENU_MANAGE') ? [{ text: 'Menu management', i18n: 'menu.menu', icon: 'coffee', link: '/portal/menu' }] : []),
-          ...(permissions.has('TABLE_MANAGE') ? [{ text: 'Table management', i18n: 'menu.table', icon: 'table', link: '/portal/table' }] : []),
-          ...(permissions.has('BOOKING_READ') ? [{ text: 'Bookings', i18n: 'menu.booking', icon: 'calendar', link: '/portal/booking' }] : []),
-          ...(permissions.has('INGREDIENT_VIEW')
-            ? [{ text: 'Inventory', i18n: 'menu.inventory', icon: 'database', link: '/portal/inventory' }]
-            : []),
-          ...(permissions.has('PROFILE_VIEW') ? [{ text: 'Employees', i18n: 'menu.employee', icon: 'team', link: '/portal/employee' }] : []),
-          ...(permissions.has('PAYMENT_READ') ? [{ text: 'Invoices', i18n: 'menu.invoice', icon: 'file-text', link: '/portal/invoice' }] : []),
-          ...(permissions.has('ATTENDANCE_SELF_READ') || permissions.has('ATTENDANCE_SELF_WRITE') || permissions.has('ATTENDANCE_QR_DISPLAY')
-            ? [{ text: 'Attendance', i18n: 'menu.attendance', icon: 'clock-circle', link: '/portal/attendance' }]
-            : [])
+          { text: 'Hóa đơn', i18n: 'menu.portal.invoice', link: '/portal/invoice', disabled: !hasContext },
+          { text: 'Khách hàng', i18n: 'menu.portal.customer', link: '/portal/customer', disabled: !hasContext }
         ]
       }
     ]);
   }
 
   logout(): void {
+    if (this.sseSub) {
+      this.sseSub.unsubscribe();
+    }
     this.store.dispatch(AuthActions.logout());
   }
 }

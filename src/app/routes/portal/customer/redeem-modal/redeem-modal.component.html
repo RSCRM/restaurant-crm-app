@@ -1,0 +1,75 @@
+<nz-spin [nzSpinning]="loading">
+  <div style="padding: 16px">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin-bottom: 16px;
+      "
+    >
+      <h3 style="margin: 0; font-weight: bold">
+        {{ mode === 'redeem' ? 'Đổi Điểm Thành Viên Lấy Voucher' : 'Tặng Voucher Cho Thành Viên' }}
+      </h3>
+      <nz-tag nzColor="blue" style="font-size: 13px; padding: 4px 8px"> SĐT: {{ customerPhone }} (Số dư: {{ currentPoints }} điểm) </nz-tag>
+    </div>
+
+    @if (vouchers.length === 0 && !loading) {
+      <div style="text-align: center; padding: 40px; color: #8c8c8c">Chưa có voucher nào đang hoạt động trong hệ thống.</div>
+    }
+
+    <div class="voucher-grid-container" style="max-height: 400px; overflow-y: auto; padding-right: 4px">
+      <div nz-row [nzGutter]="[16, 16]">
+        @for (v of vouchers; track v.id) {
+          <div nz-col nzSpan="12">
+            <nz-card [nzHoverable]="true" [class.disabled-card]="!canRedeem(v)" style="border-radius: 8px; border: 1px solid #e8e8e8">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start">
+                <h4 style="margin: 0; font-weight: bold; color: #1890ff">{{ v.title }}</h4>
+                <nz-tag nzColor="red" style="font-weight: bold">-{{ v.discountPercent }}%</nz-tag>
+              </div>
+
+              @if (v.description) {
+                <p style="margin: 8px 0 4px; font-size: 12px; color: #595959">
+                  {{ v.description }}
+                </p>
+              }
+
+              <div style="margin-top: 12px; font-size: 12px; color: #8c8c8c">
+                <div
+                  >• Hóa đơn tối thiểu: <strong>{{ v.minOrderAmount | number: '1.0-0' }} ₫</strong></div
+                >
+                <div
+                  >• Hạn dùng: <strong>{{ v.validDays }} ngày</strong> kể từ khi nhận</div
+                >
+                <div>
+                  • Chi phí đổi: <strong style="color: #fa8c16">{{ v.pointCost }} điểm</strong>
+                </div>
+              </div>
+
+              <div style="margin-top: 16px; text-align: right">
+                <button
+                  nz-button
+                  [nzType]="mode === 'redeem' ? 'primary' : 'default'"
+                  [nzLoading]="submittingVoucherId === v.id"
+                  [disabled]="!canRedeem(v)"
+                  [nzTooltipTitle]="!canRedeem(v) ? 'Khách không đủ điểm tích lũy' : null"
+                  nz-tooltip
+                  (click)="actionVoucher(v)"
+                >
+                  <span nz-icon [nzType]="mode === 'redeem' ? 'gift' : 'gift'" nzTheme="outline"></span>
+                  {{ mode === 'redeem' ? 'Đổi Voucher' : 'Tặng Ngay' }}
+                </button>
+              </div>
+            </nz-card>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; text-align: right; border-top: 1px solid #f0f0f0; padding-top: 12px">
+      <button nz-button nzType="default" (click)="cancel()">Đóng</button>
+    </div>
+  </div>
+</nz-spin>

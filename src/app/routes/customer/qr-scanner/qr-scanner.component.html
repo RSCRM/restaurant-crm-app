@@ -1,0 +1,34 @@
+<div style="max-width: 450px; margin: 30px auto; padding: 16px; text-align: center;">
+  <nz-card nzTitle="📷 Quét mã QR Bàn">
+    <p>Đưa Camera về phía mã QR trên bàn để bắt đầu gọi món</p>
+    
+    <!-- Khung hiển thị Camera -->
+    <div id="qr-reader" style="width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 12px;"></div>
+
+    <!-- Mẹo quét nhanh
+    <div style="background: #e6f7ff; border: 1px solid #91d5ff; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; text-align: left;">
+      💡 <strong>Mẹo quét Camera nhạy nhất:</strong>
+      <ul style="margin: 4px 0 0 16px; padding: 0;">
+        <li>Nếu quét từ màn hình điện thoại: Giảm nhẹ độ sáng màn hình (khoảng 70%) để không bị lóa Webcam.</li>
+        <li>Giữ điện thoại thẳng đứng cách Webcam khoảng 20 - 25cm.</li>
+      </ul>
+    </div> -->
+
+    <!-- Div ẩn phục vụ đọc file ảnh -->
+    <div id="qr-file-temp" style="display: none;"></div>
+
+    @if (errorMessage) {
+      <p style="color: #ff4d4f; font-weight: 500;">{{ errorMessage }}</p>
+      <button nz-button nzType="primary" (click)="startScanner()" style="margin-bottom: 12px;">Thử lại Camera</button>
+    }
+
+    <!-- Nút tùy chọn: Tải tệp ảnh QR trực tiếp từ máy -->
+    <div style="margin-top: 12px; border-top: 1px dashed #d9d9d9; padding-top: 12px;">
+      <p style="color: #8c8c8c; font-size: 13px;">Hoặc chọn ảnh mã QR từ máy tính/điện thoại:</p>
+      <button nz-button nzType="default" (click)="fileInput.click()">
+        📁 Tải ảnh mã QR để đọc
+      </button>
+      <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;" />
+    </div>
+  </nz-card>
+</div>

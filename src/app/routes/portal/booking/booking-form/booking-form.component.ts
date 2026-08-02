@@ -48,38 +48,7 @@ interface TableAvailability extends TableSearchResponse {
     I18nPipe
   ],
   templateUrl: './booking-form.component.html',
-  styles: [
-    `
-      .table-list-container {
-        max-height: 250px;
-        overflow-y: auto;
-        border: 1px solid #f0f0f0;
-        border-radius: 4px;
-        padding: 8px;
-        margin-top: 8px;
-      }
-      .table-item {
-        cursor: pointer;
-        padding: 8px;
-        border-radius: 4px;
-        margin-bottom: 4px;
-        transition: all 0.3s;
-        border: 1px solid transparent;
-      }
-      .table-item:hover {
-        background-color: #f5f5f5;
-      }
-      .table-item.selected {
-        border-color: #1890ff;
-        background-color: #e6f7ff;
-      }
-      .table-item.disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-        background-color: #fff1f0;
-      }
-    `
-  ]
+  styleUrls: ['./booking-form.component.less']
 })
 export class BookingFormComponent implements OnInit {
   private fb = inject(FormBuilder);

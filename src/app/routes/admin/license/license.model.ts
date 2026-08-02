@@ -123,3 +123,19 @@ export interface PagingParams {
 
   search?: string;
 }
+
+// === Search/Filter DTOs ===
+
+export interface LicenseSearchRequest {
+  name?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  billingCycle?: BillingCycle;
+  maxBranchFrom?: number;
+  maxBranchTo?: number;
+  maxEmployeeFrom?: number;
+  maxEmployeeTo?: number;
+  createdAtFrom?: string;
+  createdAtTo?: string;
+  status?: LicenseStatus;
+}

@@ -1,11 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { getHttpErrorMessage } from '@core';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STModule, STChange } from '@delon/abc/st';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -19,7 +16,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { BookingFormComponent } from './booking-form/booking-form.component';
-import { BookingStatus, BookingResponse } from './booking.model';
+import { BookingResponse, BookingStatus } from './booking.model';
 import { BookingService } from './booking.service';
 import { selectContextToken } from '../../auth/store/auth.selectors';
 
@@ -39,8 +36,7 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
     NzSelectModule,
     NzFormModule,
     NzGridModule,
-    STModule,
-    I18nPipe
+    STModule
   ],
   templateUrl: './booking.component.html',
   styles: [
@@ -80,8 +76,6 @@ export class BookingComponent implements OnInit, OnDestroy {
   private message = inject(NzMessageService);
   private store = inject(Store);
   private cdr = inject(ChangeDetectorRef);
-  private i18n = inject(ALAIN_I18N_TOKEN);
-  private destroyRef = inject(DestroyRef);
 
   bookingStatus = BookingStatus; // Expose to template
 
@@ -101,15 +95,15 @@ export class BookingComponent implements OnInit, OnDestroy {
   searchPhone = '';
   filterStatus = 'ALL';
 
-  private refreshIntervalId?: ReturnType<typeof setInterval>;
+  private refreshIntervalId: ReturnType<typeof setInterval> | null = null;
 
   columns: STColumn[] = [
-    { title: this.i18n.fanyi('booking.customer-phone'), index: 'customerPhone', width: 140 },
-    { title: this.i18n.fanyi('booking.guest-count'), index: 'guestCount', width: 100, type: 'number' },
-    { title: this.i18n.fanyi('booking.time'), width: 180, render: 'bookingTime' },
-    { title: this.i18n.fanyi('booking.note'), index: 'note' },
-    { title: this.i18n.fanyi('profile.status'), width: 130, render: 'status' },
-    { title: this.i18n.fanyi('user.action'), width: 220, fixed: 'right', render: 'actions' }
+    { title: 'SĐT Khách hàng', index: 'customerPhone', width: 140 },
+    { title: 'Số khách', index: 'guestCount', width: 100, type: 'number' },
+    { title: 'Thời gian đặt', width: 180, render: 'bookingTime' },
+    { title: 'Ghi chú', index: 'note' },
+    { title: 'Trạng thái', width: 130, render: 'status' },
+    { title: 'Thao tác', width: 220, fixed: 'right', render: 'actions' }
   ];
 
   getCountdownInfo(booking: BookingResponse): { type: 'none' | 'countdown' | 'overdue'; text: string } {
@@ -119,27 +113,26 @@ export class BookingComponent implements OnInit, OnDestroy {
     const bTime = new Date(booking.bookingTime).getTime();
     const now = Date.now();
 
-    // Chưa đến giờ đặt bàn
     if (now < bTime) {
       return { type: 'none', text: '' };
     }
 
     const diffSec = Math.floor((now - bTime) / 1000);
-    const limitSec = 0.5 * 60; // 15 minutes
+    const limitSec = 15 * 60; // 15 minutes
 
     if (diffSec >= limitSec) {
-      return { type: 'overdue', text: this.i18n.fanyi('booking.overdue') };
+      return { type: 'overdue', text: 'QUÁ LÂU CHƯA TỚI (>15 PHÚT)' };
     } else {
       const remainSec = limitSec - diffSec;
       const min = Math.floor(remainSec / 60);
       const sec = remainSec % 60;
       const minStr = min < 10 ? `0${min}` : min.toString();
       const secStr = sec < 10 ? `0${sec}` : sec.toString();
-      return { type: 'countdown', text: this.i18n.fanyi('booking.expires-in', { time: `${minStr}:${secStr}` }) };
+      return { type: 'countdown', text: `Hết hạn sau: ${minStr}:${secStr}` };
     }
   }
 
-  private getBranchIdFromToken(token: string | null): string | null {
+  private parseTokenPayload(token: string | null): Record<string, unknown> | null {
     if (!token) return null;
     try {
       const base64Url = token.split('.')[1];
@@ -153,49 +146,27 @@ export class BookingComponent implements OnInit, OnDestroy {
           .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
           .join('')
       );
-      const payload = JSON.parse(jsonPayload);
-      return payload.branchId || null;
+      return JSON.parse(jsonPayload);
     } catch {
       return null;
     }
   }
 
-  private hasPermissionInToken(token: string | null, permission: string): boolean {
-    if (!token) return false;
-    try {
-      const base64Url = token.split('.')[1];
-      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) {
-        base64 += '=';
-      }
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
-          .join('')
-      );
-      const payload = JSON.parse(jsonPayload);
-      const permissions = payload.permission || [];
-      return permissions.includes(permission);
-    } catch {
-      return false;
-    }
-  }
-
   ngOnInit(): void {
-    this.store
-      .select(selectContextToken)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(token => {
-        this.branchId = this.getBranchIdFromToken(token);
-        this.hasCreatePermission = this.hasPermissionInToken(token, 'BOOKING_CREATE');
-        this.hasUpdatePermission = this.hasPermissionInToken(token, 'BOOKING_UPDATE');
+    this.store.select(selectContextToken).subscribe(token => {
+      const payload = this.parseTokenPayload(token);
+      if (payload) {
+        this.branchId = (payload['branchId'] as string) || null;
+        const permissions: string[] = (payload['permission'] as string[]) || [];
+        const isManager = payload['role'] === 'ADMIN' || payload['orgRole'] === 'OWNER' || payload['orgRole'] === 'MANAGER';
+        this.hasCreatePermission = permissions.includes('BOOKING_CREATE') || isManager;
+        this.hasUpdatePermission = permissions.includes('BOOKING_UPDATE') || isManager;
         if (this.branchId) {
           this.loadData();
         }
-      });
+      }
+    });
 
-    // Start timer to check/refresh overdue status visually every 1 second (countdown)
     this.refreshIntervalId = setInterval(() => {
       this.cdr.markForCheck();
     }, 1000);
@@ -231,7 +202,7 @@ export class BookingComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.loading = false;
-        this.message.error(this.i18n.fanyi('booking.load-failed'));
+        this.message.error('Lỗi khi tải danh sách đặt bàn.');
         this.cdr.markForCheck();
       }
     });
@@ -288,9 +259,9 @@ export class BookingComponent implements OnInit, OnDestroy {
   updateStatus(booking: BookingResponse, status: BookingStatus): void {
     let confirmMsg = '';
     if (status === BookingStatus.SEATED) {
-      confirmMsg = this.i18n.fanyi('booking.confirm-seated');
+      confirmMsg = 'Xác nhận khách đã nhận bàn?';
     } else if (status === BookingStatus.CANCELLED) {
-      confirmMsg = this.i18n.fanyi('booking.confirm-cancel');
+      confirmMsg = 'Bạn có chắc chắn muốn hủy đặt bàn này?';
     }
 
     this.modal.confirm({
@@ -301,12 +272,13 @@ export class BookingComponent implements OnInit, OnDestroy {
         this.bookingService.updateBookingStatus(booking.id, { status }).subscribe({
           next: () => {
             this.loading = false;
-            this.message.success(this.i18n.fanyi('booking.update-status-success'));
+            this.message.success('Cập nhật trạng thái thành công!');
             this.loadData();
           },
           error: err => {
             this.loading = false;
-            this.message.error(getHttpErrorMessage(this.i18n, err, 'booking.update-status-failed'));
+            const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi cập nhật trạng thái.';
+            this.message.error(msg);
             this.cdr.markForCheck();
           }
         });
