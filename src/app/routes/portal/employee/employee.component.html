@@ -1,6 +1,47 @@
-<div class="page-container">
-  <nz-card>
-    <h2 nz-typography>{{ 'app.portal.employee.title' | i18n }}</h2>
-    <p nz-typography>{{ 'app.portal.employee.desc' | i18n }}</p>
+<page-header [title]="'user.management' | i18n" />
+
+<nz-card>
+  <st
+    [columns]="columns"
+    [data]="data"
+    [total]="total"
+    [pi]="page"
+    [ps]="size"
+    [loading]="loading"
+    [page]="{ show: true, showSize: true }"
+    (change)="onChange($event)"
+  >
+    <ng-template st-row="status" let-item>
+      <nz-tag [nzColor]="getStatusColor(item.status)">{{ 'status.' + item.status.toLowerCase() | i18n }}</nz-tag>
+    </ng-template>
+  </st>
+</nz-card>
+
+@if (selected; as profile) {
+  <nz-card [nzTitle]="(editing ? 'user.update-staff' : 'user.detail') | i18n" style="margin-top: 16px">
+    <div style="display: grid; gap: 14px; max-width: 560px">
+      <label>
+        {{ 'profile.username' | i18n }}
+        <input nz-input [value]="profile.username" disabled />
+      </label>
+      <label>
+        {{ 'profile.fullname' | i18n }}
+        <input nz-input [(ngModel)]="fullName" [disabled]="!editing" />
+      </label>
+      <label>
+        {{ 'profile.email' | i18n }}
+        <input nz-input type="email" [(ngModel)]="email" [disabled]="!editing" />
+      </label>
+      <label>
+        {{ 'profile.phone' | i18n }}
+        <input nz-input [(ngModel)]="phone" [disabled]="!editing" />
+      </label>
+      @if (editing) {
+        <div>
+          <button nz-button nzType="primary" (click)="save()" [nzLoading]="loading">{{ 'action.save' | i18n }}</button>
+          <button nz-button (click)="editing = false">{{ 'action.cancel' | i18n }}</button>
+        </div>
+      }
+    </div>
   </nz-card>
-</div>
+}
