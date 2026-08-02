@@ -36,7 +36,7 @@ export const routes: Routes = [
   },
   {
     path: 'booking',
-    canActivate: [contextGuard],
+    canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./booking/booking.component').then(m => m.BookingComponent)
   },
   {
@@ -46,12 +46,26 @@ export const routes: Routes = [
   },
   {
     path: 'employee',
-    canActivate: [contextGuard, permissionGuard('STAFF_MANAGE')],
+    canActivate: [contextGuard, permissionGuard('PROFILE_VIEW')],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
   },
   {
     path: 'invoice',
     canActivate: [contextGuard, permissionGuard('PAYMENT_READ')],
     loadComponent: () => import('./invoice/invoice.component').then(m => m.InvoiceComponent)
+  },
+  {
+    path: 'customer',
+    canActivate: [contextGuard, permissionGuard('CUSTOMER_READ')],
+    loadComponent: () => import('./customer/customer.component').then(m => m.CustomerComponent)
+  },
+  {
+    path: 'schedule',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./schedule/schedule.component').then(m => m.ScheduleComponent)
   }
 ];

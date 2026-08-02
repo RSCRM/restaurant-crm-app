@@ -1,0 +1,62 @@
+<div class="modal-header">
+  <div class="modal-title">
+    @if (mode === 'create') {
+      {{ 'app.organization.create' | i18n }}
+    } @else {
+      {{ 'app.organization.edit' | i18n }}
+    }
+  </div>
+</div>
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  @if (mode === 'create') {
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">{{ 'app.organization.form.ownerId' | i18n }}</nz-form-label>
+      <nz-form-control>
+        <input nz-input formControlName="ownerId" [placeholder]="'app.organization.form.ownerIdPlaceholder' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+  }
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.organization.form.name' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="organizationName" [placeholder]="'app.organization.form.namePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.organization.form.taxCode' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="taxCode" [placeholder]="'app.organization.form.taxCodePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.organization.form.address' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="address" [placeholder]="'app.organization.form.addressPlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.organization.form.phone' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="phone" [placeholder]="'app.organization.form.phonePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.organization.form.email' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="email" [placeholder]="'app.organization.form.emailPlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.organization.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ (mode === 'create' ? 'app.organization.form.create' : 'app.organization.form.update') | i18n }}
+    </button>
+  </div>
+</form>
