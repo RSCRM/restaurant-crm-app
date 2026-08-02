@@ -264,5 +264,18 @@
   "action.reload": "Tải lại",
   "action.save": "Lưu",
   "action.cancel": "Hủy",
+  "table.search.title": "Tìm kiếm bàn",
+  "table.search.keyword": "Mã hoặc tên bàn",
+  "table.search.action": "Tìm kiếm",
+  "table.search.reset": "Đặt lại",
+  "table.number": "Bàn",
+  "table.area": "Khu vực",
+  "table.capacity": "Sức chứa",
+  "table.capacity.min": "Sức chứa tối thiểu",
+  "table.capacity.max": "Sức chứa tối đa",
+  "table.status": "Trạng thái",
+  "table.status.available": "Trống",
+  "table.status.occupied": "Đang phục vụ",
+  "table.status.reserved": "Đã đặt",
   "validation.standard.required": "Vui lòng nhập chỉ số"
 }

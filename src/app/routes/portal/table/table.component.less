@@ -1,3 +1,19 @@
 .page-container {
   padding: 24px;
 }
+
+.filter-card {
+  margin: 16px 0;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 2fr) minmax(150px, 1fr) 150px 150px auto auto;
+  gap: 12px;
+}
+
+@media (max-width: 992px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+}
