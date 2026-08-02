@@ -9,15 +9,35 @@ export const selectContextToken = createSelector(selectAuthState, s => s.context
 export const selectContexts = createSelector(selectAuthState, s => s.contexts);
 export const selectSystemRoles = createSelector(selectAuthState, s => s.systemRoles);
 export const selectAuthUser = createSelector(selectAuthState, s => s.user);
-export const selectPermissions = createSelector(selectAuthState, s => s.permissions);
 export const selectAuthLoading = createSelector(selectAuthState, s => s.loading);
 export const selectAuthError = createSelector(selectAuthState, s => s.error);
 
 export const selectIsAuthenticated = createSelector(selectAccessToken, token => !!token);
-
-export const selectIsAdmin = createSelector(selectSystemRoles, roles => roles.includes('ADMIN'));
-
+export const selectIsAdmin = createSelector(selectSystemRoles, roles => (roles || []).includes('ADMIN'));
 export const selectHasContext = createSelector(selectContextToken, token => !!token);
 
+// Decode permissions dynamically from contextToken JWT or state
+export const selectPermissions = createSelector(selectContextToken, selectAuthState, (token, state) => {
+  if (state.permissions && state.permissions.length > 0) {
+    return state.permissions;
+  }
+  if (!token) return [];
+  try {
+    const base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    return payload.permission || [];
+  } catch {
+    return [];
+  }
+});
+
 export const selectHasPermission = (permission: string) =>
-  createSelector(selectPermissions, perms => perms.includes(permission));
+  createSelector(selectPermissions, selectIsAdmin, (perms, isAdmin) => isAdmin || perms.includes(permission));

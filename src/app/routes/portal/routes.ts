@@ -30,7 +30,7 @@ export const routes: Routes = [
   },
   {
     path: 'booking',
-    canActivate: [contextGuard],
+    canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./booking/booking.component').then(m => m.BookingComponent)
   },
   {
@@ -47,5 +47,10 @@ export const routes: Routes = [
     path: 'invoice',
     canActivate: [contextGuard, permissionGuard('PAYMENT_READ')],
     loadComponent: () => import('./invoice/invoice.component').then(m => m.InvoiceComponent)
+  },
+  {
+    path: 'customer',
+    canActivate: [contextGuard, permissionGuard('CUSTOMER_READ')],
+    loadComponent: () => import('./customer/customer.component').then(m => m.CustomerComponent)
   }
 ];

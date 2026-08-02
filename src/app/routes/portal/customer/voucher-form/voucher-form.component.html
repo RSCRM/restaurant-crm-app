@@ -1,0 +1,75 @@
+<div style="padding: 16px">
+  <h3 style="margin-bottom: 20px; font-weight: bold; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px">
+    {{ isEdit ? 'Chỉnh Sửa Voucher Hệ Thống' : 'Tạo Voucher Hệ Thống Mới' }}
+  </h3>
+
+  <form nz-form [formGroup]="form" (ngSubmit)="submit()">
+    <nz-form-item>
+      <nz-form-label nzRequired [nzSpan]="24">Tên / Tiêu Đề Voucher</nz-form-label>
+      <nz-form-control nzErrorTip="Vui lòng nhập tên voucher (tối đa 100 ký tự)">
+        <input nz-input formControlName="title" placeholder="VD: Voucher Giảm 20% cho thành viên VIP..." />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="24">Mô Tả Chi Tiết (Tùy chọn)</nz-form-label>
+      <nz-form-control>
+        <textarea nz-input formControlName="description" rows="2" placeholder="VD: Áp dụng cho đơn hàng từ 200.000đ..."></textarea>
+      </nz-form-control>
+    </nz-form-item>
+
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired [nzSpan]="24">% Giảm Giá (1 - 100%)</nz-form-label>
+          <nz-form-control nzErrorTip="Nhập % từ 1 đến 100">
+            <nz-input-number formControlName="discountPercent" [nzMin]="1" [nzMax]="100" [nzStep]="1" style="width: 100%" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired [nzSpan]="24">Hóa Đơn Tối Thiểu (VNĐ)</nz-form-label>
+          <nz-form-control nzErrorTip="Giá trị phải ≥ 0">
+            <nz-input-number formControlName="minOrderAmount" [nzMin]="0" [nzStep]="10000" style="width: 100%" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired [nzSpan]="24">Điểm Quy Đổi (0 = Tặng Miễn Phí)</nz-form-label>
+          <nz-form-control nzErrorTip="Điểm phải ≥ 0">
+            <nz-input-number formControlName="pointCost" [nzMin]="0" [nzStep]="10" style="width: 100%" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired [nzSpan]="24">Số Ngày Hiệu Lực (Ngày)</nz-form-label>
+          <nz-form-control nzErrorTip="Số ngày tối thiểu là 1">
+            <nz-input-number formControlName="validDays" [nzMin]="1" [nzStep]="1" style="width: 100%" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="24">Trạng Thái Hoạt Động (Bật/Tắt đổi)</nz-form-label>
+      <nz-form-control>
+        <nz-switch formControlName="isActive" nzCheckedChildren="Đang Bật" nzUnCheckedChildren="Đã Tắt" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <div style="margin-top: 24px; text-align: right">
+      <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting" style="margin-right: 8px"> Hủy </button>
+      <button nz-button nzType="primary" type="submit" [nzLoading]="submitting" [disabled]="form.invalid">
+        {{ isEdit ? 'Lưu Thay Đổi' : 'Xác Nhận Tạo' }}
+      </button>
+    </div>
+  </form>
+</div>
