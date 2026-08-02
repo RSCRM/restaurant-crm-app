@@ -473,5 +473,18 @@
   "action.reload": "Reload",
   "action.save": "Save",
   "action.cancel": "Cancel",
+  "table.search.title": "Search tables",
+  "table.search.keyword": "Table number",
+  "table.search.action": "Search",
+  "table.search.reset": "Reset",
+  "table.number": "Table",
+  "table.area": "Area",
+  "table.capacity": "Capacity",
+  "table.capacity.min": "Minimum capacity",
+  "table.capacity.max": "Maximum capacity",
+  "table.status": "Status",
+  "table.status.available": "Available",
+  "table.status.occupied": "Occupied",
+  "table.status.reserved": "Reserved",
   "validation.standard.required": "Please enter a metric"
 }
