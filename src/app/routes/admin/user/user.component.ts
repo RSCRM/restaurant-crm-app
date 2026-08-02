@@ -11,8 +11,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { UserProfileResponse } from '../../account/profile/profile.model';
-import { ProfileService } from '../../account/profile/profile.service';
+import { UserProfileResponse } from '../../portal/profile/profile.model';
+import { ProfileService } from '../../portal/profile/profile.service';
 
 @Component({
   selector: 'app-user',

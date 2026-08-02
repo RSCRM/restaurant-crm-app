@@ -24,6 +24,6 @@ export const routes: Routes = [
   },
   {
     path: 'profile',
-    loadComponent: () => import('../account/profile/profile.component').then(m => m.ProfileComponent)
+    loadComponent: () => import('../portal/profile/profile.component').then(m => m.ProfileComponent)
   }
 ];
