@@ -37,6 +37,9 @@ import { EmployeeStatusBadgeComponent } from './employee-status-badge/employee-s
 
 import { I18nPipe } from '@delon/theme';
 
+import { UserProfileResponse } from '../profile/profile.model';
+import { ProfileService } from '../profile/profile.service';
+
 @Component({
   selector: 'app-employee',
   standalone: true,

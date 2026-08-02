@@ -1,8 +1,6 @@
 <nz-spin [nzSpinning]="loading">
-  <div style="padding: 16px;">
-    <h3 style="margin-bottom: 20px; font-weight: bold; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;">
-      Tạo Đặt Bàn Mới
-    </h3>
+  <div style="padding: 16px">
+    <h3 style="margin-bottom: 20px; font-weight: bold; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px"> Tạo Đặt Bàn Mới </h3>
 
     <form nz-form [formGroup]="form" (ngSubmit)="submit()">
       <div nz-row [nzGutter]="16">
@@ -38,8 +36,8 @@
                 nzShowTime
                 nzFormat="yyyy-MM-dd HH:mm"
                 [nzDisabledDate]="disabledDate"
-                style="width: 100%;"
-              ></nz-date-picker>
+                style="width: 100%"
+              />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -49,12 +47,7 @@
           <nz-form-item>
             <nz-form-label nzRequired [nzSpan]="24">Thời Lượng (Giờ)</nz-form-label>
             <nz-form-control nzErrorTip="Vui lòng nhập thời lượng (> 0)">
-              <nz-input-number
-                formControlName="duration"
-                [nzMin]="0.1"
-                [nzStep]="0.5"
-                style="width: 100%;"
-              ></nz-input-number>
+              <nz-input-number formControlName="duration" [nzMin]="0.1" [nzStep]="0.5" style="width: 100%" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -64,12 +57,7 @@
           <nz-form-item>
             <nz-form-label nzRequired [nzSpan]="24">Số Khách</nz-form-label>
             <nz-form-control nzErrorTip="Tối thiểu 1 khách">
-              <nz-input-number
-                formControlName="guestCount"
-                [nzMin]="1"
-                [nzStep]="1"
-                style="width: 100%;"
-              ></nz-input-number>
+              <nz-input-number formControlName="guestCount" [nzMin]="1" [nzStep]="1" style="width: 100%" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -79,47 +67,50 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="24">Ghi Chú Đặt Bàn</nz-form-label>
         <nz-form-control nzErrorTip="Ghi chú quá dài">
-          <textarea nz-input formControlName="note" rows="2" placeholder="Ghi chú thêm (ví dụ: ngồi góc phòng, có trẻ nhỏ...)..."></textarea>
+          <textarea
+            nz-input
+            formControlName="note"
+            rows="2"
+            placeholder="Ghi chú thêm (ví dụ: ngồi góc phòng, có trẻ nhỏ...)..."
+          ></textarea>
         </nz-form-control>
       </nz-form-item>
 
       <!-- Table Selection List (Green/Red overlapping check) -->
-      <div style="margin-top: 16px;">
-        <label style="font-weight: 500; font-size: 14px;">Chọn Bàn Khả Dụng (Green = Trống, Red = Bị trùng giờ/Sức chứa nhỏ)</label>
+      <div style="margin-top: 16px">
+        <label style="font-weight: 500; font-size: 14px">Chọn Bàn Khả Dụng (Green = Trống, Red = Bị trùng giờ/Sức chứa nhỏ)</label>
         <div class="table-list-container">
-          <div *ngIf="tablesWithAvailability.length === 0" style="text-align: center; padding: 20px; color: #999;">
-            Chưa có danh sách bàn hoặc dữ liệu chưa hợp lệ
-          </div>
+          @if (tablesWithAvailability.length === 0) {
+            <div style="text-align: center; padding: 20px; color: #999"> Chưa có danh sách bàn hoặc dữ liệu chưa hợp lệ </div>
+          }
 
-          <div
-            *ngFor="let t of tablesWithAvailability"
-            class="table-item"
-            [class.selected]="selectedTableId === t.id"
-            [class.disabled]="!t.isAvailable"
-            (click)="selectTable(t)"
-          >
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong>Bàn {{ t.tableNumber }}</strong>
-                <span style="font-size: 12px; color: #666; margin-left: 8px;">({{ t.areaName }} - Sức chứa: {{ t.capacity }} khách)</span>
+          @for (t of tablesWithAvailability; track t.id) {
+            <div class="table-item" [class.selected]="selectedTableId === t.id" [class.disabled]="!t.isAvailable" (click)="selectTable(t)">
+              <div style="display: flex; justify-content: space-between; align-items: center">
+                <div>
+                  <strong>Bàn {{ t.tableNumber }}</strong>
+                  <span style="font-size: 12px; color: #666; margin-left: 8px">({{ t.areaName }} - Sức chứa: {{ t.capacity }} khách)</span>
+                </div>
+                <div>
+                  @if (t.isAvailable) {
+                    <nz-tag nzColor="success">Trống</nz-tag>
+                  }
+                  @if (!t.isAvailable) {
+                    <nz-tag nzColor="error" [nzTooltipTitle]="t.reason" nz-tooltip>Bận</nz-tag>
+                  }
+                </div>
               </div>
-              <div>
-                <nz-tag *ngIf="t.isAvailable" nzColor="success">Trống</nz-tag>
-                <nz-tag *ngIf="!t.isAvailable" nzColor="error" [nzTooltipTitle]="t.reason" nz-tooltip>Bận</nz-tag>
-              </div>
+              @if (!t.isAvailable && t.reason) {
+                <div style="font-size: 11px; color: #f5222d; margin-top: 4px"> Lý do: {{ t.reason }} </div>
+              }
             </div>
-            <div *ngIf="!t.isAvailable && t.reason" style="font-size: 11px; color: #f5222d; margin-top: 4px;">
-              Lý do: {{ t.reason }}
-            </div>
-          </div>
+          }
         </div>
       </div>
 
       <!-- Actions -->
-      <div style="margin-top: 24px; text-align: right;">
-        <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting" style="margin-right: 8px;">
-          Hủy
-        </button>
+      <div style="margin-top: 24px; text-align: right">
+        <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting" style="margin-right: 8px"> Hủy </button>
         <button nz-button nzType="primary" type="submit" [nzLoading]="submitting" [disabled]="form.invalid || !selectedTableId">
           Xác Nhận Đặt Bàn
         </button>

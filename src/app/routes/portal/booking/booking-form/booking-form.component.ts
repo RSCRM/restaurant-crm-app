@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
+import { differenceInCalendarDays } from 'date-fns';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -14,7 +15,6 @@ import { NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
-import { differenceInCalendarDays } from 'date-fns';
 
 import { selectContextToken } from '../../../auth/store/auth.selectors';
 import { BookingStatus, BookingResponse, TableSearchResponse } from '../booking.model';
@@ -45,38 +45,7 @@ interface TableAvailability extends TableSearchResponse {
     NzTooltipModule
   ],
   templateUrl: './booking-form.component.html',
-  styles: [
-    `
-      .table-list-container {
-        max-height: 250px;
-        overflow-y: auto;
-        border: 1px solid #f0f0f0;
-        border-radius: 4px;
-        padding: 8px;
-        margin-top: 8px;
-      }
-      .table-item {
-        cursor: pointer;
-        padding: 8px;
-        border-radius: 4px;
-        margin-bottom: 4px;
-        transition: all 0.3s;
-        border: 1px solid transparent;
-      }
-      .table-item:hover {
-        background-color: #f5f5f5;
-      }
-      .table-item.selected {
-        border-color: #1890ff;
-        background-color: #e6f7ff;
-      }
-      .table-item.disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-        background-color: #fff1f0;
-      }
-    `
-  ]
+  styleUrls: ['./booking-form.component.less']
 })
 export class BookingFormComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -107,7 +76,7 @@ export class BookingFormComponent implements OnInit {
       const jsonPayload = decodeURIComponent(
         atob(base64)
           .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
           .join('')
       );
       const payload = JSON.parse(jsonPayload);
@@ -169,9 +138,7 @@ export class BookingFormComponent implements OnInit {
     this.bookingService.getBookingsByBranch(this.branchId, { page: 1, size: 1000 }).subscribe({
       next: bookingRes => {
         // Filter out cancelled or expired bookings for conflict checking
-        this.allBookings = bookingRes.data.filter(
-          b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED
-        );
+        this.allBookings = bookingRes.data.filter(b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED);
         this.checkDataLoaded();
       },
       error: () => {

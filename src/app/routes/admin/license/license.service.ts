@@ -10,6 +10,7 @@ import {
   GrantSubscriptionRequest,
   LicenseDetailResponse,
   LicenseResponse,
+  LicenseSearchRequest,
   PagingParams,
   PagingResponse,
   SubscriptionResponse,
@@ -38,6 +39,24 @@ export class LicenseService {
 
     return this.http
       .get<ApiResponse<PagingResponse<LicenseResponse>>>(this.LICENSE_API, { params: httpParams })
+      .pipe(map(res => res.data));
+  }
+
+  searchLicenses(
+    filter: LicenseSearchRequest,
+    page = 1,
+    size = 10,
+    direction = 'DESC',
+    field = 'createdAt'
+  ): Observable<PagingResponse<LicenseResponse>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('direction', direction)
+      .set('field', field);
+
+    return this.http
+      .post<ApiResponse<PagingResponse<LicenseResponse>>>(`${this.LICENSE_API}/search`, filter, { params })
       .pipe(map(res => res.data));
   }
 
