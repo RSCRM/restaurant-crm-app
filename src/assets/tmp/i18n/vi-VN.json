@@ -220,5 +220,7 @@
   "schedule.status.completed": "Đã kết thúc",
   "schedule.range-exceeded": "Khoảng ngày không được vượt quá 31 ngày",
   "schedule.load-failed": "Không thể tải lịch làm việc",
+  "schedule.select-employee": "Chọn nhân viên",
+  "schedule.all-employees": "Tất cả nhân viên",
   "validation.standard.required": "Vui lòng nhập chỉ số"
 }

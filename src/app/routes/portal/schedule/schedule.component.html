@@ -4,6 +4,20 @@
   <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px">
     <button nz-button (click)="showToday()">{{ 'schedule.today' | i18n }}</button>
     <button nz-button (click)="showThisWeek()">{{ 'schedule.this-week' | i18n }}</button>
+    @if (managerMode) {
+      <nz-select
+        style="min-width: 220px"
+        nzAllowClear
+        [nzPlaceHolder]="'schedule.select-employee' | i18n"
+        [(ngModel)]="selectedEmployeeId"
+        (ngModelChange)="filterByEmployee()"
+      >
+        <nz-option [nzValue]="null" [nzLabel]="'schedule.all-employees' | i18n" />
+        @for (employee of employees; track employee.id) {
+          <nz-option [nzValue]="employee.id" [nzLabel]="employee.name" />
+        }
+      </nz-select>
+    }
     <nz-range-picker [(ngModel)]="dateRange" />
     <button nz-button nzType="primary" (click)="load()">
       <span nz-icon nzType="search"></span>

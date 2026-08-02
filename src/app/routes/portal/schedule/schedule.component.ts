@@ -11,6 +11,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { PersonalScheduleResponse } from './schedule.model';
@@ -31,6 +32,7 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
     NzCardModule,
     NzDatePickerModule,
     NzIconModule,
+    NzSelectModule,
     NzTagModule,
     I18nPipe
   ],
@@ -46,7 +48,10 @@ export class ScheduleComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   dateRange: Date[] = [new Date(), new Date()];
+  allSchedules: PersonalScheduleResponse[] = [];
   schedules: PersonalScheduleResponse[] = [];
+  employees: Array<{ id: string; name: string }> = [];
+  selectedEmployeeId: string | null = null;
   loading = false;
   managerMode = false;
   columns: STColumn[] = [];
@@ -58,8 +63,10 @@ export class ScheduleComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(token => {
         if (!token) return;
-        const dataScope = this.authService.parseJwtPayload(token)['dataScope'];
-        this.managerMode = dataScope === 'BRANCH' || dataScope === 'ORGANIZATION';
+        const payload = this.authService.parseJwtPayload(token);
+        const dataScope = payload['dataScope'];
+        const orgRole = payload['orgRole'];
+        this.managerMode = dataScope === 'BRANCH' || dataScope === 'ORGANIZATION' || orgRole === 'MANAGER' || orgRole === 'OWNER';
         this.updateColumns();
         this.load();
       });
@@ -95,7 +102,14 @@ export class ScheduleComponent implements OnInit {
       : this.service.getPersonalSchedule(this.formatDate(from), this.formatDate(to));
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: schedules => {
-        this.schedules = schedules;
+        this.allSchedules = schedules;
+        this.employees = Array.from(
+          new Map(schedules.map(schedule => [schedule.employeeId, { id: schedule.employeeId, name: schedule.employeeName }])).values()
+        );
+        if (this.selectedEmployeeId && !this.employees.some(employee => employee.id === this.selectedEmployeeId)) {
+          this.selectedEmployeeId = null;
+        }
+        this.filterByEmployee();
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -105,6 +119,13 @@ export class ScheduleComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  filterByEmployee(): void {
+    this.schedules = this.selectedEmployeeId
+      ? this.allSchedules.filter(schedule => schedule.employeeId === this.selectedEmployeeId)
+      : this.allSchedules;
+    this.cdr.markForCheck();
   }
 
   getStatus(schedule: PersonalScheduleResponse): 'current' | 'upcoming' | 'completed' {

@@ -328,5 +328,7 @@
   "schedule.status.completed": "Completed",
   "schedule.range-exceeded": "The date range cannot exceed 31 days",
   "schedule.load-failed": "Unable to load work schedule",
+  "schedule.select-employee": "Select employee",
+  "schedule.all-employees": "All employees",
   "validation.standard.required": "Please enter a metric"
 }
