@@ -348,5 +348,9 @@
   "attendance.qr-load-failed": "Failed to load branch QR code",
   "attendance.checkin-failed": "Check-in failed",
   "attendance.checkout-failed": "Check-out failed",
+  "action.reload": "Reload",
+  "action.ignore": "Ignore",
+  "app.update-title": "Update Available",
+  "app.route-load-failed": "Failed to load route: {{url}}",
   "validation.standard.required": "Please enter a metric"
 }

@@ -240,5 +240,9 @@
   "attendance.qr-load-failed": "Không thể tải mã QR chi nhánh",
   "attendance.checkin-failed": "Chấm công vào thất bại",
   "attendance.checkout-failed": "Chấm công ra thất bại",
+  "action.reload": "Tải lại",
+  "action.ignore": "Bỏ qua",
+  "app.update-title": "Có bản cập nhật",
+  "app.route-load-failed": "Không thể tải trang: {{url}}",
   "validation.standard.required": "Vui lòng nhập chỉ số"
 }
