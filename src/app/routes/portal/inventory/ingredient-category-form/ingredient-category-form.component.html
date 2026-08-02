@@ -1,0 +1,63 @@
+<div class="modal-header">
+  <div class="modal-title">
+    {{ isEdit ? ('app.form.update' | i18n) : ('app.ingredientCategory.create' | i18n) }}
+  </div>
+</div>
+
+<form
+  nz-form
+  nzLayout="vertical"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+>
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">
+      {{ 'app.ingredientCategory.categoryName' | i18n }}
+    </nz-form-label>
+
+    <nz-form-control
+      [nzErrorTip]="'app.error.categoryName.required' | i18n"
+    >
+      <input
+        nz-input
+        formControlName="categoryName"
+        [placeholder]="'app.ingredientCategory.categoryNamePlaceholder' | i18n"
+      />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>
+      {{ 'app.ingredientCategory.description' | i18n }}
+    </nz-form-label>
+
+    <nz-form-control>
+      <textarea
+        nz-input
+        formControlName="description"
+        [nzAutosize]="{ minRows: 3, maxRows: 5 }"
+        [placeholder]="'app.ingredientCategory.descriptionPlaceholder' | i18n"
+      ></textarea>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button
+      nz-button
+      type="button"
+      (click)="close()"
+    >
+      {{ 'app.form.cancel' | i18n }}
+    </button>
+
+    <button
+      nz-button
+      nzType="primary"
+      type="submit"
+      [nzLoading]="loading"
+      [disabled]="form.invalid"
+    >
+      {{ isEdit ? ('app.form.update' | i18n) : ('app.form.create' | i18n) }}
+    </button>
+  </div>
+</form>

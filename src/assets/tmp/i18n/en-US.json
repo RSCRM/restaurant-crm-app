@@ -494,5 +494,58 @@
   "table.status.available": "Available",
   "table.status.occupied": "Occupied",
   "table.status.reserved": "Reserved",
-  "validation.standard.required": "Please enter a metric"
+  "validation.standard.required": "Please enter a metric",
+
+  "app.inventory.title": "Inventory Management",
+  "app.inventory.search": "Search",
+  "app.inventory.searchPlaceholder": "Search by ingredient name",
+  "app.inventory.filter": "Filter",
+  "app.inventory.applyFilter": "Apply Filter",
+  "app.inventory.clearFilter": "Clear Filter",
+  "app.inventory.create": "Create Inventory",
+
+  "app.inventory.ingredient": "Ingredient",
+  "app.inventory.quantity": "Quantity",
+  "app.inventory.minimumQuantity": "Minimum Quantity",
+  "app.inventory.status": "Status",
+  "app.inventory.createdAt": "Created At",
+  "app.inventory.updatedAt": "Updated At",
+  "app.inventory.actions": "Actions",
+
+  "app.inventory.edit": "Edit",
+
+  "app.inventory.status.good": "Good",
+  "app.inventory.status.low": "Low Stock",
+  "app.inventory.status.outOfStock": "Out of Stock",
+
+  "app.inventory.filter.status": "Status",
+  "app.inventory.filter.all": "All",
+  "app.inventory.filter.quantityFrom": "Quantity From",
+  "app.inventory.filter.quantityTo": "Quantity To",
+  "app.inventory.filter.minimumQuantityFrom": "Minimum Quantity From",
+  "app.inventory.filter.minimumQuantityTo": "Minimum Quantity To",
+  "app.inventory.filter.createdAtFrom": "Created From",
+  "app.inventory.filter.createdAtTo": "Created To",
+
+  "app.ingredientCategory.create": "Create Ingredient Category",
+  "app.ingredientCategory.categoryName": "Category Name",
+  "app.ingredientCategory.categoryNamePlaceholder": "Enter category name",
+  "app.ingredientCategory.description": "Description",
+  "app.ingredientCategory.descriptionPlaceholder": "Enter description",
+
+  "app.error.categoryName.required": "Category name is required",
+
+  "app.ingredient.create": "Create Ingredient",
+  "app.ingredient.category": "Category",
+  "app.ingredient.categoryPlaceholder": "Select category",
+  "app.ingredient.name": "Ingredient Name",
+  "app.ingredient.namePlaceholder": "Enter ingredient name",
+  "app.ingredient.unit": "Unit",
+  "app.ingredient.unitPlaceholder": "Select unit",
+  "app.ingredient.description": "Description",
+  "app.ingredient.descriptionPlaceholder": "Enter description",
+
+  "app.error.ingredient.category.required": "Category is required",
+  "app.error.ingredient.name.required": "Ingredient name is required",
+  "app.error.ingredient.unit.required": "Unit is required"
 }

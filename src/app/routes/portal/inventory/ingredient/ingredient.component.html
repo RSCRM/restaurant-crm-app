@@ -1,0 +1,70 @@
+<page-header [title]="'app.ingredient.title' | i18n" />
+
+<nz-card>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 260px;">
+        <input
+          nz-input
+          [(ngModel)]="keyword"
+          [placeholder]="'app.ingredient.searchPlaceholder' | i18n"
+          (keyup.enter)="search()"
+        />
+      </nz-input-group>
+
+      <ng-template #prefixSearch>
+        <span nz-icon nzType="search"></span>
+      </ng-template>
+
+      <nz-select
+        style="width: 260px;"
+        [(ngModel)]="selectedCategoryId"
+        [nzPlaceHolder]="'app.ingredient.categoryPlaceholder' | i18n"
+        [nzAllowClear]="true"
+      >
+        @for (category of categories; track category.id) {
+          <nz-option
+            [nzValue]="category.id"
+            [nzLabel]="category.categoryName"
+          ></nz-option>
+        }
+      </nz-select>
+
+      <button nz-button nzType="primary" (click)="search()">
+        {{ 'app.ingredient.search' | i18n }}
+      </button>
+
+      @if (keyword || selectedCategoryId) {
+        <button nz-button nzDanger (click)="clearSearch()">
+          <span nz-icon nzType="close-circle"></span>
+          {{ 'app.ingredient.clearSearch' | i18n }}
+        </button>
+      }
+    </div>
+
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus"></span>
+      {{ 'app.ingredient.create' | i18n }}
+    </button>
+  </div>
+
+  <!-- Table -->
+  <st
+    #st
+    [columns]="columns"
+    [data]="data"
+    [loading]="loading"
+    [total]="total"
+    [ps]="pageSize"
+    [pi]="currentPage"
+    [page]="{
+      show: true,
+      showSize: true,
+      front: false
+    }"
+    [scroll]="{ x: '1200px' }"
+    (change)="onSTChange($event)"
+  >
+  </st>
+</nz-card>
