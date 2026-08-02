@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+
 import { contextGuard } from '../auth/guards/context.guard';
 import { permissionGuard } from '../auth/guards/permission.guard';
 
@@ -40,8 +41,12 @@ export const routes: Routes = [
   },
   {
     path: 'employee',
-    canActivate: [contextGuard, permissionGuard('STAFF_MANAGE')],
+    canActivate: [contextGuard, permissionGuard('PROFILE_VIEW')],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./profile/profile.component').then(m => m.ProfileComponent)
   },
   {
     path: 'invoice',
