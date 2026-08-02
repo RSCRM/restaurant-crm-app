@@ -4,7 +4,7 @@
       <h2>{{ 'table.map.title' | i18n }}</h2>
       <p>{{ 'table.map.description' | i18n }}</p>
     </div>
-    <button nz-button nzType="primary" (click)="loadMap()">{{ 'action.reload' | i18n }}</button>
+    <button nz-button nzType="primary" [nzLoading]="loading" (click)="loadMap()">{{ 'action.reload' | i18n }}</button>
   </div>
 
   <nz-select class="area-filter" [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear>

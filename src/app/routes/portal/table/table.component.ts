@@ -9,6 +9,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { finalize } from 'rxjs';
 
 import { TableAreaMap } from './table.model';
 import { TableService } from './table.service';
@@ -40,18 +41,24 @@ export class TableComponent implements OnInit {
 
   loadMap(): void {
     this.loading = true;
-    this.tableService.getMap().subscribe({
-      next: map => {
-        this.areas = map.areas;
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.loading = false;
-        this.message.error('Không thể tải sơ đồ bàn');
-        this.cdr.markForCheck();
-      }
-    });
+    this.tableService
+      .getMap()
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: map => {
+          this.areas = map.areas;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.message.error('Không thể tải sơ đồ bàn');
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   statusColor(status: string): string {
