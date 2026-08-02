@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { forkJoin, map, Observable, switchMap } from 'rxjs';
 
-import { PagingResponse, TableItem, TableSession } from './table.model';
+import { PagingResponse, TableMap, TableSearchItem, TableSearchParams, TableSession } from './table.model';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../auth/models/auth.model';
 
@@ -10,8 +10,25 @@ import { ApiResponse } from '../../auth/models/auth.model';
 export class TableService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.api.baseUrl}${environment.api['apiPrefix']}`;
+  private readonly tableApi = `${this.base}/erp/tables`;
 
-  getTransferOptions(): Observable<{ occupied: TableItem[]; available: TableItem[] }> {
+  getMap(areaId?: string): Observable<TableMap> {
+    const params = areaId ? new HttpParams().set('areaId', areaId) : undefined;
+    return this.http.get<ApiResponse<TableMap>>(`${this.tableApi}/map`, { params }).pipe(map(response => response.data));
+  }
+
+  search(filters: TableSearchParams): Observable<PagingResponse<TableSearchItem>> {
+    let params = new HttpParams().set('page', filters.page).set('size', filters.size);
+    if (filters.keyword) params = params.set('keyword', filters.keyword);
+    if (filters.status) params = params.set('status', filters.status);
+    if (filters.minCapacity != null) params = params.set('minCapacity', filters.minCapacity);
+
+    return this.http
+      .get<ApiResponse<PagingResponse<TableSearchItem>>>(`${this.tableApi}/search`, { params })
+      .pipe(map(response => response.data));
+  }
+
+  getTransferOptions(): Observable<{ occupied: TableSearchItem[]; available: TableSearchItem[] }> {
     return forkJoin({ occupied: this.searchByStatus('OCCUPIED'), available: this.searchByStatus('AVAILABLE') });
   }
 
@@ -27,10 +44,7 @@ export class TableService {
     );
   }
 
-  private searchByStatus(status: TableItem['status']): Observable<TableItem[]> {
-    const params = new HttpParams().set('status', status).set('page', 1).set('size', 100);
-    return this.http
-      .get<ApiResponse<PagingResponse<TableItem>>>(`${this.base}/erp/tables/search`, { params })
-      .pipe(map(response => response.data.data));
+  private searchByStatus(status: TableSearchItem['status']): Observable<TableSearchItem[]> {
+    return this.search({ status, page: 1, size: 100 }).pipe(map(response => response.data));
   }
 }

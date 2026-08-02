@@ -26,7 +26,7 @@ export const routes: Routes = [
   },
   {
     path: 'table',
-    canActivate: [contextGuard],
+    canActivate: [contextGuard, permissionGuard('TABLE_MAP_READ'), permissionGuard('TABLE_SEARCH_READ')],
     loadComponent: () => import('./table/table.component').then(m => m.TableComponent)
   },
   {
@@ -57,6 +57,11 @@ export const routes: Routes = [
     path: 'customer',
     canActivate: [contextGuard, permissionGuard('CUSTOMER_READ')],
     loadComponent: () => import('./customer/customer.component').then(m => m.CustomerComponent)
+  },
+  {
+    path: 'attendance',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
   },
   {
     path: 'schedule',
