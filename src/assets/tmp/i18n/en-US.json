@@ -372,5 +372,12 @@
   "action.reload": "Reload",
   "action.save": "Save",
   "action.cancel": "Cancel",
+  "table.transfer.title": "Transfer table",
+  "table.transfer.description": "Move an active guest session to an available table",
+  "table.transfer.source": "Current table",
+  "table.transfer.target": "Destination table",
+  "table.transfer.select-source": "Select occupied table",
+  "table.transfer.select-target": "Select available table",
+  "table.transfer.action": "Transfer",
   "validation.standard.required": "Please enter a metric"
 }

@@ -1,6 +1,34 @@
 <div class="page-container">
   <nz-card>
-    <h2 nz-typography>{{ 'app.portal.table.title' | i18n }}</h2>
-    <p nz-typography>{{ 'app.portal.table.desc' | i18n }}</p>
+    <h2>{{ 'table.transfer.title' | i18n }}</h2>
+    <p>{{ 'table.transfer.description' | i18n }}</p>
+
+    <nz-spin [nzSpinning]="loading">
+      <div class="transfer-form">
+        <label>
+          <span>{{ 'table.transfer.source' | i18n }}</span>
+          <nz-select [(ngModel)]="sourceTableId" [nzPlaceHolder]="'table.transfer.select-source' | i18n">
+            @for (table of occupiedTables; track table.id) {
+              <nz-option [nzValue]="table.id" [nzLabel]="table.tableNumber + ' - ' + table.areaName" />
+            }
+          </nz-select>
+        </label>
+
+        <div class="arrow">→</div>
+
+        <label>
+          <span>{{ 'table.transfer.target' | i18n }}</span>
+          <nz-select [(ngModel)]="targetTableId" [nzPlaceHolder]="'table.transfer.select-target' | i18n">
+            @for (table of availableTables; track table.id) {
+              <nz-option [nzValue]="table.id" [nzLabel]="table.tableNumber + ' - ' + table.areaName + ' (' + table.capacity + ')'" />
+            }
+          </nz-select>
+        </label>
+      </div>
+
+      <button nz-button nzType="primary" [nzLoading]="transferring" (click)="confirmTransfer()">
+        {{ 'table.transfer.action' | i18n }}
+      </button>
+    </nz-spin>
   </nz-card>
 </div>

@@ -264,5 +264,12 @@
   "action.reload": "Tải lại",
   "action.save": "Lưu",
   "action.cancel": "Hủy",
+  "table.transfer.title": "Chuyển bàn",
+  "table.transfer.description": "Chuyển khách đang phục vụ sang một bàn trống",
+  "table.transfer.source": "Bàn hiện tại",
+  "table.transfer.target": "Bàn đích",
+  "table.transfer.select-source": "Chọn bàn đang phục vụ",
+  "table.transfer.select-target": "Chọn bàn trống",
+  "table.transfer.action": "Chuyển bàn",
   "validation.standard.required": "Vui lòng nhập chỉ số"
 }
