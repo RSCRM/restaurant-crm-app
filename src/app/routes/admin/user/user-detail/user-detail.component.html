@@ -1,0 +1,32 @@
+@if (loading) {
+  <div class="loading-container">
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+  </div>
+} @else if (user) {
+  <page-header [title]="'User: ' + user.username" [action]="actionTpl" />
+  <ng-template #actionTpl>
+    <button nz-button (click)="goBack()">
+      <span nz-icon nzType="arrow-left" nzTheme="outline"></span>
+      {{ 'app.user.back' | i18n }}
+    </button>
+  </ng-template>
+
+  <nz-card [nzTitle]="'app.user.detail.info' | i18n">
+    <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item [nzTitle]="'app.user.username' | i18n">{{ user.username }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.user.email' | i18n">{{ user.email }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.user.detail.fullName' | i18n">{{ user.fullName || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.user.detail.phone' | i18n">{{ user.phone || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.user.status' | i18n">
+        <nz-tag [nzColor]="getStatusColor(user.status)">
+          {{ getStatusText(user.status) | i18n }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.user.roles' | i18n">
+        @for (role of user.roles; track role.id) {
+          <nz-tag nzColor="blue">{{ role.roleName }}</nz-tag>
+        }
+      </nz-descriptions-item>
+    </nz-descriptions>
+  </nz-card>
+}
