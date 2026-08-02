@@ -1,27 +1,111 @@
 <div class="page-container">
   <div class="page-heading">
     <div>
-      <h2>{{ 'table.register.title' | i18n }}</h2>
-      <p>{{ 'table.register.description' | i18n }}</p>
+      <h2>{{ 'table.map.title' | i18n }}</h2>
+      <p>{{ 'table.map.description' | i18n }}</p>
     </div>
-    <button nz-button (click)="loadTables()">{{ 'action.reload' | i18n }}</button>
+    <button nz-button nzType="primary" [nzLoading]="mapLoading || searchLoading" (click)="reload()">
+      {{ 'action.reload' | i18n }}
+    </button>
   </div>
 
-  <nz-spin [nzSpinning]="loading">
-    <div class="table-list">
-      @for (table of tables; track table.id) {
-        <nz-card [nzTitle]="table.tableNumber">
-          <p>{{ table.areaName }}</p>
-          <p>{{ table.capacity }} {{ 'table.seats' | i18n }}</p>
-          <button nz-button nzType="primary" nzBlock (click)="openRegistration(table)">{{ 'table.register.action' | i18n }}</button>
+  <nz-select class="area-filter" [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear>
+    @for (area of areas; track area.id) {
+      <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+    }
+  </nz-select>
+
+  <nz-spin [nzSpinning]="mapLoading">
+    @if (visibleAreas.length) {
+      @for (area of visibleAreas; track area.id) {
+        <nz-card class="area-card" [nzTitle]="area.areaName">
+          @if (area.description) {
+            <p class="area-description">{{ area.description }}</p>
+          }
+          <div class="table-map">
+            @for (table of area.tables; track table.id) {
+              <div class="table-item" [attr.data-status]="table.status">
+                <strong>{{ table.tableNumber }}</strong>
+                <span>{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
+                <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
+                @if (table.status === 'AVAILABLE') {
+                  <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(table)">
+                    {{ 'table.register.action' | i18n }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </nz-card>
-      } @empty {
-        @if (!loading) {
-          <p>{{ 'table.available.empty' | i18n }}</p>
-        }
       }
-    </div>
+    } @else if (!mapLoading) {
+      <nz-empty [nzNotFoundContent]="'table.empty' | i18n" />
+    }
   </nz-spin>
+
+  <h2>{{ 'table.search.title' | i18n }}</h2>
+  <nz-card class="filter-card">
+    <div class="filters">
+      <div class="filter-field keyword-field">
+        <span>{{ 'table.search.keyword' | i18n }}</span>
+        <input nz-input [(ngModel)]="keyword" [placeholder]="'table.search.keyword' | i18n" (keyup.enter)="search(true)" />
+      </div>
+      <div class="filter-field">
+        <span>{{ 'table.status' | i18n }}</span>
+        <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear>
+          <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
+          <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
+          <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
+        </nz-select>
+      </div>
+      <div class="filter-field">
+        <span>{{ 'table.capacity' | i18n }}</span>
+        <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" />
+      </div>
+      <div class="filter-actions">
+        <button nz-button nzType="primary" [nzLoading]="searchLoading" (click)="search(true)">{{ 'table.search.action' | i18n }}</button>
+        <button nz-button [disabled]="searchLoading" (click)="reset()">{{ 'table.search.reset' | i18n }}</button>
+      </div>
+    </div>
+  </nz-card>
+
+  <nz-table
+    #table
+    [nzData]="tables"
+    [nzLoading]="searchLoading"
+    [nzFrontPagination]="false"
+    [nzTotal]="total"
+    [nzPageIndex]="page"
+    [nzPageSize]="size"
+    (nzQueryParams)="onQuery($event)"
+  >
+    <thead>
+      <tr>
+        <th>{{ 'table.number' | i18n }}</th>
+        <th>{{ 'table.area' | i18n }}</th>
+        <th>{{ 'table.capacity' | i18n }}</th>
+        <th>{{ 'table.status' | i18n }}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of table.data; track item.id) {
+        <tr>
+          <td>{{ item.tableNumber }}</td>
+          <td>{{ item.areaName }}</td>
+          <td>{{ item.capacity }}</td>
+          <td><nz-tag [nzColor]="statusColor(item.status)">{{ 'table.status.' + item.status.toLowerCase() | i18n }}</nz-tag></td>
+          <td>
+            @if (item.status === 'AVAILABLE') {
+              <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(item)">
+                {{ 'table.register.action' | i18n }}
+              </button>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </nz-table>
 </div>
 
 <nz-modal
@@ -41,9 +125,7 @@
       </nz-form-item>
       <nz-form-item>
         <nz-form-label>{{ 'table.guest-phone' | i18n }}</nz-form-label>
-        <nz-form-control
-          ><input nz-input [(ngModel)]="form.guestPhone" name="guestPhone" inputmode="numeric" maxlength="15"
-        /></nz-form-control>
+        <nz-form-control><input nz-input [(ngModel)]="form.guestPhone" name="guestPhone" inputmode="numeric" maxlength="15" /></nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label nzRequired>{{ 'table.party-size' | i18n }}</nz-form-label>
