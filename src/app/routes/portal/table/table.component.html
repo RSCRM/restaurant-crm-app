@@ -7,21 +7,15 @@
     <button nz-button nzType="primary" (click)="loadMap()">{{ 'action.reload' | i18n }}</button>
   </div>
 
-  <nz-select
-    class="area-filter"
-    [(ngModel)]="selectedAreaId"
-    (ngModelChange)="loadMap()"
-    [nzPlaceHolder]="'table.area.all' | i18n"
-    nzAllowClear
-  >
+  <nz-select class="area-filter" [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear>
     @for (area of areas; track area.id) {
       <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
     }
   </nz-select>
 
   <nz-spin [nzSpinning]="loading">
-    @if (areas.length) {
-      @for (area of areas; track area.id) {
+    @if (visibleAreas.length) {
+      @for (area of visibleAreas; track area.id) {
         <nz-card class="area-card" [nzTitle]="area.areaName">
           @if (area.description) {
             <p class="area-description">{{ area.description }}</p>

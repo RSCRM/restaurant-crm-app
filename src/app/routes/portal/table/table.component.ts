@@ -34,9 +34,13 @@ export class TableComponent implements OnInit {
     this.loadMap();
   }
 
+  get visibleAreas(): TableAreaMap[] {
+    return this.selectedAreaId ? this.areas.filter(area => area.id === this.selectedAreaId) : this.areas;
+  }
+
   loadMap(): void {
     this.loading = true;
-    this.tableService.getMap(this.selectedAreaId ?? undefined).subscribe({
+    this.tableService.getMap().subscribe({
       next: map => {
         this.areas = map.areas;
         this.loading = false;
