@@ -26,6 +26,7 @@ export const routes: Routes = [
   },
   {
     path: 'table',
+    canActivate: [contextGuard, permissionGuard('TABLE_MAP_READ')],
     canActivate: [contextGuard, permissionGuard('TABLE_SEARCH_READ')],
     loadComponent: () => import('./table/table.component').then(m => m.TableComponent)
   },
