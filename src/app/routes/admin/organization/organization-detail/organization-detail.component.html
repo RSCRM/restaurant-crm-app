@@ -13,6 +13,7 @@
 
   <nz-card [nzTitle]="'app.organization.detail.info' | i18n">
     <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item [nzTitle]="'app.organization.detail.id' | i18n">{{ organization.id }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.col.name' | i18n">{{ organization.organizationName }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.detail.ownerId' | i18n">{{ organization.ownerId }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.col.taxCode' | i18n">{{ organization.taxCode || '-' }}</nz-descriptions-item>
