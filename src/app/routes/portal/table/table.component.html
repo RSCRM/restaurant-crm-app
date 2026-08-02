@@ -1,6 +1,44 @@
 <div class="page-container">
-  <nz-card>
-    <h2 nz-typography>{{ 'app.portal.table.title' | i18n }}</h2>
-    <p nz-typography>{{ 'app.portal.table.desc' | i18n }}</p>
-  </nz-card>
+  <div class="page-heading">
+    <div>
+      <h2>{{ 'table.map.title' | i18n }}</h2>
+      <p>{{ 'table.map.description' | i18n }}</p>
+    </div>
+    <button nz-button nzType="primary" (click)="loadMap()">{{ 'action.reload' | i18n }}</button>
+  </div>
+
+  <nz-select
+    class="area-filter"
+    [(ngModel)]="selectedAreaId"
+    (ngModelChange)="loadMap()"
+    [nzPlaceHolder]="'table.area.all' | i18n"
+    nzAllowClear
+  >
+    @for (area of areas; track area.id) {
+      <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+    }
+  </nz-select>
+
+  <nz-spin [nzSpinning]="loading">
+    @if (areas.length) {
+      @for (area of areas; track area.id) {
+        <nz-card class="area-card" [nzTitle]="area.areaName">
+          @if (area.description) {
+            <p class="area-description">{{ area.description }}</p>
+          }
+          <div class="table-map">
+            @for (table of area.tables; track table.id) {
+              <div class="table-item" [attr.data-status]="table.status">
+                <strong>{{ table.tableNumber }}</strong>
+                <span>{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
+                <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
+              </div>
+            }
+          </div>
+        </nz-card>
+      }
+    } @else if (!loading) {
+      <nz-empty [nzNotFoundContent]="'table.empty' | i18n" />
+    }
+  </nz-spin>
 </div>

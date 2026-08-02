@@ -372,5 +372,13 @@
   "action.reload": "Reload",
   "action.save": "Save",
   "action.cancel": "Cancel",
+  "table.map.title": "Table status map",
+  "table.map.description": "Live table status by area",
+  "table.area.all": "All areas",
+  "table.seats": "seats",
+  "table.status.available": "Available",
+  "table.status.occupied": "Occupied",
+  "table.status.reserved": "Reserved",
+  "table.empty": "No tables found",
   "validation.standard.required": "Please enter a metric"
 }

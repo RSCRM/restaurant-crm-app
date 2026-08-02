@@ -264,5 +264,13 @@
   "action.reload": "Tải lại",
   "action.save": "Lưu",
   "action.cancel": "Hủy",
+  "table.map.title": "Sơ đồ trạng thái bàn",
+  "table.map.description": "Theo dõi trạng thái bàn theo từng khu vực",
+  "table.area.all": "Tất cả khu vực",
+  "table.seats": "chỗ",
+  "table.status.available": "Trống",
+  "table.status.occupied": "Đang phục vụ",
+  "table.status.reserved": "Đã đặt",
+  "table.empty": "Không có bàn",
   "validation.standard.required": "Vui lòng nhập chỉ số"
 }

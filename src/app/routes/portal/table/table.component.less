@@ -1,3 +1,58 @@
 .page-container {
   padding: 24px;
 }
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  h2,
+  p {
+    margin-bottom: 4px;
+  }
+}
+
+.area-filter {
+  width: 260px;
+  margin-bottom: 16px;
+}
+
+.area-card {
+  margin-bottom: 16px;
+}
+
+.area-description {
+  color: #8c8c8c;
+}
+
+.table-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.table-item {
+  display: flex;
+  min-height: 120px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+
+  &[data-status='AVAILABLE'] {
+    border-color: #52c41a;
+  }
+
+  &[data-status='OCCUPIED'] {
+    border-color: #ff4d4f;
+  }
+
+  &[data-status='RESERVED'] {
+    border-color: #faad14;
+  }
+}
