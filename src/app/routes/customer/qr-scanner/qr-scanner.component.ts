@@ -54,7 +54,7 @@ export class QrScannerComponent implements AfterViewInit, OnDestroy {
           qrbox: qrboxFunction,
           aspectRatio: 1.333333
         },
-        (decodedText) => {
+        (decodedText: string) => {
           console.log('📷 Đã quét thành công mã QR:', decodedText);
           this.ngZone.run(() => {
             this.message.success('⚡ Nhận diện mã QR thành công!');
@@ -64,7 +64,7 @@ export class QrScannerComponent implements AfterViewInit, OnDestroy {
         },
         () => {}
       )
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error('Lỗi Camera:', err);
         this.scanning = false;
         this.errorMessage = 'Không thể truy cập Camera. Vui lòng cấp quyền!';
@@ -85,7 +85,7 @@ export class QrScannerComponent implements AfterViewInit, OnDestroy {
 
     fileScanner
       .scanFile(file, true)
-      .then((decodedText) => {
+      .then((decodedText: string) => {
         console.log('📁 [FILE SCAN LOG] Đã đọc thành công mã QR từ tệp ảnh:', decodedText);
         this.ngZone.run(() => {
           this.message.success('⚡ Đã đọc mã QR từ tệp ảnh!');
