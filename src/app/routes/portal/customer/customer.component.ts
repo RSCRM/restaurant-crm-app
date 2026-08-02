@@ -12,6 +12,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
@@ -43,6 +44,7 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
     NzIconModule,
     NzTagModule,
     NzInputModule,
+    NzSelectModule,
     NzFormModule,
     NzGridModule,
     NzTabsModule,
@@ -89,11 +91,16 @@ export class CustomerComponent implements OnInit {
   voucherLoading = false;
 
   // Tab 2: System Vouchers
-  systemVouchers: VoucherResponse[] = [];
+  systemVouchersList: VoucherResponse[] = [];
+  displaySystemVouchers: VoucherResponse[] = [];
   sysVoucherTotal = 0;
   sysVoucherPage = 1;
   sysVoucherSize = 10;
   sysVoucherLoading = false;
+
+  // Filters for System Vouchers
+  searchVoucherTitle = '';
+  filterVoucherStatus = 'ALL';
 
   // Delon ST Columns for Point History
   pointColumns: STColumn[] = [
@@ -184,6 +191,15 @@ export class CustomerComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  resetCustomerSearch(): void {
+    this.searchPhone = '';
+    this.currentCustomer = null;
+    this.walletBalance = null;
+    this.pointHistory = [];
+    this.customerVouchers = [];
+    this.cdr.markForCheck();
   }
 
   loadCustomerWalletAndHistory(): void {
@@ -284,8 +300,8 @@ export class CustomerComponent implements OnInit {
       })
       .subscribe({
         next: res => {
-          this.systemVouchers = res.data;
-          this.sysVoucherTotal = res.totalElement;
+          this.systemVouchersList = res.data;
+          this.filterSystemVouchers();
           this.sysVoucherLoading = false;
           this.cdr.markForCheck();
         },
@@ -295,6 +311,35 @@ export class CustomerComponent implements OnInit {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  filterSystemVouchers(): void {
+    let filtered = [...this.systemVouchersList];
+
+    if (this.filterVoucherStatus === 'ACTIVE') {
+      filtered = filtered.filter(v => v.isActive);
+    } else if (this.filterVoucherStatus === 'INACTIVE') {
+      filtered = filtered.filter(v => !v.isActive);
+    }
+
+    if (this.searchVoucherTitle.trim()) {
+      const q = this.searchVoucherTitle.trim().toLowerCase();
+      filtered = filtered.filter(v => v.title.toLowerCase().includes(q));
+    }
+
+    this.displaySystemVouchers = filtered;
+    this.sysVoucherTotal = filtered.length;
+    this.cdr.markForCheck();
+  }
+
+  searchVouchers(): void {
+    this.filterSystemVouchers();
+  }
+
+  resetVoucherFilter(): void {
+    this.searchVoucherTitle = '';
+    this.filterVoucherStatus = 'ALL';
+    this.filterSystemVouchers();
   }
 
   onSysVoucherSTChange(e: STChange): void {
@@ -313,7 +358,7 @@ export class CustomerComponent implements OnInit {
       next: () => {
         voucher.isActive = active;
         this.message.success(`${active ? 'Bật' : 'Tắt'} quyền đổi voucher "${voucher.title}" thành công.`);
-        this.cdr.markForCheck();
+        this.filterSystemVouchers();
       },
       error: err => {
         const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi cập nhật trạng thái.';

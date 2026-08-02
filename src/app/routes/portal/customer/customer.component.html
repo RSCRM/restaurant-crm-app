@@ -9,27 +9,31 @@
     </ng-template>
 
     <nz-card style="margin-top: 16px">
-      <!-- Thanh Tìm Kiếm SĐT -->
-      <div style="margin-bottom: 24px">
+      <!-- Search Controls Bar matching Booking UI layout -->
+      <div style="margin-bottom: 20px">
         <form nz-form [nzLayout]="'inline'" (ngSubmit)="searchCustomer()">
+          <!-- Phone Number Input -->
           <nz-form-item style="margin-right: 16px">
             <nz-form-control>
-              <nz-input-group nzPrefixIcon="phone" style="width: 320px">
+              <nz-input-group nzPrefixIcon="phone">
                 <input
                   nz-input
                   [(ngModel)]="searchPhone"
                   name="searchPhone"
-                  placeholder="Nhập SĐT khách (vd: 0966888888)..."
-                  size="large"
+                  placeholder="Tìm theo SĐT khách (vd: 0966888888)..."
+                  style="width: 280px"
+                  (keyup.enter)="searchCustomer()"
                 />
               </nz-input-group>
             </nz-form-control>
           </nz-form-item>
 
+          <!-- Search / Reset Buttons -->
           <nz-form-item>
-            <button nz-button nzType="primary" size="large" type="submit" [nzLoading]="searching">
-              <span nz-icon nzType="search"></span>Tra cứu / Định danh
+            <button nz-button nzType="primary" type="submit" [nzLoading]="searching">
+              <span nz-icon nzType="search"></span>Tìm kiếm
             </button>
+            <button nz-button nzType="default" type="button" (click)="resetCustomerSearch()" style="margin-left: 8px"> Làm mới </button>
           </nz-form-item>
         </form>
       </div>
@@ -38,7 +42,7 @@
       @if (!currentCustomer && !searching) {
         <div style="text-align: center; padding: 40px 0; color: #8c8c8c">
           <span nz-icon nzType="user-search" style="font-size: 48px; color: #d9d9d9; margin-bottom: 12px; display: block"></span>
-          <p>Vui lòng nhập số điện thoại và bấm <strong>Tra cứu / Định danh</strong> để xem ví điểm và thông tin thành viên.</p>
+          <p>Vui lòng nhập số điện thoại và bấm <strong>Tìm kiếm</strong> để xem ví điểm và thông tin thành viên.</p>
         </div>
       }
 
@@ -163,9 +167,9 @@
                     <div>
                       • Giảm giá: <strong style="color: #f5222d">{{ cv.discountPercent }}%</strong>
                     </div>
-                    <div
-                      >• Đơn tối thiểu: <strong>{{ cv.minOrderAmount | number: '1.0-0' }} ₫</strong></div
-                    >
+                    <div>
+                      • Đơn tối thiểu: <strong>{{ cv.minOrderAmount | number: '1.0-0' }} ₫</strong>
+                    </div>
                     <div>• Ngày nhận: {{ cv.redeemedAt | date: 'yyyy-MM-dd HH:mm' }}</div>
                     <div>
                       • Hạn dùng: <strong>{{ cv.expiresAt | date: 'yyyy-MM-dd HH:mm' }}</strong>
@@ -188,21 +192,63 @@
     </ng-template>
 
     <nz-card style="margin-top: 16px">
-      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center">
-        <p style="color: #595959; margin: 0">
-          Quản lý các chương trình Voucher quy đổi cho toàn bộ chi nhánh. Gạt công tắc để Bật/Tắt quyền đổi điểm của từng loại voucher.
-        </p>
-        @if (hasVoucherCreatePermission) {
-          <button nz-button nzType="primary" (click)="openCreateVoucherModal()">
-            <span nz-icon nzType="plus"></span>Tạo Voucher Mới
-          </button>
-        }
+      <!-- Search/Filter Controls Bar matching Booking UI layout -->
+      <div style="margin-bottom: 20px">
+        <form nz-form [nzLayout]="'inline'">
+          <!-- Voucher Title Search -->
+          <nz-form-item style="margin-right: 16px">
+            <nz-form-control>
+              <nz-input-group nzPrefixIcon="tag">
+                <input
+                  nz-input
+                  [(ngModel)]="searchVoucherTitle"
+                  name="searchVoucherTitle"
+                  placeholder="Tìm theo tên voucher..."
+                  style="width: 220px"
+                  (keyup.enter)="searchVouchers()"
+                />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Status Selection -->
+          <nz-form-item style="margin-right: 16px">
+            <nz-form-label>Trạng thái</nz-form-label>
+            <nz-form-control>
+              <nz-select
+                [(ngModel)]="filterVoucherStatus"
+                name="filterVoucherStatus"
+                style="width: 170px"
+                (ngModelChange)="filterSystemVouchers()"
+              >
+                <nz-option nzValue="ALL" nzLabel="Tất cả" />
+                <nz-option nzValue="ACTIVE" nzLabel="Đang áp dụng" />
+                <nz-option nzValue="INACTIVE" nzLabel="Tạm ngưng" />
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Search / Reset Buttons -->
+          <nz-form-item>
+            <button nz-button nzType="primary" (click)="searchVouchers()"> <span nz-icon nzType="search"></span>Tìm kiếm </button>
+            <button nz-button nzType="default" (click)="resetVoucherFilter()" style="margin-left: 8px">Làm mới</button>
+          </nz-form-item>
+
+          <!-- Add Voucher Button -->
+          <div style="margin-left: auto; display: flex; align-items: center">
+            @if (hasVoucherCreatePermission) {
+              <button nz-button nzType="primary" (click)="openCreateVoucherModal()">
+                <span nz-icon nzType="plus"></span>Tạo Voucher Mới
+              </button>
+            }
+          </div>
+        </form>
       </div>
 
       <st
         #sysVoucherSt
         [columns]="sysVoucherColumns"
-        [data]="systemVouchers"
+        [data]="displaySystemVouchers"
         [total]="sysVoucherTotal"
         [ps]="sysVoucherSize"
         [pi]="sysVoucherPage"
@@ -223,7 +269,7 @@
 
         <!-- Custom render for Actions -->
         <ng-template st-row="actions" let-item>
-          <button nz-button nzType="link" (click)="openEditVoucherModal(item)"> <span nz-icon nzType="edit"></span>Sửa </button>
+          <button nz-button nzType="link" (click)="openEditVoucherModal(item)"><span nz-icon nzType="edit"></span>Sửa</button>
         </ng-template>
       </st>
     </nz-card>
