@@ -59,6 +59,9 @@ export const routes: Routes = [
     loadComponent: () => import('./customer/customer.component').then(m => m.CustomerComponent)
   },
   {
+    path: 'attendance',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
     path: 'schedule',
     canActivate: [contextGuard],
     loadComponent: () => import('./schedule/schedule.component').then(m => m.ScheduleComponent)
