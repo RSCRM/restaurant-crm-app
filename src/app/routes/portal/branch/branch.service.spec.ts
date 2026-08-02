@@ -128,6 +128,52 @@ describe('BranchService', () => {
     });
   });
 
+  it('normalizes current branch manager from nested manager response', () => {
+    service.getBranchManager('branch-1').subscribe(response => {
+      expect(response.branchId).toBe('branch-1');
+      expect(response.branchAddress).toBe('789 CMT8');
+      expect(response.branchPhone).toBe('0903001001');
+      expect(response.branchStatus).toBe('ACTIVE');
+      expect(response.managerId).toBe('employee-1');
+      expect(response.managerName).toBe('Manager Name');
+      expect(response.username).toBe('manager');
+      expect(response.email).toBe('manager@example.com');
+    });
+
+    const req = http.expectOne('/api/v1/personal/branches/branch-1/manager');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      success: true,
+      errorMessage: null,
+      data: {
+        branchAddress: '789 CMT8',
+        branchId: 'branch-1',
+        branchName: 'Branch 1',
+        branchPhone: '0903001001',
+        branchStatus: 'ACTIVE',
+        manager: {
+          branchId: 'branch-1',
+          branchName: 'Branch 1',
+          email: 'manager@example.com',
+          employeeId: 'employee-1',
+          enabled: true,
+          fullName: 'Manager Name',
+          id: 'employee-1',
+          orgRoleId: 'role-manager',
+          orgRoleName: 'MANAGER',
+          phone: '0904000001',
+          role: 'MANAGER',
+          startDate: '2026-07-01',
+          status: 'ACTIVE',
+          username: 'manager',
+          userId: 'user-1'
+        },
+        managerId: 'employee-1',
+        managerName: 'Manager Name'
+      }
+    });
+  });
+
   it('assigns branch manager with Employee.id as managerId', () => {
     service.assignBranchManager('branch-1', { managerId: 'employee-1' }).subscribe(response => {
       expect(response.employeeId).toBe('employee-1');
