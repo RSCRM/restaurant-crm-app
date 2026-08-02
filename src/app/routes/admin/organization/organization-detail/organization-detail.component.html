@@ -1,0 +1,31 @@
+@if (loading) {
+  <div class="loading-container">
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+  </div>
+} @else if (organization) {
+  <page-header [title]="'Org: ' + organization.organizationName" [action]="actionTpl" />
+  <ng-template #actionTpl>
+    <button nz-button (click)="goBack()">
+      <span nz-icon nzType="arrow-left" nzTheme="outline"></span>
+      {{ 'app.organization.back' | i18n }}
+    </button>
+  </ng-template>
+
+  <nz-card [nzTitle]="'app.organization.detail.info' | i18n">
+    <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item [nzTitle]="'app.organization.col.name' | i18n">{{ organization.organizationName }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.detail.ownerId' | i18n">{{ organization.ownerId }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.col.taxCode' | i18n">{{ organization.taxCode || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.col.address' | i18n">{{ organization.address || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.col.phone' | i18n">{{ organization.phone || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.col.email' | i18n">{{ organization.email || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.col.status' | i18n">
+        <nz-tag [nzColor]="getStatusColor(organization.status)">
+          {{ getStatusText(organization.status) | i18n }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.col.createdAt' | i18n">{{ organization.createdAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.organization.detail.updatedAt' | i18n">{{ organization.updatedAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+  </nz-card>
+}

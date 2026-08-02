@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -49,6 +50,7 @@ export class UserComponent implements OnInit {
   private userService = inject(UserService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
 
@@ -84,9 +86,14 @@ export class UserComponent implements OnInit {
     { title: { i18n: 'app.user.roles' }, index: 'roles', width: 200, render: 'roles' },
     {
       title: { i18n: 'app.user.actions' },
-      width: 200,
+      width: 280,
       fixed: 'right',
       buttons: [
+        {
+          i18n: 'app.user.detail',
+          icon: 'eye',
+          click: item => this.goToDetail(item)
+        },
         {
           i18n: 'app.user.editRoles',
           icon: 'edit',
@@ -202,5 +209,9 @@ export class UserComponent implements OnInit {
       this.message.success('Xóa người dùng thành công');
       this.loadData();
     });
+  }
+
+  goToDetail(user: UserResponse): void {
+    this.router.navigate(['/admin/user', user.id, 'detail']);
   }
 }
