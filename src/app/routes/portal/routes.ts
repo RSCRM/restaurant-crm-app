@@ -57,5 +57,10 @@ export const routes: Routes = [
     path: 'customer',
     canActivate: [contextGuard, permissionGuard('CUSTOMER_READ')],
     loadComponent: () => import('./customer/customer.component').then(m => m.CustomerComponent)
+  },
+  {
+    path: 'schedule',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./schedule/schedule.component').then(m => m.ScheduleComponent)
   }
 ];
