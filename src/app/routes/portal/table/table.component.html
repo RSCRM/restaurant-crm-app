@@ -1,6 +1,60 @@
 <div class="page-container">
-  <nz-card>
-    <h2 nz-typography>{{ 'app.portal.table.title' | i18n }}</h2>
-    <p nz-typography>{{ 'app.portal.table.desc' | i18n }}</p>
-  </nz-card>
+  <div class="page-heading">
+    <div>
+      <h2>{{ 'table.register.title' | i18n }}</h2>
+      <p>{{ 'table.register.description' | i18n }}</p>
+    </div>
+    <button nz-button (click)="loadTables()">{{ 'action.reload' | i18n }}</button>
+  </div>
+
+  <nz-spin [nzSpinning]="loading">
+    <div class="table-list">
+      @for (table of tables; track table.id) {
+        <nz-card [nzTitle]="table.tableNumber">
+          <p>{{ table.areaName }}</p>
+          <p>{{ table.capacity }} {{ 'table.seats' | i18n }}</p>
+          <button nz-button nzType="primary" nzBlock (click)="openRegistration(table)">{{ 'table.register.action' | i18n }}</button>
+        </nz-card>
+      } @empty {
+        @if (!loading) {
+          <p>{{ 'table.available.empty' | i18n }}</p>
+        }
+      }
+    </div>
+  </nz-spin>
 </div>
+
+<nz-modal
+  [(nzVisible)]="modalVisible"
+  [nzTitle]="'table.register.form-title' | i18n"
+  [nzOkText]="'table.register.confirm' | i18n"
+  [nzCancelText]="'action.cancel' | i18n"
+  [nzOkLoading]="saving"
+  (nzOnCancel)="modalVisible = false"
+  (nzOnOk)="submit()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>{{ 'table.guest-name' | i18n }}</nz-form-label>
+        <nz-form-control><input nz-input [(ngModel)]="form.guestName" name="guestName" maxlength="255" /></nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>{{ 'table.guest-phone' | i18n }}</nz-form-label>
+        <nz-form-control
+          ><input nz-input [(ngModel)]="form.guestPhone" name="guestPhone" inputmode="numeric" maxlength="15"
+        /></nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>{{ 'table.party-size' | i18n }}</nz-form-label>
+        <nz-form-control>
+          <nz-input-number [(ngModel)]="form.partySize" name="partySize" [nzMin]="1" [nzMax]="selectedTable?.capacity ?? 1" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>{{ 'table.note' | i18n }}</nz-form-label>
+        <nz-form-control><textarea nz-input [(ngModel)]="form.note" name="note" rows="3" maxlength="1000"></textarea></nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

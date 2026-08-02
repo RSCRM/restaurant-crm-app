@@ -264,5 +264,16 @@
   "action.reload": "Tải lại",
   "action.save": "Lưu",
   "action.cancel": "Hủy",
+  "table.register.title": "Đăng ký khách vào bàn",
+  "table.register.description": "Chọn bàn trống để bắt đầu phục vụ khách",
+  "table.register.action": "Đăng ký khách",
+  "table.register.form-title": "Thông tin khách",
+  "table.register.confirm": "Xác nhận đăng ký",
+  "table.available.empty": "Không có bàn trống",
+  "table.seats": "chỗ",
+  "table.guest-name": "Tên khách",
+  "table.guest-phone": "Số điện thoại",
+  "table.party-size": "Số khách",
+  "table.note": "Ghi chú",
   "validation.standard.required": "Vui lòng nhập chỉ số"
 }

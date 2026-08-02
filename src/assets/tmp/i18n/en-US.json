@@ -372,5 +372,16 @@
   "action.reload": "Reload",
   "action.save": "Save",
   "action.cancel": "Cancel",
+  "table.register.title": "Register walk-in guest",
+  "table.register.description": "Select an available table to start serving guests",
+  "table.register.action": "Register guest",
+  "table.register.form-title": "Guest information",
+  "table.register.confirm": "Confirm registration",
+  "table.available.empty": "No available tables",
+  "table.seats": "seats",
+  "table.guest-name": "Guest name",
+  "table.guest-phone": "Phone number",
+  "table.party-size": "Party size",
+  "table.note": "Note",
   "validation.standard.required": "Please enter a metric"
 }
