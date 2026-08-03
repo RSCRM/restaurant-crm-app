@@ -98,6 +98,9 @@ const EMPTY_BOARD: KdsActiveResponse = { waitingSummary: [], waitingItems: [], p
       .kds-card__accept {
         margin-top: 12px;
       }
+      .kds-card__cancel {
+        margin-top: 8px;
+      }
     `
   ]
 })
@@ -110,6 +113,15 @@ export class KitchenOrderComponent {
 
   /** orderItemId currently being marked complete — disables its button and blocks double-click. */
   readonly completingIds = signal<ReadonlySet<string>>(new Set());
+
+  /** orderItemId currently being cancelled — disables its button and blocks double-click. */
+  readonly cancellingIds = signal<ReadonlySet<string>>(new Set());
+
+  /** Item targeted by the cancel-reason modal; null when the modal is closed (uc-scf-ui-06). */
+  readonly cancelTarget = signal<KdsItem | null>(null);
+
+  /** Cancel reason textarea value — bắt buộc nhập trước khi xác nhận hủy (BR-RES-ORD-03). */
+  cancelReasonValue = '';
 
   // uc-scf-ui-01: waitingItems render in the backend order (created_at ASC = flat FIFO).
   // TODO(SangTD6): khi entity OrderItem có priority_flag thì sort priority_flag DESC, created_at ASC
@@ -205,5 +217,49 @@ export class KitchenOrderComponent {
       next.delete(orderItemId);
     }
     this.completingIds.set(next);
+  }
+
+  isCancelling(item: KdsItem): boolean {
+    return this.cancellingIds().has(item.orderItemId);
+  }
+
+  openCancelModal(item: KdsItem): void {
+    this.cancelReasonValue = '';
+    this.cancelTarget.set(item);
+  }
+
+  closeCancelModal(): void {
+    this.cancelTarget.set(null);
+  }
+
+  /** Kitchen cancels the targeted item, reason required: PENDING/IN_PROGRESS -> CANCELLED (uc-scf-ui-06). */
+  confirmCancel(): void {
+    const item = this.cancelTarget();
+    const reason = this.cancelReasonValue.trim();
+    if (!item || !reason || this.isCancelling(item)) {
+      return;
+    }
+    this.setCancelling(item.orderItemId, true);
+    this.service.cancelItem(item.orderItemId, reason).subscribe({
+      next: () => {
+        this.setCancelling(item.orderItemId, false);
+        this.message.success(`Đã hủy chế biến: ${this.itemName(item)}`);
+        this.closeCancelModal();
+      },
+      error: () => {
+        this.setCancelling(item.orderItemId, false);
+        this.message.error(`Hủy chế biến thất bại: ${this.itemName(item)}`);
+      }
+    });
+  }
+
+  private setCancelling(orderItemId: string, cancelling: boolean): void {
+    const next = new Set(this.cancellingIds());
+    if (cancelling) {
+      next.add(orderItemId);
+    } else {
+      next.delete(orderItemId);
+    }
+    this.cancellingIds.set(next);
   }
 }

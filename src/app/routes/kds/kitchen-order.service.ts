@@ -35,4 +35,11 @@ export class KitchenOrderService {
   completeItem(orderItemId: string): Observable<OrderItemResponse> {
     return this.http.patch<ApiResponse<OrderItemResponse>>(`${this.orderItemsApi}/${orderItemId}/complete`, {}).pipe(map(res => res.data));
   }
+
+  /** Kitchen cancels the item, reason required: PENDING/IN_PROGRESS -> CANCELLED (uc-scf-ui-06). */
+  cancelItem(orderItemId: string, reason: string): Observable<OrderItemResponse> {
+    return this.http
+      .patch<ApiResponse<OrderItemResponse>>(`${this.orderItemsApi}/${orderItemId}/cancel`, { reason })
+      .pipe(map(res => res.data));
+  }
 }

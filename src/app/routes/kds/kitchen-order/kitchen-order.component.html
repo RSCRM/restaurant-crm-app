@@ -47,6 +47,18 @@
                 Nhận chế biến
               </button>
             }
+            <button
+              *appHasPermission="'KITCHEN_ITEM_CANCEL'"
+              nz-button
+              nzType="default"
+              nzDanger
+              nzBlock
+              class="kds-card__cancel"
+              [disabled]="isAccepting(item)"
+              (click)="openCancelModal(item)"
+            >
+              Hủy chế biến
+            </button>
           </nz-card>
         }
       </div>
@@ -84,6 +96,18 @@
                 Hoàn thành
               </button>
             }
+            <button
+              *appHasPermission="'KITCHEN_ITEM_CANCEL'"
+              nz-button
+              nzType="default"
+              nzDanger
+              nzBlock
+              class="kds-card__cancel"
+              [disabled]="isCompleting(item)"
+              (click)="openCancelModal(item)"
+            >
+              Hủy chế biến
+            </button>
           </nz-card>
         }
       </div>
@@ -114,3 +138,22 @@
     }
   }
 </nz-card>
+
+<nz-modal
+  [nzVisible]="cancelTarget() !== null"
+  nzTitle="Hủy chế biến"
+  nzOkText="Xác nhận hủy"
+  nzOkType="primary"
+  nzOkDanger
+  [nzOkDisabled]="!cancelReasonValue.trim()"
+  [nzOkLoading]="cancelTarget() ? isCancelling(cancelTarget()!) : false"
+  (nzOnOk)="confirmCancel()"
+  (nzOnCancel)="closeCancelModal()"
+>
+  <ng-container *nzModalContent>
+    @if (cancelTarget(); as item) {
+      <p>{{ itemName(item) }} — {{ location(item) }}</p>
+    }
+    <textarea nz-input rows="3" placeholder="Nhập lý do hủy (bắt buộc)" [(ngModel)]="cancelReasonValue"></textarea>
+  </ng-container>
+</nz-modal>
