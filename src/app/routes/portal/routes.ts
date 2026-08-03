@@ -43,7 +43,7 @@ export const routes: Routes = [
   {
     path: 'inventory',
     canActivate: [contextGuard, permissionGuard('INGREDIENT_VIEW')],
-    loadComponent: () => import('./inventory/inventory.component').then(m => m.InventoryComponent)
+    loadComponent: () => import('./inventory/inventory/inventory.component').then(m => m.InventoryComponent)
   },
   {
     path: 'employee',
