@@ -95,10 +95,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
       const payload = this.parseTokenPayload(token);
       if (payload) {
         this.branchId = (payload['branchId'] as string) || null;
-        if (this.branchId) {
-          this.loadNotificationHistory();
-          this.subscribeRealtimeNotifications();
-        }
+        // Notifications loaded on-demand, not on context select
       }
     });
 

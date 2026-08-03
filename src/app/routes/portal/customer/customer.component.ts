@@ -155,9 +155,7 @@ export class CustomerComponent implements OnInit {
         this.hasVoucherCreatePermission = permissions.includes('VOUCHER_CREATE') || permissions.includes('ADMIN');
         this.hasRedeemPermission = permissions.includes('CUSTOMER_VOUCHER_REDEEM') || permissions.includes('ADMIN');
 
-        if (this.restaurantId) {
-          this.loadSystemVouchers();
-        }
+        // Vouchers loaded on-demand when tab is opened or after CRUD operations
       }
     });
   }

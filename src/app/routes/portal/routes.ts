@@ -35,9 +35,9 @@ export const routes: Routes = [
     loadComponent: () => import('./table/table.component').then(m => m.TableComponent)
 
   },
-  {
+  { 
     path: 'booking',
-    canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
+    // canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./booking/booking.component').then(m => m.BookingComponent)
   },
   {
