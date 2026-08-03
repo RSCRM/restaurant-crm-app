@@ -1,0 +1,88 @@
+<nz-card nzTitle="Màn hình bếp">
+  <nz-segmented class="kds-toolbar" [nzOptions]="viewOptions" [ngModel]="viewMode()" (ngModelChange)="viewMode.set($event)" />
+
+  @if (board$ | async; as board) {
+    @if (board.waitingItems.length === 0 && board.preparingItems.length === 0) {
+      <nz-empty nzNotFoundContent="Chưa có món nào chờ chế biến" />
+    } @else if (viewMode() === 'byTable') {
+      @if (board.waitingSummary.length > 0) {
+        <div class="kds-summary">
+          @for (s of board.waitingSummary; track $index) {
+            <span class="kds-summary__pill">
+              {{ itemName(s) }}<span class="kds-summary__qty">×{{ s.totalQuantity }}</span>
+            </span>
+          }
+        </div>
+      }
+
+      <div class="kds-section__title">Chờ chế biến ({{ board.waitingItems.length }})</div>
+      <div class="kds-grid">
+        @for (item of board.waitingItems; track item.orderItemId) {
+          <nz-card nzSize="small">
+            <div class="kds-card__head">
+              <span class="kds-card__name">{{ itemName(item) }}</span>
+              <span class="kds-card__qty">×{{ item.quantity }}</span>
+            </div>
+            <div class="kds-card__table">{{ location(item) }}</div>
+            @if (item.modifiers) {
+              <div class="kds-card__meta">
+                <nz-tag>{{ item.modifiers }}</nz-tag>
+              </div>
+            }
+            @if (item.note) {
+              <div class="kds-card__note">{{ item.note }}</div>
+            }
+            <div class="kds-card__wait">Đã chờ {{ waitedMinutes(item.createdAt) }} phút</div>
+          </nz-card>
+        }
+      </div>
+
+      <div class="kds-section__title">Đang chế biến ({{ board.preparingItems.length }})</div>
+      <div class="kds-grid">
+        @for (item of board.preparingItems; track item.orderItemId) {
+          <nz-card nzSize="small">
+            <div class="kds-card__head">
+              <span class="kds-card__name">{{ itemName(item) }}</span>
+              <span class="kds-card__qty">×{{ item.quantity }}</span>
+            </div>
+            <div class="kds-card__table">{{ location(item) }}</div>
+            <div class="kds-card__meta">
+              <nz-tag nzColor="processing">Đang làm</nz-tag>
+              @if (item.modifiers) {
+                <nz-tag>{{ item.modifiers }}</nz-tag>
+              }
+            </div>
+            @if (item.note) {
+              <div class="kds-card__note">{{ item.note }}</div>
+            }
+            <div class="kds-card__wait">Đã chờ {{ waitedMinutes(item.createdAt) }} phút</div>
+          </nz-card>
+        }
+      </div>
+    } @else {
+      <!-- "Theo món": grouped summary cards. WaitingSummary has no createdAt / no per-item id,
+           so this view is read-only (no FIFO ordering) — keep the backend grouping order. -->
+      <div class="kds-section__title">Gom theo món ({{ board.waitingSummary.length }})</div>
+      <div class="kds-grid">
+        @for (s of board.waitingSummary; track $index) {
+          <nz-card nzSize="small">
+            <div class="kds-card__head">
+              <span class="kds-card__name">{{ itemName(s) }}</span>
+              <span class="kds-card__qty">×{{ s.totalQuantity }}</span>
+            </div>
+            @if (s.modifiers) {
+              <div class="kds-card__meta">
+                <nz-tag>{{ s.modifiers }}</nz-tag>
+              </div>
+            }
+            @if (s.note) {
+              <div class="kds-card__note">{{ s.note }}</div>
+            }
+          </nz-card>
+        } @empty {
+          <nz-empty nzNotFoundContent="Không có món đang chờ" />
+        }
+      </div>
+    }
+  }
+</nz-card>
