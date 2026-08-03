@@ -61,10 +61,6 @@ import { selectContextToken, selectHasPermission } from '../../auth/store/auth.s
   templateUrl: './attendance.component.html',
   styles: [
     `
-      .attendance-container {
-        max-width: 900px;
-        margin: 0 auto;
-      }
       .qr-card-content {
         display: flex;
         flex-direction: column;

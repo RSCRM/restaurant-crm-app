@@ -20,6 +20,8 @@ export interface TableAreaMap {
 export interface TableMap {
   branchId: string;
   areas: TableAreaMap[];
+}
+
 export interface TableSearchItem {
   id: string;
   areaId: string;
@@ -43,4 +45,25 @@ export interface TableSearchParams {
   minCapacity?: number;
   page: number;
   size: number;
+}
+
+export interface RegisterGuestRequest {
+  tableId: string;
+  guestName: string;
+  guestPhone?: string;
+  partySize: number;
+  note?: string;
+}
+
+export interface TableSession {
+  id: string;
+  tableId: string;
+  tableNumber: string;
+  guestName: string;
+  guestPhone: string | null;
+  partySize: number;
+  status: 'ACTIVE' | 'CLOSED';
+  startedAt: string;
+  endedAt: string | null;
+  note: string | null;
 }

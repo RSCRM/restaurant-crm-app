@@ -19,7 +19,8 @@
   margin-bottom: 16px;
 }
 
-.area-card {
+.area-card,
+.filter-card {
   margin-bottom: 16px;
 }
 
@@ -29,13 +30,13 @@
 
 .table-map {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
 }
 
 .table-item {
   display: flex;
-  min-height: 120px;
+  min-height: 140px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -54,15 +55,14 @@
 
   &[data-status='RESERVED'] {
     border-color: #faad14;
-.filter-card {
-  margin: 16px 0;
+  }
 }
 
 .filters {
   display: grid;
   grid-template-columns: minmax(260px, 2fr) minmax(180px, 1fr) minmax(160px, 1fr) auto;
-  gap: 16px;
   align-items: end;
+  gap: 16px;
 }
 
 .filter-field {
@@ -79,13 +79,8 @@
   }
 }
 
-.keyword-field {
-  grid-column: auto;
-}
-
 .filter-actions {
   display: flex;
-  grid-column: auto;
   gap: 8px;
 }
 
@@ -98,18 +93,10 @@
   .filter-actions {
     grid-column: 1 / -1;
   }
-
-  .filter-actions {
-    justify-content: flex-end;
-  }
 }
 
 @media (max-width: 576px) {
   .filters {
     grid-template-columns: 1fr;
-  }
-
-  .keyword-field {
-    grid-column: auto;
   }
 }
