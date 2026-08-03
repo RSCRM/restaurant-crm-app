@@ -24,4 +24,31 @@ describe('ScheduleService', () => {
     managedRequest.flush({ data: [] });
     http.verify();
   });
+
+  it('creates one schedule for every day in the selected range', () => {
+    TestBed.configureTestingModule({ providers: [ScheduleService, provideHttpClient(), provideHttpClientTesting()] });
+    const service = TestBed.inject(ScheduleService);
+    const http = TestBed.inject(HttpTestingController);
+
+    service
+      .createSchedules({
+        employeeId: 'chef-1',
+        from: '2026-08-21',
+        to: '2026-08-25',
+        startTime: '08:00',
+        endTime: '16:00'
+      })
+      .subscribe(data => expect(data).toHaveLength(5));
+
+    const requests = http.match('/api/v1/erp/schedules');
+    expect(requests.map(request => request.request.body.workDate)).toEqual([
+      '2026-08-21',
+      '2026-08-22',
+      '2026-08-23',
+      '2026-08-24',
+      '2026-08-25'
+    ]);
+    requests.forEach(request => request.flush({ data: { id: request.request.body.workDate } }));
+    http.verify();
+  });
 });
