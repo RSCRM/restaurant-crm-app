@@ -1,17 +1,16 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { I18NService } from '@core';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
-import { I18NService } from '@core';
 import { Store } from '@ngrx/store';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
-
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -31,13 +30,10 @@ import { OrganizationBranchResponse } from '../branch/branch.model';
 import { BranchService } from '../branch/branch.service';
 import { EmployeeDetailComponent } from './employee-detail/employee-detail.component';
 import { EmployeeFormComponent } from './employee-form/employee-form.component';
-import { EmployeeResponse, EmployeeRoleOption, EmployeeStatus } from './employee.model';
 import { EmployeeRoleBadgeComponent } from './employee-role-badge/employee-role-badge.component';
-import { EmployeeService } from './employee.service';
 import { EmployeeStatusBadgeComponent } from './employee-status-badge/employee-status-badge.component';
-
-import { UserProfileResponse } from '../profile/profile.model';
-import { ProfileService } from '../profile/profile.service';
+import { EmployeeResponse, EmployeeRoleOption, EmployeeStatus } from './employee.model';
+import { EmployeeService } from './employee.service';
 
 @Component({
   selector: 'app-employee',
@@ -87,6 +83,7 @@ export class EmployeeComponent implements OnInit {
   pageSize = 10;
   loading = false;
   loadingBranches = false;
+  loadingRoles = false;
   firstLoaded = false;
   errorMessageKey: string | null = null;
 
@@ -98,12 +95,7 @@ export class EmployeeComponent implements OnInit {
   sortDirection: 'ASC' | 'DESC' | null = 'DESC';
 
   statuses = [EmployeeStatus.ACTIVE, EmployeeStatus.INACTIVE, EmployeeStatus.TERMINATED];
-  roles: EmployeeRoleOption[] = [
-    { id: 'MANAGER', name: 'MANAGER' },
-    { id: 'CASHIER', name: 'CASHIER' },
-    { id: 'WAITER', name: 'WAITER' },
-    { id: 'CHEF', name: 'CHEF' }
-  ];
+  roles: EmployeeRoleOption[] = [];
 
   columns: STColumn[] = [
     { title: this.translate('employee.fields.employeeId'), render: 'employeeId', width: 190, sort: true },
@@ -122,13 +114,11 @@ export class EmployeeComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.searchKeyword$
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-      .subscribe(keyword => {
-        this.keyword = keyword;
-        this.currentPage = 1;
-        this.loadData();
-      });
+    this.searchKeyword$.pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(keyword => {
+      this.keyword = keyword;
+      this.currentPage = 1;
+      this.loadData();
+    });
 
     this.store
       .select(selectSelectedContext)
@@ -137,14 +127,16 @@ export class EmployeeComponent implements OnInit {
           (previous, current) =>
             previous?.organizationId === current?.organizationId &&
             previous?.branchId === current?.branchId &&
-            previous?.role === current?.role
+            previous?.role === current?.role &&
+            previous?.dataScope === current?.dataScope
         ),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(context => {
         this.selectedContext = context;
-        this.filterBranchId = context?.branchId ?? null;
+        this.filterBranchId = this.isBranchScopedContext(context) ? (context?.branchId ?? null) : null;
         this.currentPage = 1;
+        this.loadRoles();
         this.loadBranches();
         this.loadData();
         this.cdr.markForCheck();
@@ -235,6 +227,28 @@ export class EmployeeComponent implements OnInit {
       });
   }
 
+  loadRoles(): void {
+    this.loadingRoles = true;
+    this.employeeService
+      .getOrgRoles()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.roles = [];
+          this.cdr.markForCheck();
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loadingRoles = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(roles => {
+        this.roles = roles;
+        this.cdr.markForCheck();
+      });
+  }
+
   search(): void {
     this.currentPage = 1;
     this.loadData();
@@ -249,7 +263,7 @@ export class EmployeeComponent implements OnInit {
     this.keyword = '';
     this.filterRole = null;
     this.filterStatus = null;
-    this.filterBranchId = this.selectedContext?.branchId ?? null;
+    this.filterBranchId = this.isBranchContext() ? (this.selectedContext?.branchId ?? null) : null;
     this.currentPage = 1;
     this.sortField = 'createdAt';
     this.sortDirection = 'DESC';
@@ -285,6 +299,7 @@ export class EmployeeComponent implements OnInit {
   }
 
   openCreate(): void {
+    const selectedBranchId = this.isBranchContext() ? (this.selectedContext?.branchId ?? null) : null;
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: EmployeeFormComponent,
@@ -293,7 +308,7 @@ export class EmployeeComponent implements OnInit {
       nzData: {
         employee: null,
         organizationId: this.selectedContext?.organizationId ?? null,
-        selectedBranchId: this.filterBranchId ?? this.selectedContext?.branchId ?? null,
+        selectedBranchId,
         branches: this.branches,
         roles: this.roles
       }
@@ -305,6 +320,7 @@ export class EmployeeComponent implements OnInit {
   }
 
   openEdit(employee: EmployeeResponse): void {
+    const selectedBranchId = this.isBranchContext() ? (this.selectedContext?.branchId ?? employee.branchId ?? null) : null;
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: EmployeeFormComponent,
@@ -313,7 +329,7 @@ export class EmployeeComponent implements OnInit {
       nzData: {
         employee,
         organizationId: this.selectedContext?.organizationId ?? null,
-        selectedBranchId: employee.branchId ?? this.selectedContext?.branchId ?? null,
+        selectedBranchId,
         branches: this.branches,
         roles: this.roles
       }
@@ -380,15 +396,27 @@ export class EmployeeComponent implements OnInit {
   }
 
   canManage(): boolean {
-    return this.selectedContext?.role === 'OWNER' || this.permissions.includes('STAFF_MANAGE') || this.permissions.includes('EMPLOYEE_MANAGE');
+    return this.hasPermission('STAFF_MANAGE');
   }
 
   canView(): boolean {
-    return this.selectedContext?.role === 'OWNER' || this.permissions.includes('STAFF_VIEW') || this.canManage();
+    return this.hasPermission('STAFF_VIEW') || this.canManage();
+  }
+
+  canCreate(): boolean {
+    return this.hasPermission('EMPLOYEE_ADD');
+  }
+
+  canUpdate(): boolean {
+    return this.hasPermission('EMPLOYEE_UPDATE');
+  }
+
+  canDelete(): boolean {
+    return this.hasPermission('EMPLOYEE_DELETE');
   }
 
   canUseBranchFilter(): boolean {
-    return !this.selectedContext?.branchId;
+    return !this.isBranchContext();
   }
 
   getUserStatusColor(employee: EmployeeResponse): string {
@@ -428,5 +456,25 @@ export class EmployeeComponent implements OnInit {
 
   private translate(key: string): string {
     return this.i18n.fanyi(key);
+  }
+
+  private isBranchContext(): boolean {
+    return this.isBranchScopedContext(this.selectedContext);
+  }
+
+  private isBranchScopedContext(context: SelectedContext | null): boolean {
+    if (context?.role === 'OWNER') {
+      return false;
+    }
+
+    if (context?.dataScope) {
+      return context.dataScope === 'BRANCH';
+    }
+
+    return Boolean(context?.branchId);
+  }
+
+  private hasPermission(permission: string): boolean {
+    return this.permissions.includes(permission);
   }
 }

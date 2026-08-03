@@ -48,24 +48,20 @@ export interface EmployeeListParams {
 }
 
 export interface EmployeeMutationRequest {
-  firstName: string;
-  lastName: string;
   username: string;
   email: string;
-  phone?: string | null;
+  phone: string;
   branchId: string;
   orgRoleId?: string | null;
-  orgRoleName?: string | null;
-  role?: string | null;
   status: EmployeeStatus | string;
   startDate: string;
   endDate?: string | null;
-  password?: string | null;
 }
 
 export interface EmployeeRoleOption {
   id: string;
   name: string;
+  dataScope?: string | null;
 }
 
 export interface PagingResponse<T> {

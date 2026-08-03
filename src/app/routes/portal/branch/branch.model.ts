@@ -13,6 +13,11 @@ export enum EmployeeStatus {
 export interface OrganizationBranchResponse {
   id: string;
   organizationId: string;
+  managerId?: string | null;
+  managerUserId?: string | null;
+  managerName?: string | null;
+  managerUsername?: string | null;
+  managerEmail?: string | null;
   branchName: string;
   address: string | null;
   phone: string | null;
@@ -52,4 +57,12 @@ export interface PagingResponse<T> {
 export interface PagingParams {
   page: number;
   size: number;
+}
+
+export interface BranchMutationRequest {
+  organizationId?: string | null;
+  branchName: string;
+  address?: string | null;
+  phone?: string | null;
+  status?: OrganizationBranchStatus | null;
 }

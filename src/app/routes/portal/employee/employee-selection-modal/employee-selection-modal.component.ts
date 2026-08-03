@@ -2,9 +2,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { I18NService } from '@core';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
-import { I18NService } from '@core';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -14,10 +14,10 @@ import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 
-import { EmployeeResponse, EmployeeStatus } from '../employee.model';
 import { EmployeeRoleBadgeComponent } from '../employee-role-badge/employee-role-badge.component';
-import { EmployeeService } from '../employee.service';
 import { EmployeeStatusBadgeComponent } from '../employee-status-badge/employee-status-badge.component';
+import { EmployeeResponse, EmployeeRoleOption, EmployeeStatus } from '../employee.model';
+import { EmployeeService } from '../employee.service';
 
 export interface EmployeeSelectionModalData {
   organizationId: string | null;
@@ -60,33 +60,58 @@ export class EmployeeSelectionModalComponent implements OnInit {
   currentPage = 1;
   pageSize = 10;
   loading = false;
+  loadingRoles = false;
   keyword = '';
   role = this.modalData.role ?? null;
   status = this.modalData.status ?? EmployeeStatus.ACTIVE;
   selected: EmployeeResponse | null = null;
 
   statuses = [EmployeeStatus.ACTIVE, EmployeeStatus.INACTIVE, EmployeeStatus.TERMINATED];
-  roles = ['MANAGER', 'CASHIER', 'WAITER', 'CHEF'];
+  roles: EmployeeRoleOption[] = [];
 
   columns: STColumn[] = [
-    { title: this.translate('employee.fields.employeeId'), render: 'employeeId', width: 180 },
-    { title: this.translate('employee.fields.fullName'), render: 'identity', width: 240 },
-    { title: this.translate('employee.fields.branch'), index: 'branchName', width: 180 },
-    { title: this.translate('employee.fields.role'), render: 'role', width: 120 },
-    { title: this.translate('employee.fields.status'), render: 'status', width: 130 },
+    { title: this.translate('employee.fields.employeeId'), render: 'employeeId', width: 240 },
+    { title: this.translate('employee.fields.fullName'), render: 'identity', width: 260 },
+    { title: this.translate('employee.fields.branch'), index: 'branchName', width: 190 },
+    { title: this.translate('employee.fields.role'), render: 'role', width: 160 },
+    { title: this.translate('employee.fields.status'), render: 'status', width: 150 },
     { title: this.translate('employee.fields.actions'), render: 'actions', width: 120, fixed: 'right' }
   ];
 
   ngOnInit(): void {
-    this.searchKeyword$
-      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-      .subscribe(keyword => {
-        this.keyword = keyword;
-        this.currentPage = 1;
-        this.loadData();
-      });
+    this.searchKeyword$.pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef)).subscribe(keyword => {
+      this.keyword = keyword;
+      this.currentPage = 1;
+      this.loadData();
+    });
 
-    this.loadData();
+    this.loadRoles();
+  }
+
+  loadRoles(): void {
+    this.loadingRoles = true;
+    this.employeeService
+      .getOrgRoles()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.roles = [];
+          this.cdr.markForCheck();
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loadingRoles = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(roles => {
+        this.roles = roles;
+        const requestedRole = this.modalData.role;
+        const matchedRole = requestedRole ? roles.find(role => role.id === requestedRole || role.name === requestedRole) : null;
+        this.role = matchedRole?.id ?? requestedRole ?? null;
+        this.loadData();
+        this.cdr.markForCheck();
+      });
   }
 
   loadData(): void {

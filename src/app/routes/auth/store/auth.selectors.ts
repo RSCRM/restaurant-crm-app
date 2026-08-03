@@ -21,7 +21,7 @@ export const selectSelectedOrganizationName = createSelector(selectSelectedConte
 export const selectSelectedBranchId = createSelector(selectSelectedContext, context => context?.branchId ?? null);
 export const selectSelectedBranchName = createSelector(selectSelectedContext, context => context?.branchName ?? null);
 export const selectSelectedRole = createSelector(selectSelectedContext, context => context?.role ?? null);
-
+export const selectSelectedDataScope = createSelector(selectSelectedContext, context => context?.dataScope ?? null);
 
 // Decode permissions dynamically from contextToken JWT or state
 export const selectPermissions = createSelector(selectContextToken, selectAuthState, (token, state) => {

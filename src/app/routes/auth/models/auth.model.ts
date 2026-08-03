@@ -43,6 +43,7 @@ export interface TokenPayload {
   organizationId?: string;
   branchId?: string;
   orgRole?: string;
+  dataScope?: 'ORGANIZATION' | 'BRANCH' | 'SELF' | string;
   permission?: string[];
   exp: number;
   iat: number;

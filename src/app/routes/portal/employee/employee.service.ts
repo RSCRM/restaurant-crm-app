@@ -2,8 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
+import { EmployeeListParams, EmployeeMutationRequest, EmployeeResponse, EmployeeRoleOption, PagingResponse } from './employee.model';
 import { ApiResponse } from '../../auth/models/auth.model';
-import { EmployeeListParams, EmployeeMutationRequest, EmployeeResponse, PagingResponse } from './employee.model';
 
 type EmployeeApiResponse = Partial<EmployeeResponse> & {
   employeeName?: string | null;
@@ -24,11 +24,30 @@ type PagingApiResponse<T> =
       totalPages?: number;
     };
 
+interface OrgRoleApiResponse {
+  id: string;
+  roleName: string;
+  dataScope?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EmployeeService {
   private http = inject(HttpClient);
 
   private readonly EMPLOYEE_API = '/api/v1/erp/employees';
+  private readonly ORG_ROLE_API = '/api/v1/erp/org-roles';
+
+  getOrgRoles(): Observable<EmployeeRoleOption[]> {
+    return this.http.get<ApiResponse<OrgRoleApiResponse[]>>(this.ORG_ROLE_API).pipe(
+      map(res =>
+        (res.data ?? []).map(role => ({
+          id: role.id,
+          name: role.roleName,
+          dataScope: role.dataScope ?? null
+        }))
+      )
+    );
+  }
 
   getEmployees(params: EmployeeListParams): Observable<PagingResponse<EmployeeResponse>> {
     let httpParams = new HttpParams().set('page', params.page.toString()).set('size', params.size.toString());
@@ -58,9 +77,7 @@ export class EmployeeService {
   }
 
   createEmployee(request: EmployeeMutationRequest): Observable<EmployeeResponse> {
-    return this.http
-      .post<ApiResponse<EmployeeApiResponse>>(this.EMPLOYEE_API, request)
-      .pipe(map(res => this.normalizeEmployee(res.data)));
+    return this.http.post<ApiResponse<EmployeeApiResponse>>(this.EMPLOYEE_API, request).pipe(map(res => this.normalizeEmployee(res.data)));
   }
 
   updateEmployee(employeeId: string, request: EmployeeMutationRequest): Observable<EmployeeResponse> {
@@ -95,12 +112,12 @@ export class EmployeeService {
       size?: number;
       totalElements?: number;
     };
-    const rows = Array.isArray(paging.data) ? paging.data : paging.content ?? paging.items ?? [];
-    const totalElement = typeof paging.totalElement === 'number' ? paging.totalElement : paging.totalElements ?? rows.length;
+    const rows = Array.isArray(paging.data) ? paging.data : (paging.content ?? paging.items ?? []);
+    const totalElement = typeof paging.totalElement === 'number' ? paging.totalElement : (paging.totalElements ?? rows.length);
 
     return {
-      currentPage: typeof paging.currentPage === 'number' ? paging.currentPage : paging.page ?? params.page,
-      pageSize: typeof paging.pageSize === 'number' ? paging.pageSize : paging.size ?? params.size,
+      currentPage: typeof paging.currentPage === 'number' ? paging.currentPage : (paging.page ?? params.page),
+      pageSize: typeof paging.pageSize === 'number' ? paging.pageSize : (paging.size ?? params.size),
       totalPages: typeof paging.totalPages === 'number' ? paging.totalPages : Math.ceil(totalElement / params.size),
       totalElement,
       data: rows
@@ -111,7 +128,8 @@ export class EmployeeService {
     const id = employee.id ?? employee.employeeId ?? '';
     const branchId = employee.branchId ?? employee.branch?.id ?? null;
     const roleName = employee.orgRoleName ?? employee.role ?? employee.orgRole?.roleName ?? employee.orgRole?.name ?? null;
-    const fullName = employee.fullName ?? employee.employeeName ?? employee.name ?? this.buildFullName(employee.firstName, employee.lastName);
+    const fullName =
+      employee.fullName ?? employee.employeeName ?? employee.name ?? this.buildFullName(employee.firstName, employee.lastName);
 
     return {
       ...employee,
@@ -129,7 +147,7 @@ export class EmployeeService {
       role: employee.role ?? roleName,
       status: employee.status ?? null,
       enabled: employee.enabled ?? employee.user?.enabled ?? false,
-      userStatus: employee.userStatus ?? employee.user?.status ?? (employee.enabled ?? employee.user?.enabled ? 'ENABLED' : 'DISABLED'),
+      userStatus: employee.userStatus ?? employee.user?.status ?? ((employee.enabled ?? employee.user?.enabled) ? 'ENABLED' : 'DISABLED'),
       startDate: employee.startDate ?? null,
       endDate: employee.endDate ?? null,
       createdAt: employee.createdAt ?? null,

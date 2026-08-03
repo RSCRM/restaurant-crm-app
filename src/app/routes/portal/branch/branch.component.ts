@@ -1,43 +1,46 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
+import { I18NService } from '@core';
 import { PageHeaderModule } from '@delon/abc/page-header';
+import { STChange, STColumn, STModule } from '@delon/abc/st';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { distinctUntilChanged } from 'rxjs';
+import { EMPTY, catchError, distinctUntilChanged, finalize } from 'rxjs';
 
+import { BranchDetailComponent } from './branch-detail/branch-detail.component';
+import { BranchFormComponent } from './branch-form/branch-form.component';
 import { BranchManagerResponse, OrganizationBranchResponse, OrganizationBranchStatus } from './branch.model';
 import { BranchService } from './branch.service';
-import { selectSelectedContext } from '../../auth/store/auth.selectors';
+import { selectPermissions, selectSelectedContext } from '../../auth/store/auth.selectors';
 import { SelectedContext } from '../../auth/store/auth.state';
-
-type BranchDisplay = Pick<OrganizationBranchResponse, 'id' | 'organizationId' | 'branchName'> &
-  Partial<Omit<OrganizationBranchResponse, 'id' | 'organizationId' | 'branchName'>>;
+import { EmployeeSelectionModalComponent } from '../employee/employee-selection-modal/employee-selection-modal.component';
+import { EmployeeResponse } from '../employee/employee.model';
 
 @Component({
   selector: 'app-branch',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FormsModule,
     PageHeaderModule,
+    I18nPipe,
     NzAlertModule,
     NzButtonModule,
-    NzCardModule,
-    NzDescriptionsModule,
     NzEmptyModule,
     NzIconModule,
-    NzSelectModule,
+    NzPopconfirmModule,
     NzSkeletonModule,
-    NzTagModule
+    NzTagModule,
+    STModule
   ],
   templateUrl: './branch.component.html',
   styleUrl: './branch.component.less'
@@ -45,54 +48,263 @@ type BranchDisplay = Pick<OrganizationBranchResponse, 'id' | 'organizationId' | 
 export class BranchComponent implements OnInit {
   private store = inject(Store);
   private branchService = inject(BranchService);
+  private modal = inject(NzModalService);
+  private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
 
   selectedContext: SelectedContext | null = null;
-  branchOptions: OrganizationBranchResponse[] = [];
-  selectedBranchId: string | null = null;
-  branch: BranchDisplay | null = null;
-  manager: BranchManagerResponse | null = null;
-  loadingBranch = false;
-  loadingManager = false;
-  errorMessage: string | null = null;
-  managerErrorMessage: string | null = null;
+  permissions: string[] = [];
+  data: OrganizationBranchResponse[] = [];
+  total = 0;
+  currentPage = 1;
+  pageSize = 10;
+  loading = false;
+  firstLoaded = false;
+  errorMessageKey: string | null = null;
+
+  columns: STColumn[] = [
+    { title: this.translate('branch.branchName'), render: 'branchName', width: 240 },
+    { title: this.translate('branch.branchAddress'), index: 'address', width: 260 },
+    { title: this.translate('branch.branchPhone'), index: 'phone', width: 150 },
+    { title: this.translate('branch.status.title'), render: 'status', width: 140 },
+    { title: this.translate('branch.manager.current'), render: 'manager', width: 260 },
+    { title: this.translate('employee.fields.actions'), render: 'actions', width: 360, fixed: 'right' }
+  ];
 
   ngOnInit(): void {
     this.store
       .select(selectSelectedContext)
       .pipe(
         distinctUntilChanged(
-          (previousContext, currentContext) =>
-            previousContext?.organizationId === currentContext?.organizationId && previousContext?.branchId === currentContext?.branchId
+          (previous, current) =>
+            previous?.organizationId === current?.organizationId &&
+            previous?.branchId === current?.branchId &&
+            previous?.role === current?.role
         ),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: context => {
           this.selectedContext = context;
-          this.prepareCurrentBranch(context);
+          this.currentPage = 1;
+          this.loadData();
           this.cdr.markForCheck();
         },
         error: () => {
-          this.errorMessage = 'Không thể đọc context hiện tại';
+          this.errorMessageKey = 'branch.errors.contextLoad';
           this.cdr.markForCheck();
         }
       });
+
+    this.store
+      .select(selectPermissions)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(permissions => {
+        this.permissions = permissions;
+        this.cdr.markForCheck();
+      });
   }
 
-  onBranchChange(branchId: string): void {
-    this.selectedBranchId = branchId;
-    const selectedBranch = this.branchOptions.find(branch => branch.id === branchId);
-    if (selectedBranch) {
-      this.branch = selectedBranch;
+  loadData(): void {
+    const organizationId = this.selectedContext?.organizationId;
+    if (!organizationId) {
+      this.data = [];
+      this.total = 0;
+      this.firstLoaded = true;
+      this.errorMessageKey = 'branch.errors.missingOrganization';
+      this.cdr.markForCheck();
+      return;
     }
-    this.loadBranchById(branchId);
-    this.prepareManagerState(branchId);
+
+    this.loading = true;
+    this.errorMessageKey = null;
+    this.branchService
+      .getBranches(organizationId, { page: this.currentPage, size: this.pageSize })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError((error: HttpErrorResponse) => {
+          this.data = [];
+          this.total = 0;
+          this.errorMessageKey = this.getErrorKey(error);
+          this.cdr.markForCheck();
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.firstLoaded = true;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(res => {
+        this.data = res.data;
+        this.total = res.totalElement;
+        this.errorMessageKey = null;
+        this.cdr.markForCheck();
+      });
   }
 
   reload(): void {
-    this.prepareCurrentBranch(this.selectedContext);
+    this.loadData();
+  }
+
+  onSTChange(event: STChange): void {
+    if (event.type === 'pi') {
+      this.currentPage = event.pi ?? 1;
+      this.loadData();
+      return;
+    }
+
+    if (event.type === 'ps') {
+      this.pageSize = event.ps ?? 10;
+      this.currentPage = 1;
+      this.loadData();
+    }
+  }
+
+  openCreate(): void {
+    const organizationId = this.selectedContext?.organizationId;
+    if (!organizationId) return;
+
+    const modalRef = this.modal.create({
+      nzTitle: undefined,
+      nzContent: BranchFormComponent,
+      nzWidth: 560,
+      nzFooter: null,
+      nzData: { organizationId, branch: null }
+    });
+
+    modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
+      if (result) this.loadData();
+    });
+  }
+
+  openEdit(branch: OrganizationBranchResponse): void {
+    const organizationId = this.selectedContext?.organizationId ?? branch.organizationId;
+    const modalRef = this.modal.create({
+      nzTitle: undefined,
+      nzContent: BranchFormComponent,
+      nzWidth: 560,
+      nzFooter: null,
+      nzData: { organizationId, branch }
+    });
+
+    modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
+      if (result) this.loadData();
+    });
+  }
+
+  openDetail(branch: OrganizationBranchResponse): void {
+    this.loading = true;
+    this.branchService
+      .getBranch(branch.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError((error: HttpErrorResponse) => {
+          this.message.error(this.translate(this.getErrorKey(error)));
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(detail => {
+        this.modal.create({
+          nzTitle: this.translate('branch.detail.title'),
+          nzContent: BranchDetailComponent,
+          nzWidth: 640,
+          nzFooter: null,
+          nzData: detail
+        });
+      });
+  }
+
+  deleteBranch(branch: OrganizationBranchResponse): void {
+    this.loading = true;
+    this.branchService
+      .deleteBranch(branch.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError((error: HttpErrorResponse) => {
+          this.message.error(this.translate(this.getErrorKey(error)));
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success(this.translate('branch.messages.deleted'));
+        this.loadData();
+      });
+  }
+
+  openAssignManager(branch: OrganizationBranchResponse): void {
+    const modalRef = this.modal.create({
+      nzTitle: this.translate('branch.manager.assign'),
+      nzContent: EmployeeSelectionModalComponent,
+      nzWidth: 'min(1200px, calc(100vw - 32px))',
+      nzFooter: null,
+      nzBodyStyle: {
+        padding: '16px 24px 0',
+        maxHeight: 'calc(100vh - 180px)',
+        overflow: 'auto'
+      },
+      nzData: {
+        organizationId: branch.organizationId,
+        branchId: branch.id,
+        role: 'MANAGER',
+        status: 'ACTIVE'
+      }
+    });
+
+    modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((employee?: EmployeeResponse) => {
+      if (!employee) return;
+
+      const managerUserId = employee.userId;
+      if (!managerUserId) {
+        this.message.error(this.translate('branch.manager.errors.notFound'));
+        return;
+      }
+
+      this.assignManager(branch, managerUserId);
+    });
+  }
+
+  removeManager(branch: OrganizationBranchResponse): void {
+    this.loading = true;
+    this.branchService
+      .removeManager(branch.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError((error: HttpErrorResponse) => {
+          this.message.error(this.translate(this.getManagerErrorKey(error)));
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success(this.translate('branch.manager.removeSuccess'));
+        this.loadData();
+      });
+  }
+
+  canManageBranch(): boolean {
+    return this.hasPermission('ORGANIZATION_BRANCH_MANAGE');
+  }
+
+  canAssignManager(): boolean {
+    return this.hasPermission('BRANCH_MANAGER_ASSIGN');
+  }
+
+  hasPermission(permission: string): boolean {
+    return this.permissions.includes(permission);
   }
 
   getBranchStatusColor(status: OrganizationBranchStatus | null | undefined): string {
@@ -108,181 +320,71 @@ export class BranchComponent implements OnInit {
     }
   }
 
-  getBranchStatusText(status: OrganizationBranchStatus | null | undefined): string {
-    switch (status) {
-      case OrganizationBranchStatus.ACTIVE:
-        return 'Hoạt động';
-      case OrganizationBranchStatus.CLOSED:
-        return 'Đã đóng';
-      case OrganizationBranchStatus.INACTIVE:
-        return 'Tạm ngưng';
-      default:
-        return '-';
-    }
+  getBranchStatusKey(status: OrganizationBranchStatus | null | undefined): string {
+    return status ? `branch.status.${status.toLowerCase()}` : 'common.emptyValue';
   }
 
-  private prepareCurrentBranch(context: SelectedContext | null): void {
-    this.errorMessage = null;
-    this.managerErrorMessage = null;
-    this.branch = null;
-    this.manager = null;
-
-    if (!context?.organizationId) {
-      this.errorMessage = 'Không tìm thấy tổ chức trong context hiện tại';
-      return;
-    }
-
-    if (context.branchId) {
-      this.selectedBranchId = context.branchId;
-      this.branch = this.createBranchFromContext(context);
-      this.loadBranchById(context.branchId);
-      this.prepareManagerState(context.branchId);
-      return;
-    }
-
-    this.loadFirstBranchByOrganization(context.organizationId);
+  getManagerName(branch: OrganizationBranchResponse): string | null {
+    return branch.managerName || branch.managerUsername || null;
   }
 
-  private loadFirstBranchByOrganization(organizationId: string): void {
-    this.loadingBranch = true;
-    this.branchService.getBranches(organizationId, { page: 1, size: 50 }).subscribe({
-      next: response => {
-        this.branchOptions = response.data;
-        const firstBranch = response.data[0] ?? null;
-        this.selectedBranchId = firstBranch?.id ?? null;
-        this.branch = firstBranch;
-        this.loadingBranch = false;
-        this.prepareManagerState(firstBranch?.id ?? null);
-        this.cdr.markForCheck();
-      },
-      error: error => {
-        this.loadingBranch = false;
-        this.errorMessage = this.getErrorMessage(error);
-        this.cdr.markForCheck();
-      }
-    });
+  private assignManager(branch: OrganizationBranchResponse, managerUserId: string): void {
+    this.loading = true;
+    this.branchService
+      .assignManager(branch.id, managerUserId)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError((error: HttpErrorResponse) => {
+          this.message.error(this.translate(this.getManagerErrorKey(error)));
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((manager: BranchManagerResponse) => {
+        this.message.success(this.translate(branch.managerId ? 'branch.manager.replaceSuccess' : 'branch.manager.assignSuccess'));
+        branch.managerId = manager.employeeId ?? manager.managerId ?? null;
+        branch.managerUserId = manager.userId ?? manager.managerUserId ?? null;
+        branch.managerName = manager.managerName ?? manager.username ?? null;
+        branch.managerUsername = manager.username ?? null;
+        branch.managerEmail = manager.email ?? null;
+        this.loadData();
+      });
   }
 
-  private loadBranchById(branchId: string): void {
-    this.loadingBranch = true;
-    this.branchService.getBranch(branchId).subscribe({
-      next: branch => {
-        this.branch = branch;
-        this.selectedBranchId = branch.id;
-        this.loadingBranch = false;
-        this.cdr.markForCheck();
-      },
-      error: error => {
-        this.loadingBranch = false;
-        this.errorMessage = this.getErrorMessage(error);
-        this.cdr.markForCheck();
-      }
-    });
+  private getErrorKey(error: HttpErrorResponse): string {
+    if (error.status === 0) return 'branch.errors.backendConnection';
+    const code = this.extractErrorCode(error);
+    if (code === 'BRANCH_1000' || code === 'BRANCH_1004') return 'branch.errors.branchNotFound';
+    return 'branch.errors.load';
   }
 
-  private prepareManagerState(branchId: string | null): void {
-    this.manager = null;
-    this.managerErrorMessage = null;
-
-    if (!branchId) {
-      this.loadingManager = false;
-      return;
-    }
-
-    this.loadingManager = true;
-    this.branchService.getBranchManager(branchId).subscribe({
-      next: manager => {
-        this.manager = manager;
-        this.loadingManager = false;
-        this.managerErrorMessage = null;
-        this.cdr.markForCheck();
-      },
-      error: error => {
-        this.manager = null;
-        this.loadingManager = false;
-        this.managerErrorMessage = this.isEmptyManagerError(error) ? null : this.getManagerErrorMessage(error);
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  private getManagerErrorMessage(error: unknown): string {
-    const errorCode = this.extractErrorCode(error);
-
-    switch (errorCode) {
-      case 'BRANCH_MANAGER_1000':
-        return 'Không tìm thấy nhân viên quản lý';
+  private getManagerErrorKey(error: HttpErrorResponse): string {
+    const code = this.extractErrorCode(error);
+    switch (code) {
       case 'BRANCH_MANAGER_1002':
-        return 'Nhân viên quản lý không hoạt động';
+        return 'branch.manager.errors.inactive';
+      case 'BRANCH_MANAGER_1003':
+        return 'branch.manager.errors.invalidRequest';
       case 'BRANCH_MANAGER_1004':
-        return 'Nhân viên không thuộc chi nhánh này';
-      default:
-        return 'Không thể tải thông tin quản lý chi nhánh';
-    }
-  }
-
-  private isEmptyManagerError(error: unknown): boolean {
-    if (!this.isRecord(error)) return false;
-    const status = error['status'];
-    if (status === 404) return true;
-    const errorCode = this.extractErrorCode(error);
-    return errorCode === 'BRANCH_MANAGER_1001' || errorCode === 'BRANCH_MANAGER_NOT_FOUND';
-  }
-
-  private getErrorMessage(error: unknown): string {
-    if (this.extractStatus(error) === 0) {
-      return 'Không kết nối được backend qua proxy. Kiểm tra API gateway/backend và proxy.conf.js';
-    }
-
-    const errorCode = this.extractErrorCode(error);
-
-    switch (errorCode) {
-      case 'BRANCH_1004':
-      case 'BRANCH_1000':
-        return 'Không tìm thấy chi nhánh';
-      case 'BRANCH_MANAGER_1000':
-        return 'Không tìm thấy nhân viên quản lý';
-      case 'BRANCH_MANAGER_1002':
-        return 'Nhân viên quản lý không hoạt động';
-      case 'BRANCH_MANAGER_1004':
-        return 'Nhân viên không thuộc chi nhánh này';
+        return 'branch.manager.errors.invalidBranch';
       case 'BRANCH_MANAGER_1005':
-        return 'Nhân viên chưa có vai trò Manager';
+        return 'branch.manager.errors.invalidRole';
+      case 'BRANCH_MANAGER_1006':
+        return 'branch.manager.errors.expired';
       default:
-        return 'Không thể tải dữ liệu chi nhánh';
+        return 'branch.manager.errors.notFound';
     }
   }
 
-  private extractErrorCode(error: unknown): string | null {
-    if (!this.isRecord(error)) return null;
-    const response = error['error'];
-    if (!this.isRecord(response)) return null;
-    const errorMessage = response['errorMessage'];
-    if (!this.isRecord(errorMessage)) return null;
-    const code = errorMessage['code'];
-    return typeof code === 'string' ? code : null;
+  private extractErrorCode(error: HttpErrorResponse): string | null {
+    const body = error.error as { errorMessage?: { errorCode?: string; code?: string } } | null;
+    return body?.errorMessage?.errorCode ?? body?.errorMessage?.code ?? null;
   }
 
-  private extractStatus(error: unknown): number | null {
-    if (!this.isRecord(error)) return null;
-    const status = error['status'];
-    return typeof status === 'number' ? status : null;
-  }
-
-  private createBranchFromContext(context: SelectedContext): BranchDisplay | null {
-    if (!context.branchId) return null;
-
-    return {
-      id: context.branchId,
-      organizationId: context.organizationId ?? '',
-      branchName: context.branchName ?? context.branchId,
-      address: null,
-      phone: null,
-      status: undefined
-    };
-  }
-
-  private isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null;
+  private translate(key: string): string {
+    return this.i18n.fanyi(key);
   }
 }

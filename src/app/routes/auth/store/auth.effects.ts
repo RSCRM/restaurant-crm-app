@@ -75,9 +75,10 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(({ accessToken, systemRoles }) => {
+        tap(({ accessToken, systemRoles, contexts }) => {
           this.authService.setAccessToken(accessToken);
           this.authService.setSystemRoles(systemRoles);
+          this.authService.setContexts(contexts);
           if (systemRoles.includes('ADMIN')) {
             // ADMIN: use accessToken as the main API token
             this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
@@ -109,7 +110,8 @@ export class AuthEffects {
               organizationName: organizationName ?? null,
               branchId: branchId ?? null,
               branchName: branchName ?? null,
-              role
+              role,
+              dataScope: null
             });
             this.authService.setSelectedContext(selectedContext);
             return AuthActions.selectContextSuccess({
@@ -199,7 +201,8 @@ export class AuthEffects {
       organizationName: null,
       branchId: this.toNullableString(payload.branchId),
       branchName: null,
-      role: this.toNullableString(payload.orgRole)
+      role: this.toNullableString(payload.orgRole),
+      dataScope: this.toNullableString(payload.dataScope)
     };
 
     return {
@@ -229,7 +232,8 @@ export class AuthEffects {
       organizationName: savedContext?.organizationName ?? tokenContext?.organizationName ?? null,
       branchId: tokenContext?.branchId ?? savedContext?.branchId ?? null,
       branchName: savedContext?.branchName ?? tokenContext?.branchName ?? null,
-      role: tokenContext?.role ?? savedContext?.role ?? null
+      role: tokenContext?.role ?? savedContext?.role ?? null,
+      dataScope: tokenContext?.dataScope ?? savedContext?.dataScope ?? null
     };
   }
 }

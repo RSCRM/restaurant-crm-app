@@ -2,8 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { I18NService } from '@core';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -47,39 +47,33 @@ export class EmployeeFormComponent implements OnInit {
   isEdit = Boolean(this.employee);
   branches = this.modalData.branches;
   roles = this.modalData.roles;
+  showBranchSelect = !this.modalData.selectedBranchId;
   statuses = [EmployeeStatus.ACTIVE, EmployeeStatus.INACTIVE, EmployeeStatus.TERMINATED];
   submitting = false;
   errorMessageKey: string | null = null;
 
   form = this.fb.group({
-    firstName: this.fb.control('', [Validators.required, Validators.maxLength(100)]),
-    lastName: this.fb.control('', [Validators.required, Validators.maxLength(100)]),
     username: this.fb.control('', [Validators.required, Validators.maxLength(100)]),
     email: this.fb.control('', [Validators.required, Validators.email, Validators.maxLength(255)]),
-    phone: this.fb.control('', [Validators.maxLength(20)]),
+    phone: this.fb.control('', [Validators.required, Validators.maxLength(20)]),
     branchId: this.fb.control('', [Validators.required]),
     role: this.fb.control('', [Validators.required]),
     status: this.fb.control<EmployeeStatus>(EmployeeStatus.ACTIVE, [Validators.required]),
     startDate: this.fb.control<Date | null>(null, [Validators.required]),
-    endDate: this.fb.control<Date | null>(null),
-    password: this.fb.control('', [Validators.minLength(6), Validators.maxLength(100)])
+    endDate: this.fb.control<Date | null>(null)
   });
 
   ngOnInit(): void {
     if (this.employee) {
-      const names = this.splitName(this.employee);
       this.form.patchValue({
-        firstName: names.firstName,
-        lastName: names.lastName,
         username: this.employee.username ?? '',
         email: this.employee.email ?? '',
         phone: this.employee.phone ?? '',
         branchId: this.employee.branchId ?? this.modalData.selectedBranchId ?? '',
-        role: this.employee.orgRoleName ?? this.employee.role ?? '',
+        role: this.employee.orgRoleId ?? this.employee.orgRoleName ?? this.employee.role ?? '',
         status: (this.employee.status as EmployeeStatus) ?? EmployeeStatus.ACTIVE,
         startDate: this.toDate(this.employee.startDate),
-        endDate: this.toDate(this.employee.endDate),
-        password: ''
+        endDate: this.toDate(this.employee.endDate)
       });
     } else {
       this.form.patchValue({
@@ -87,8 +81,6 @@ export class EmployeeFormComponent implements OnInit {
         status: EmployeeStatus.ACTIVE,
         startDate: new Date()
       });
-      this.form.controls.password.addValidators([Validators.required]);
-      this.form.controls.password.updateValueAndValidity();
     }
   }
 
@@ -137,29 +129,15 @@ export class EmployeeFormComponent implements OnInit {
     const role = raw.role ?? '';
 
     return {
-      firstName: raw.firstName?.trim() ?? '',
-      lastName: raw.lastName?.trim() ?? '',
       username: raw.username?.trim() ?? '',
       email: raw.email?.trim() ?? '',
-      phone: raw.phone?.trim() || null,
+      phone: raw.phone?.trim() ?? '',
       branchId: raw.branchId ?? '',
       orgRoleId: role,
-      orgRoleName: role,
-      role,
       status: raw.status ?? EmployeeStatus.ACTIVE,
       startDate: this.toDateString(raw.startDate) ?? '',
-      endDate: this.toDateString(raw.endDate),
-      password: raw.password?.trim() || null
+      endDate: this.toDateString(raw.endDate)
     };
-  }
-
-  private splitName(employee: EmployeeResponse): { firstName: string; lastName: string } {
-    if (employee.firstName || employee.lastName) {
-      return { firstName: employee.firstName ?? '', lastName: employee.lastName ?? '' };
-    }
-
-    const parts = (employee.fullName ?? '').trim().split(/\s+/).filter(Boolean);
-    return { firstName: parts.slice(0, -1).join(' '), lastName: parts.slice(-1).join(' ') };
   }
 
   private toDate(value: string | null | undefined): Date | null {

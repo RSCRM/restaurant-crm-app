@@ -6,7 +6,6 @@ import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-d
 import { Store } from '@ngrx/store';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
-
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDropdownModule } from 'ng-zorro-antd/dropdown';
@@ -15,6 +14,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { Subscription } from 'rxjs';
+
 import { AuthActions } from '../../routes/auth/store/auth.actions';
 import { selectAuthUser, selectContextToken, selectHasContext } from '../../routes/auth/store/auth.selectors';
 import { NotificationResponse, NotificationStatus } from '../../routes/portal/notification/notification.model';
@@ -168,7 +168,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
         hideInBreadcrumb: true,
         children: [
           { text: 'Dashboard', i18n: 'menu.portal.dashboard', link: '/portal/dashboard', disabled: !hasContext },
-          { text: 'Chi nhánh', i18n: 'branch.title', icon: 'fork', link: '/portal/branch', disabled: !hasContext },
+          { text: 'Chi nhánh', i18n: 'branch.title', link: '/portal/branch', disabled: !hasContext },
           { text: 'Quản lý Đơn hàng', i18n: 'menu.portal.order', link: '/portal/order', disabled: !hasContext },
           { text: 'Quản lý Thực đơn', i18n: 'menu.portal.menu', link: '/portal/menu', disabled: !hasContext },
           { text: 'Quản lý Bàn', i18n: 'menu.portal.table', link: '/portal/table', disabled: !hasContext },

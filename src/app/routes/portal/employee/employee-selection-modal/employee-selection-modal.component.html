@@ -10,17 +10,17 @@
       />
     </nz-input-group>
 
-    <nz-select [(ngModel)]="role" [nzPlaceHolder]="'employee.filters.role' | i18n" (ngModelChange)="search()">
-      <nz-option [nzValue]="null" [nzLabel]="'employee.filters.allRoles' | i18n"></nz-option>
-      @for (item of roles; track item) {
-        <nz-option [nzValue]="item" [nzLabel]="item"></nz-option>
+    <nz-select [(ngModel)]="role" [nzPlaceHolder]="'employee.filters.role' | i18n" [nzLoading]="loadingRoles" (ngModelChange)="search()">
+      <nz-option [nzValue]="null" [nzLabel]="'employee.filters.allRoles' | i18n" />
+      @for (item of roles; track item.id) {
+        <nz-option [nzValue]="item.id" [nzLabel]="item.name" />
       }
     </nz-select>
 
     <nz-select [(ngModel)]="status" [nzPlaceHolder]="'employee.filters.status' | i18n" (ngModelChange)="search()">
-      <nz-option [nzValue]="null" [nzLabel]="'employee.filters.allStatuses' | i18n"></nz-option>
+      <nz-option [nzValue]="null" [nzLabel]="'employee.filters.allStatuses' | i18n" />
       @for (item of statuses; track item) {
-        <nz-option [nzValue]="item" [nzLabel]="('employee.status.' + item.toLowerCase()) | i18n"></nz-option>
+        <nz-option [nzValue]="item" [nzLabel]="'employee.status.' + item.toLowerCase() | i18n" />
       }
     </nz-select>
 
@@ -38,12 +38,12 @@
     [ps]="pageSize"
     [pi]="currentPage"
     [loading]="loading"
-    [page]="{ show: true, showSize: true }"
-    [scroll]="{ x: '860px' }"
+    [page]="{ show: true, showSize: false }"
+    [scroll]="{ x: '1120px' }"
     (change)="onSTChange($event)"
   >
     <ng-template st-row="employeeId" let-item>
-      {{ item.employeeCode || item.employeeId || item.id }}
+      <span class="employee-selection-id">{{ item.employeeCode || item.employeeId || item.id }}</span>
     </ng-template>
 
     <ng-template st-row="identity" let-item>

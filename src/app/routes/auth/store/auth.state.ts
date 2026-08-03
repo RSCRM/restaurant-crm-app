@@ -27,6 +27,7 @@ export interface SelectedContext {
   branchId: string | null;
   branchName: string | null;
   role: string | null;
+  dataScope: string | null;
 }
 
 export interface AuthUser {
