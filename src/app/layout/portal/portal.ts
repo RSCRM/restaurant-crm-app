@@ -169,7 +169,15 @@ export class LayoutPortal implements OnInit, OnDestroy {
         children: [
           { text: 'Dashboard', i18n: 'menu.portal.dashboard', link: '/portal/dashboard', disabled: !hasContext },
           { text: 'Quản lý Đơn hàng', i18n: 'menu.portal.order', link: '/portal/order', disabled: !hasContext },
-          { text: 'Quản lý Thực đơn', i18n: 'menu.portal.menu', link: '/portal/menu', disabled: !hasContext },
+          {
+            text: 'Quản lý Thực đơn',
+            i18n: 'menu.portal.menu',
+            disabled: !hasContext,
+            children: [
+              { text: 'Món ăn', i18n: 'menu.portal.menu.product', link: '/portal/menu/product', disabled: !hasContext },
+              { text: 'Combo', i18n: 'menu.portal.menu.combo', link: '/portal/menu/combo', disabled: !hasContext }
+            ]
+          },
           { text: 'Quản lý Bàn', i18n: 'menu.portal.table', link: '/portal/table', disabled: !hasContext },
           { text: 'Đặt bàn', i18n: 'menu.portal.booking', link: '/portal/booking', disabled: !hasContext },
           { text: 'Kho hàng', i18n: 'menu.portal.inventory', link: '/portal/inventory', disabled: !hasContext },

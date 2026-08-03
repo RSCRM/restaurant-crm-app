@@ -1,0 +1,105 @@
+<div class="modal-header">
+  <div class="modal-title">
+    @if (isEdit) {
+      {{ 'app.portal.menu.product.form.editTitle' | i18n }}
+    } @else {
+      {{ 'app.portal.menu.product.form.createTitle' | i18n }}
+    }
+  </div>
+</div>
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.product.form.image' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-upload
+        nzListType="picture-card"
+        [(nzFileList)]="fileList"
+        [nzShowButton]="fileList.length < 1"
+        [nzBeforeUpload]="beforeUpload"
+        (nzChange)="handleUploadChange($event)"
+        (nzRemove)="removeImage()"
+      >
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+        <div>{{ 'app.portal.menu.product.form.uploadHint' | i18n }}</div>
+      </nz-upload>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.product.form.name' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.portal.menu.product.form.nameError' | i18n">
+      <input nz-input formControlName="productName" [placeholder]="'app.portal.menu.product.form.namePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.portal.menu.product.form.category' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-select
+        formControlName="categoryId"
+        [nzPlaceHolder]="'app.portal.menu.product.form.categoryPlaceholder' | i18n"
+        [nzAllowClear]="true"
+      >
+        @for (category of categories; track category.id) {
+          <nz-option [nzValue]="category.id" [nzLabel]="category.categoryName" />
+        }
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.portal.menu.product.form.description' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <textarea
+        nz-input
+        formControlName="description"
+        rows="3"
+        [placeholder]="'app.portal.menu.product.form.descriptionPlaceholder' | i18n"
+      ></textarea>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.product.form.price' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.portal.menu.product.form.priceError' | i18n">
+      <nz-input-number
+        formControlName="price"
+        [nzMin]="0"
+        [nzStep]="1000"
+        [nzFormatter]="formatterCurrency"
+        [nzParser]="parserCurrency"
+        class="full-width"
+      />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.product.form.status' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-select formControlName="status">
+        @for (opt of statusOptions; track opt.value) {
+          <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
+        }
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.portal.menu.product.form.requiresPreparation' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-switch formControlName="requiresPreparation" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      @if (isEdit) {
+        {{ 'app.form.update' | i18n }}
+      } @else {
+        {{ 'app.form.create' | i18n }}
+      }
+    </button>
+  </div>
+</form>

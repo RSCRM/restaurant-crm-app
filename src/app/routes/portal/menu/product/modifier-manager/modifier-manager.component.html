@@ -1,0 +1,193 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.portal.menu.modifier.title' | i18n }}</div>
+  <div class="modal-subtitle">{{ product?.productName }}</div>
+</div>
+
+<div class="toolbar">
+  <button nz-button nzType="primary" (click)="openCreateGroup()">
+    <span nz-icon nzType="plus" nzTheme="outline"></span>
+    {{ 'app.portal.menu.modifier.createGroup' | i18n }}
+  </button>
+</div>
+
+@if (groupFormVisible) {
+  <div class="form-panel">
+    <div class="form-panel-title">
+      @if (editingGroup) {
+        {{ 'app.portal.menu.modifier.editGroupTitle' | i18n }}
+      } @else {
+        {{ 'app.portal.menu.modifier.createGroupTitle' | i18n }}
+      }
+    </div>
+    <form nz-form [formGroup]="groupForm" (ngSubmit)="submitGroupForm()" nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.groupName' | i18n }}</nz-form-label>
+        <nz-form-control [nzErrorTip]="'app.portal.menu.modifier.groupNameError' | i18n">
+          <input nz-input formControlName="groupName" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>{{ 'app.portal.menu.modifier.groupDescription' | i18n }}</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="description" rows="2"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.minSelection' | i18n }}</nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="minSelection" [nzMin]="0" class="full-width" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.maxSelection' | i18n }}</nz-form-label>
+            <nz-form-control [nzErrorTip]="'app.portal.menu.modifier.maxSelectionError' | i18n">
+              <nz-input-number formControlName="maxSelection" [nzMin]="0" class="full-width" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div class="form-panel-actions">
+        <button nz-button type="button" (click)="cancelGroupForm()">{{ 'app.form.cancel' | i18n }}</button>
+        <button nz-button type="submit" nzType="primary" [nzLoading]="savingGroup" [disabled]="groupForm.invalid">
+          @if (editingGroup) {
+            {{ 'app.form.update' | i18n }}
+          } @else {
+            {{ 'app.form.create' | i18n }}
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<nz-collapse class="group-list" [nzBordered]="true">
+  @for (group of groups; track group.id) {
+    <nz-collapse-panel [nzHeader]="groupHeader" [nzActive]="false">
+      <ng-template #groupHeader>
+        <span class="group-header-name">{{ group.groupName }}</span>
+        <nz-tag>{{ group.minSelection }}–{{ group.maxSelection }}</nz-tag>
+      </ng-template>
+
+      <div class="group-actions">
+        <button nz-button nzType="text" nzSize="small" (click)="openEditGroup(group)">
+          <span nz-icon nzType="edit" nzTheme="outline"></span>
+          {{ 'app.portal.menu.modifier.edit' | i18n }}
+        </button>
+        <button
+          nz-button
+          nzType="text"
+          nzSize="small"
+          nzDanger
+          nz-popconfirm
+          [nzPopconfirmTitle]="'app.portal.menu.modifier.deleteGroupConfirm' | i18n"
+          (nzOnConfirm)="deleteGroup(group)"
+        >
+          <span nz-icon nzType="delete" nzTheme="outline"></span>
+          {{ 'app.portal.menu.modifier.delete' | i18n }}
+        </button>
+        <button nz-button nzType="text" nzSize="small" (click)="openCreateOption(group)">
+          <span nz-icon nzType="plus" nzTheme="outline"></span>
+          {{ 'app.portal.menu.modifier.createOption' | i18n }}
+        </button>
+      </div>
+
+      @if (optionFormVisible && activeGroupIdForOption === group.id) {
+        <div class="form-panel">
+          <div class="form-panel-title">
+            @if (editingOption) {
+              {{ 'app.portal.menu.modifier.editOptionTitle' | i18n }}
+            } @else {
+              {{ 'app.portal.menu.modifier.createOptionTitle' | i18n }}
+            }
+          </div>
+          <form nz-form [formGroup]="optionForm" (ngSubmit)="submitOptionForm()" nzLayout="vertical">
+            <nz-form-item>
+              <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.optionName' | i18n }}</nz-form-label>
+              <nz-form-control [nzErrorTip]="'app.portal.menu.modifier.optionNameError' | i18n">
+                <input nz-input formControlName="optionName" />
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.additionalPrice' | i18n }}</nz-form-label>
+              <nz-form-control [nzErrorTip]="'app.portal.menu.modifier.additionalPriceError' | i18n">
+                <nz-input-number formControlName="additionalPrice" [nzMin]="0" [nzStep]="1000" class="full-width" />
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.status' | i18n }}</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="status">
+                  @for (opt of statusOptions; track opt.value) {
+                    <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <div class="form-panel-actions">
+              <button nz-button type="button" (click)="cancelOptionForm()">{{ 'app.form.cancel' | i18n }}</button>
+              <button nz-button type="submit" nzType="primary" [nzLoading]="savingOption" [disabled]="optionForm.invalid">
+                @if (editingOption) {
+                  {{ 'app.form.update' | i18n }}
+                } @else {
+                  {{ 'app.form.create' | i18n }}
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+
+      <nz-table [nzData]="optionsOf(group.id)" [nzShowPagination]="false" [nzSize]="'small'">
+        <thead>
+          <tr>
+            <th>{{ 'app.portal.menu.modifier.optionName' | i18n }}</th>
+            <th>{{ 'app.portal.menu.modifier.additionalPrice' | i18n }}</th>
+            <th>{{ 'app.portal.menu.modifier.status' | i18n }}</th>
+            <th>{{ 'app.portal.menu.modifier.actions' | i18n }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (option of optionsOf(group.id); track option.id) {
+            <tr>
+              <td>{{ option.optionName }}</td>
+              <td>{{ option.additionalPrice.toLocaleString('vi-VN') }} đ</td>
+              <td>
+                <nz-tag [nzColor]="option.status === 'AVAILABLE' ? 'success' : 'default'">
+                  {{
+                    option.status === 'AVAILABLE'
+                      ? ('app.portal.menu.product.status.available' | i18n)
+                      : ('app.portal.menu.product.status.unavailable' | i18n)
+                  }}
+                </nz-tag>
+              </td>
+              <td>
+                <button nz-button nzType="text" nzSize="small" (click)="openEditOption(group, option)">
+                  <span nz-icon nzType="edit" nzTheme="outline"></span>
+                </button>
+                <button
+                  nz-button
+                  nzType="text"
+                  nzSize="small"
+                  nzDanger
+                  nz-popconfirm
+                  [nzPopconfirmTitle]="'app.portal.menu.modifier.deleteOptionConfirm' | i18n"
+                  (nzOnConfirm)="deleteOption(option)"
+                >
+                  <span nz-icon nzType="delete" nzTheme="outline"></span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </nz-table>
+    </nz-collapse-panel>
+  }
+</nz-collapse>
+
+<div class="modal-footer">
+  <button nz-button type="button" (click)="close()">{{ 'app.form.close' | i18n }}</button>
+</div>
