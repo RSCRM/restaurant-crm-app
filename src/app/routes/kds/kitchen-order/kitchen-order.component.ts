@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { SHARED_IMPORTS } from '@shared';
+import { HasPermissionDirective, SHARED_IMPORTS } from '@shared';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { Observable, catchError, of, switchMap, timer } from 'rxjs';
@@ -18,7 +19,7 @@ const EMPTY_BOARD: KdsActiveResponse = { waitingSummary: [], waitingItems: [], p
   selector: 'app-kitchen-order',
   templateUrl: './kitchen-order.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...SHARED_IMPORTS, NzCardModule, NzTagModule, NzEmptyModule, NzSegmentedModule],
+  imports: [...SHARED_IMPORTS, NzCardModule, NzTagModule, NzEmptyModule, NzSegmentedModule, HasPermissionDirective],
   styles: [
     `
       .kds-toolbar {
@@ -94,11 +95,18 @@ const EMPTY_BOARD: KdsActiveResponse = { waitingSummary: [], waitingItems: [], p
         font-size: 16px;
         font-weight: 600;
       }
+      .kds-card__accept {
+        margin-top: 12px;
+      }
     `
   ]
 })
 export class KitchenOrderComponent {
   private readonly service = inject(KitchenOrderService);
+  private readonly message = inject(NzMessageService);
+
+  /** orderItemId currently being accepted — disables its button and blocks double-click. */
+  readonly acceptingIds = signal<ReadonlySet<string>>(new Set());
 
   // uc-scf-ui-01: waitingItems render in the backend order (created_at ASC = flat FIFO).
   // TODO(SangTD6): khi entity OrderItem có priority_flag thì sort priority_flag DESC, created_at ASC
@@ -130,5 +138,37 @@ export class KitchenOrderComponent {
   waitedMinutes(createdAt: string): number {
     const ms = Date.now() - new Date(createdAt).getTime();
     return Math.max(0, Math.floor(ms / 60000));
+  }
+
+  isAccepting(item: KdsItem): boolean {
+    return this.acceptingIds().has(item.orderItemId);
+  }
+
+  /** Kitchen accepts a waiting item for preparation: PENDING -> IN_PROGRESS (uc-scf-ui-03). */
+  acceptItem(item: KdsItem): void {
+    if (this.isAccepting(item)) {
+      return;
+    }
+    this.setAccepting(item.orderItemId, true);
+    this.service.acceptItem(item.orderItemId).subscribe({
+      next: () => {
+        this.setAccepting(item.orderItemId, false);
+        this.message.success(`Đã nhận chế biến: ${this.itemName(item)}`);
+      },
+      error: () => {
+        this.setAccepting(item.orderItemId, false);
+        this.message.error(`Nhận chế biến thất bại: ${this.itemName(item)}`);
+      }
+    });
+  }
+
+  private setAccepting(orderItemId: string, accepting: boolean): void {
+    const next = new Set(this.acceptingIds());
+    if (accepting) {
+      next.add(orderItemId);
+    } else {
+      next.delete(orderItemId);
+    }
+    this.acceptingIds.set(next);
   }
 }

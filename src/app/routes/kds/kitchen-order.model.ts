@@ -36,3 +36,13 @@ export interface ApiResponse<T> {
   data: T;
   errorMessage?: { errorCode: string; message: string };
 }
+
+/** Mirrors backend OrderItemResponse, returned by the order-item status-change endpoints. */
+export interface OrderItemResponse {
+  orderItemId: string;
+  orderId: string;
+  productId: string | null;
+  comboId: string | null;
+  quantity: number;
+  status: OrderItemStatus;
+}

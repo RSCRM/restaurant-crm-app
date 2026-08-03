@@ -33,6 +33,20 @@
               <div class="kds-card__note">{{ item.note }}</div>
             }
             <div class="kds-card__wait">Đã chờ {{ waitedMinutes(item.createdAt) }} phút</div>
+            @if (isAccepting(item)) {
+              <button nz-button nzType="primary" nzBlock nzLoading class="kds-card__accept">Nhận chế biến</button>
+            } @else {
+              <button
+                *appHasPermission="'KITCHEN_ITEM_ACCEPT'"
+                nz-button
+                nzType="primary"
+                nzBlock
+                class="kds-card__accept"
+                (click)="acceptItem(item)"
+              >
+                Nhận chế biến
+              </button>
+            }
           </nz-card>
         }
       </div>
