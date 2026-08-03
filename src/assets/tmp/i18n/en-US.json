@@ -83,6 +83,7 @@
   "menu.portal.employee": "Employee",
   "menu.portal.invoice": "Invoice",
   "menu.context.group": "Organization",
+  "menu.portal.customer": "Customer Management",
   "menu.context.select": "Select Organization",
   "app.login.title": "Login",
   "app.login.email.placeholder": "Email",

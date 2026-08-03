@@ -1,0 +1,225 @@
+<div style="max-width: 480px; margin: 0 auto; padding: 16px;">
+  @if (loading) {
+    <div style="text-align: center; padding: 60px 0;">
+      <nz-spin nzSize="large" nzTip="Đang tải trạng thái đơn hàng..."></nz-spin>
+    </div>
+  }
+
+  @if (!loading && tracking && !tracking.hasActiveOrder) {
+    <nz-result nzStatus="info" nzTitle="Chưa có đơn hàng nào" nzSubTitle="Hãy quay lại thực đơn để gọi món.">
+      <div nz-result-extra>
+        <button nz-button nzType="primary" (click)="goToMenu()">Xem thực đơn</button>
+      </div>
+    </nz-result>
+  }
+
+  @if (!loading && tracking && tracking.hasActiveOrder) {
+    <h2 style="text-align: center; margin-bottom: 8px;">📋 Đơn hàng {{ tracking.orderCode }}</h2>
+
+    <!-- Overall Progress -->
+    <nz-card nzSize="small" style="margin-bottom: 16px; text-align: center;">
+      <nz-progress
+        [nzPercent]="progressPercent"
+        nzType="circle"
+        [nzWidth]="100"
+        [nzFormat]="percentFormat">
+      </nz-progress>
+      <ng-template #percentFormat let-percent>
+        <span style="font-size: 18px; font-weight: bold;">{{ percent }}%</span>
+      </ng-template>
+      <p style="margin: 8px 0 0; color: #595959;">Tiến độ hoàn thành</p>
+
+      @if (tracking.summary) {
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+          <nz-tag nzColor="blue">📝 Nhận: {{ tracking.summary.received }}</nz-tag>
+          <nz-tag nzColor="orange">🔥 Nấu: {{ tracking.summary.cooking }}</nz-tag>
+          <nz-tag nzColor="green">✅ Sẵn: {{ tracking.summary.readyToServe }}</nz-tag>
+          <nz-tag nzColor="default">🍽️ Xong: {{ tracking.summary.served }}</nz-tag>
+        </div>
+      }
+    </nz-card>
+
+    <!-- Item List -->
+    <nz-divider nzText="Chi tiết món"></nz-divider>
+    @for (item of tracking.items; track item.orderItemId) {
+      <nz-card nzSize="small" style="margin-bottom: 8px;"
+        [style.border-left]="'3px solid ' + (getStageColor(item.customerStage) === 'default' ? '#d9d9d9' : getStageColor(item.customerStage) === 'blue' ? '#1890ff' : getStageColor(item.customerStage) === 'orange' ? '#fa8c16' : getStageColor(item.customerStage) === 'green' ? '#52c41a' : '#ff4d4f')">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong>{{ item.itemName }}</strong>
+            <span style="color: #8c8c8c; margin-left: 6px;">x{{ item.quantity }}</span>
+            @if (item.note) {
+              <p style="margin: 2px 0 0; font-size: 11px; color: #8c8c8c;">📝 {{ item.note }}</p>
+            }
+          </div>
+          <nz-tag [nzColor]="getStageColor(item.customerStage)">{{ getStageLabel(item.customerStage) }}</nz-tag>
+        </div>
+      </nz-card>
+    }
+
+    <!-- Bill & Voucher Summary -->
+    <nz-card nzSize="small" style="margin-top: 16px; background: #fafafa; border-radius: 8px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <span style="color: #595959;">Tạm tính:</span>
+        <strong>{{ tracking.subtotal | number:'1.0-0' }} ₫</strong>
+      </div>
+
+      @if (tracking.discountAmount > 0) {
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #52c41a;">
+          <span>Giảm giá (Voucher):</span>
+          <strong>-{{ tracking.discountAmount | number:'1.0-0' }} ₫</strong>
+        </div>
+      }
+
+      <div style="display: flex; justify-content: space-between; border-top: 1px dashed #d9d9d9; padding-top: 8px; font-size: 16px;">
+        <span>Tổng thanh toán:</span>
+        <strong style="color: #ff4d4f;">{{ tracking.totalAmount | number:'1.0-0' }} ₫</strong>
+      </div>
+
+      <div style="margin-top: 12px; text-align: right;">
+        @if (tracking.discountAmount > 0) {
+          <button nz-button nzDanger nzSize="small" (click)="removeVoucher()" style="margin-right: 8px;">
+            Hủy dùng Voucher
+          </button>
+        }
+        <button nz-button nzType="primary" nzSize="small" (click)="openVoucherModal(tracking.discountAmount > 0)">
+          <span nz-icon nzType="gift"></span>
+          {{ tracking.discountAmount > 0 ? 'Đổi Voucher khác' : '🎁 Áp dụng Voucher' }}
+        </button>
+      </div>
+    </nz-card>
+
+    <div style="margin-top: 16px; text-align: center;">
+      <button nz-button nzType="default" (click)="goToMenu()">
+        <span nz-icon nzType="plus-circle"></span>
+        Gọi thêm món
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Modal Chọn & Đổi Voucher -->
+<nz-modal
+  [(nzVisible)]="voucherModalVisible"
+  nzTitle="🎁 Ví Voucher & Đổi Điểm Thưởng"
+  (nzOnCancel)="voucherModalVisible = false"
+  [nzFooter]="null"
+  [nzWidth]="460">
+  <ng-container *nzModalContent>
+    <!-- Điểm tích lũy header -->
+    <div style="background: #e6f7ff; border: 1px solid #91d5ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+      <span>⭐ Điểm tích lũy của bạn:</span>
+      <strong style="color: #1890ff; font-size: 16px;">{{ myPoints }} điểm</strong>
+    </div>
+
+    <!-- Segmented Tab Header -->
+    <div style="display: flex; background: #f5f5f5; padding: 4px; border-radius: 8px; margin-bottom: 16px;">
+      <button
+        type="button"
+        (click)="selectedTabIndex = 0"
+        [style.background]="selectedTabIndex === 0 ? '#ffffff' : 'transparent'"
+        [style.font-weight]="selectedTabIndex === 0 ? 'bold' : 'normal'"
+        [style.color]="selectedTabIndex === 0 ? '#1890ff' : '#595959'"
+        [style.box-shadow]="selectedTabIndex === 0 ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'"
+        style="flex: 1; border: none; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 13px;">
+        🎫 Voucher của tôi
+      </button>
+      <button
+        type="button"
+        (click)="selectedTabIndex = 1"
+        [style.background]="selectedTabIndex === 1 ? '#ffffff' : 'transparent'"
+        [style.font-weight]="selectedTabIndex === 1 ? 'bold' : 'normal'"
+        [style.color]="selectedTabIndex === 1 ? '#1890ff' : '#595959'"
+        [style.box-shadow]="selectedTabIndex === 1 ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'"
+        style="flex: 1; border: none; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 13px;">
+        🏪 Kho Voucher (Đổi điểm)
+      </button>
+    </div>
+
+    <!-- TAB 1: Ví Voucher của tôi -->
+    @if (selectedTabIndex === 0) {
+      @if (voucherLoading) {
+        <div style="text-align: center; padding: 30px 0;">
+          <nz-spin nzTip="Đang tải voucher..."></nz-spin>
+        </div>
+      }
+
+      @if (!voucherLoading) {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 12px; color: #8c8c8c;">
+            {{ showAllVouchers ? 'Đang hiện: Tất cả' : 'Đang hiện: Khả dụng' }}
+          </span>
+          <button nz-button nzType="link" nzSize="small" (click)="toggleShowAllVouchers()">
+            {{ showAllVouchers ? 'Chỉ hiện khả dụng' : 'Hiện tất cả' }}
+          </button>
+        </div>
+
+        @if (displayedVouchers.length === 0) {
+          <nz-empty nzNotFoundImage="simple" [nzNotFoundContent]="showAllVouchers ? 'Ví của bạn chưa có Voucher nào.' : 'Không có Voucher nào đủ điều kiện cho đơn hàng này.'"></nz-empty>
+        }
+
+        @if (displayedVouchers.length > 0) {
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            @for (cv of displayedVouchers; track cv.customerVoucherId) {
+              <div [style.border]="cv.isApplicable ? '1px solid #b7eb8f' : '1px solid #d9d9d9'"
+                   [style.background]="cv.isApplicable ? '#f6ffed' : '#fafafa'"
+                   style="padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: bold; font-size: 14px;" [style.color]="cv.isApplicable ? '#389e0d' : '#8c8c8c'">🏷️ {{ cv.title }}</div>
+                  <div style="font-size: 12px; color: #8c8c8c; margin-top: 2px;">
+                    Giảm {{ cv.discountPercent }}%
+                    @if (cv.voucherSn) {
+                      | Mã: <code>{{ cv.voucherSn }}</code>
+                    }
+                  </div>
+                  @if (!cv.isApplicable && cv.reason) {
+                    <div style="font-size: 11px; color: #ff4d4f; margin-top: 2px;">⚠️ {{ cv.reason }}</div>
+                  }
+                </div>
+                @if (cv.isApplicable) {
+                  <button nz-button nzType="primary" nzSize="small" (click)="applyVoucher(cv)">
+                    Dùng ngay
+                  </button>
+                } @else {
+                  <nz-tag nzColor="default">Không đủ ĐK</nz-tag>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+
+    <!-- TAB 2: Kho Voucher nhà hàng (Đổi điểm) -->
+    @if (selectedTabIndex === 1) {
+      @if (catalogVouchers.length === 0) {
+        <nz-empty nzNotFoundImage="simple" nzNotFoundContent="Nhà hàng chưa có Voucher nào."></nz-empty>
+      }
+
+      @if (catalogVouchers.length > 0) {
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          @for (v of catalogVouchers; track v.customerVoucherId) {
+            <div style="border: 1px solid #ffe58f; background: #fffbe6; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-weight: bold; font-size: 14px; color: #d46b08;">🎁 {{ v.title }}</div>
+                <div style="font-size: 12px; color: #595959; margin-top: 2px;">
+                  Giảm {{ v.discountPercent }}% | Đơn từ {{ v.minBillAmount | number:'1.0-0' }}đ
+                </div>
+                @if (!v.isApplicable && v.reason) {
+                  <div style="font-size: 11px; color: #ff4d4f; margin-top: 2px;">⚠️ {{ v.reason }}</div>
+                }
+              </div>
+              @if (v.status === 'OWNED') {
+                <nz-tag nzColor="green">✓ Đã có trong Ví</nz-tag>
+              } @else {
+                <button nz-button nzType="primary" nzSize="small" [disabled]="!v.isApplicable" [nzLoading]="voucherLoading" (click)="redeemVoucher(v)">
+                  {{ (v.pointsRequired || 0) === 0 ? 'Nhận 0đ' : ('Đổi (' + v.pointsRequired + ' điểm)') }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  </ng-container>
+</nz-modal>
