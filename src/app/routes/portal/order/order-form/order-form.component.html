@@ -1,0 +1,107 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.order.form.createTitle' | i18n }}</div>
+</div>
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.order.form.branchId' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="branchId" [placeholder]="'app.order.form.branchIdPlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.order.form.tableId' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="tableId" [placeholder]="'app.order.form.tableIdPlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.order.form.orderType' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-select formControlName="orderType">
+        @for (opt of orderTypeOptions; track opt.value) {
+          <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+        }
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.order.form.customerName' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="customerName" [placeholder]="'app.order.form.customerNamePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.order.form.customerPhone' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="customerPhone" [placeholder]="'app.order.form.customerPhonePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.order.form.note' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="note" [placeholder]="'app.order.form.notePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <!-- Items -->
+  <div class="items-section">
+    <div class="items-header">
+      <span class="items-title">{{ 'app.order.form.items' | i18n }}</span>
+      <button nz-button nzType="dashed" type="button" (click)="addItem()">
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+        {{ 'app.order.form.addItem' | i18n }}
+      </button>
+    </div>
+
+    @for (item of items.controls; track $index; let i = $index) {
+      <div class="item-row" [formGroupName]="i">
+        <nz-form-item>
+          <nz-form-label>{{ 'app.order.form.productId' | i18n }}</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="productId" [placeholder]="'app.order.form.productIdPlaceholder' | i18n" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>{{ 'app.order.form.comboId' | i18n }}</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="comboId" [placeholder]="'app.order.form.comboIdPlaceholder' | i18n" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>{{ 'app.order.form.quantity' | i18n }}</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="quantity" [nzMin]="1" style="width: 100%;"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>{{ 'app.order.form.itemNote' | i18n }}</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="note" [placeholder]="'app.order.form.itemNotePlaceholder' | i18n" />
+          </nz-form-control>
+        </nz-form-item>
+
+        @if (items.length > 1) {
+          <button nz-button nzType="text" nzDanger type="button" (click)="removeItem(i)">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.order.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ 'app.order.form.create' | i18n }}
+    </button>
+  </div>
+</form>

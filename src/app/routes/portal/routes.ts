@@ -20,6 +20,10 @@ export const routes: Routes = [
     loadComponent: () => import('./order/order.component').then(m => m.OrderComponent)
   },
   {
+    path: 'order/:id/detail',
+    loadComponent: () => import('./order/order-detail/order-detail.component').then(m => m.OrderDetailComponent)
+  },
+  {
     path: 'menu',
     canActivate: [contextGuard, permissionGuard('MENU_MANAGE')],
     loadComponent: () => import('./menu/menu.component').then(m => m.MenuComponent)
