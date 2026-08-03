@@ -13,6 +13,7 @@
 
   <nz-card [nzTitle]="'app.license.info' | i18n" class="mb-16">
     <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item [nzTitle]="'app.license.detail.id' | i18n">{{ license.id }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.license.code' | i18n">{{ license.code }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.license.name' | i18n">{{ license.name }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.license.description' | i18n">{{ license.description || '-' }}</nz-descriptions-item>
