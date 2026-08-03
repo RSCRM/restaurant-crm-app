@@ -38,7 +38,7 @@ export const routes: Routes = [
     ],
     loadComponent: () => import('./table/table.component').then(m => m.TableComponent)
   },
-  { 
+  {
     path: 'booking',
     // canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./booking/booking.component').then(m => m.BookingComponent)
@@ -76,5 +76,10 @@ export const routes: Routes = [
     path: 'schedule',
     canActivate: [contextGuard],
     loadComponent: () => import('./schedule/schedule.component').then(m => m.ScheduleComponent)
+  },
+  {
+    path: 'kds',
+    canActivate: [contextGuard, permissionGuard('KITCHEN_ORDER_READ')],
+    loadChildren: () => import('../kds/routes').then(m => m.routes)
   }
 ];

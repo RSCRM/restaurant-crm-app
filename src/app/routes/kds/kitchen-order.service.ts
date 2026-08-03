@@ -30,4 +30,9 @@ export class KitchenOrderService {
   acceptItem(orderItemId: string): Observable<OrderItemResponse> {
     return this.http.patch<ApiResponse<OrderItemResponse>>(`${this.orderItemsApi}/${orderItemId}/accept`, {}).pipe(map(res => res.data));
   }
+
+  /** Kitchen marks preparation done: IN_PROGRESS -> READY_TO_SERVE (uc-scf-ui-05). */
+  completeItem(orderItemId: string): Observable<OrderItemResponse> {
+    return this.http.patch<ApiResponse<OrderItemResponse>>(`${this.orderItemsApi}/${orderItemId}/complete`, {}).pipe(map(res => res.data));
+  }
 }

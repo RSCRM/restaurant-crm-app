@@ -108,6 +108,9 @@ export class KitchenOrderComponent {
   /** orderItemId currently being accepted — disables its button and blocks double-click. */
   readonly acceptingIds = signal<ReadonlySet<string>>(new Set());
 
+  /** orderItemId currently being marked complete — disables its button and blocks double-click. */
+  readonly completingIds = signal<ReadonlySet<string>>(new Set());
+
   // uc-scf-ui-01: waitingItems render in the backend order (created_at ASC = flat FIFO).
   // TODO(SangTD6): khi entity OrderItem có priority_flag thì sort priority_flag DESC, created_at ASC
   //   (BR-RES-ORD-04). Tối nay KHÔNG chờ cột này — cứ FIFO thường.
@@ -170,5 +173,37 @@ export class KitchenOrderComponent {
       next.delete(orderItemId);
     }
     this.acceptingIds.set(next);
+  }
+
+  isCompleting(item: KdsItem): boolean {
+    return this.completingIds().has(item.orderItemId);
+  }
+
+  /** Kitchen marks a preparing item as done: IN_PROGRESS -> READY_TO_SERVE (uc-scf-ui-05). */
+  completeItem(item: KdsItem): void {
+    if (this.isCompleting(item)) {
+      return;
+    }
+    this.setCompleting(item.orderItemId, true);
+    this.service.completeItem(item.orderItemId).subscribe({
+      next: () => {
+        this.setCompleting(item.orderItemId, false);
+        this.message.success(`Đã hoàn thành: ${this.itemName(item)}`);
+      },
+      error: () => {
+        this.setCompleting(item.orderItemId, false);
+        this.message.error(`Báo hoàn thành thất bại: ${this.itemName(item)}`);
+      }
+    });
+  }
+
+  private setCompleting(orderItemId: string, completing: boolean): void {
+    const next = new Set(this.completingIds());
+    if (completing) {
+      next.add(orderItemId);
+    } else {
+      next.delete(orderItemId);
+    }
+    this.completingIds.set(next);
   }
 }
