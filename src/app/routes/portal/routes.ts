@@ -33,6 +33,7 @@ export const routes: Routes = [
       permissionGuard('TABLE_SESSION_CREATE')
     ],
     loadComponent: () => import('./table/table.component').then(m => m.TableComponent)
+
   },
   {
     path: 'booking',
