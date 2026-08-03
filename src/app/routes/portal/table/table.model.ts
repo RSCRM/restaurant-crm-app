@@ -55,6 +55,14 @@ export interface RegisterGuestRequest {
   note?: string;
 }
 
+export type TableBookingStatus = 'PENDING' | 'CONFIRMED' | 'SEATED' | 'CANCELLED' | 'EXPIRED';
+
+export interface TableBooking {
+  id: string;
+  tableId: string | null;
+  status: TableBookingStatus;
+}
+
 export interface TableSession {
   id: string;
   tableId: string;
