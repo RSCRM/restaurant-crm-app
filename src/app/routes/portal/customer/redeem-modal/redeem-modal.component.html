@@ -11,13 +11,17 @@
       "
     >
       <h3 style="margin: 0; font-weight: bold">
-        {{ mode === 'redeem' ? 'Đổi Điểm Thành Viên Lấy Voucher' : 'Tặng Voucher Cho Thành Viên' }}
+        {{ (mode === 'redeem' ? 'redeem-modal.title.redeem' : 'redeem-modal.title.give') | i18n }}
       </h3>
-      <nz-tag nzColor="blue" style="font-size: 13px; padding: 4px 8px"> SĐT: {{ customerPhone }} (Số dư: {{ currentPoints }} điểm) </nz-tag>
+      <nz-tag nzColor="blue" style="font-size: 13px; padding: 4px 8px">
+        {{ 'redeem-modal.header.info' | i18n: { phone: customerPhone, points: currentPoints } }}
+      </nz-tag>
     </div>
 
     @if (vouchers.length === 0 && !loading) {
-      <div style="text-align: center; padding: 40px; color: #8c8c8c">Chưa có voucher nào đang hoạt động trong hệ thống.</div>
+      <div style="text-align: center; padding: 40px; color: #8c8c8c">
+        {{ 'redeem-modal.empty' | i18n }}
+      </div>
     }
 
     <div class="voucher-grid-container" style="max-height: 400px; overflow-y: auto; padding-right: 4px">
@@ -37,14 +41,9 @@
               }
 
               <div style="margin-top: 12px; font-size: 12px; color: #8c8c8c">
-                <div
-                  >• Hóa đơn tối thiểu: <strong>{{ v.minOrderAmount | number: '1.0-0' }} ₫</strong></div
-                >
-                <div
-                  >• Hạn dùng: <strong>{{ v.validDays }} ngày</strong> kể từ khi nhận</div
-                >
+                <div>• {{ 'redeem-modal.min-bill' | i18n }} <strong>{{ v.minBillAmount | number: '1.0-0' }} ₫</strong></div>
                 <div>
-                  • Chi phí đổi: <strong style="color: #fa8c16">{{ v.pointCost }} điểm</strong>
+                  • {{ 'redeem-modal.cost-points' | i18n }} <strong style="color: #fa8c16">{{ v.pointsRequired }} {{ 'voucher.points' | i18n }}</strong>
                 </div>
               </div>
 
@@ -54,12 +53,12 @@
                   [nzType]="mode === 'redeem' ? 'primary' : 'default'"
                   [nzLoading]="submittingVoucherId === v.id"
                   [disabled]="!canRedeem(v)"
-                  [nzTooltipTitle]="!canRedeem(v) ? 'Khách không đủ điểm tích lũy' : null"
+                  [nzTooltipTitle]="!canRedeem(v) ? ('redeem-modal.not-enough-points' | i18n) : null"
                   nz-tooltip
                   (click)="actionVoucher(v)"
                 >
                   <span nz-icon [nzType]="mode === 'redeem' ? 'gift' : 'gift'" nzTheme="outline"></span>
-                  {{ mode === 'redeem' ? 'Đổi Voucher' : 'Tặng Ngay' }}
+                  {{ (mode === 'redeem' ? 'redeem-modal.btn.redeem' : 'redeem-modal.btn.give') | i18n }}
                 </button>
               </div>
             </nz-card>
@@ -69,7 +68,7 @@
     </div>
 
     <div style="margin-top: 20px; text-align: right; border-top: 1px solid #f0f0f0; padding-top: 12px">
-      <button nz-button nzType="default" (click)="cancel()">Đóng</button>
+      <button nz-button nzType="default" (click)="cancel()">{{ 'redeem-modal.btn.close' | i18n }}</button>
     </div>
   </div>
 </nz-spin>

@@ -25,6 +25,8 @@ import {
   CustomerVoucherApplicableResponse
 } from '../customer.model';
 
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
+
 @Component({
   selector: 'app-cooking-status',
   standalone: true,
@@ -33,7 +35,7 @@ import {
     CommonModule,
     NzButtonModule, NzCardModule, NzProgressModule, NzTagModule,
     NzIconModule, NzSpinModule, NzEmptyModule, NzResultModule, NzDividerModule,
-    NzModalModule, NzTabsModule
+    NzModalModule, NzTabsModule, I18nPipe
   ],
   templateUrl: './cooking-status.component.html',
   styleUrls: ['./cooking-status.component.less']

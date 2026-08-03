@@ -1,7 +1,8 @@
 export enum CustomerVoucherStatus {
-  ACTIVE = 'ACTIVE',
+  AVAILABLE = 'AVAILABLE',
   USED = 'USED',
-  EXPIRED = 'EXPIRED'
+  EXPIRED = 'EXPIRED',
+  CANCELLED = 'CANCELLED'
 }
 
 export enum PointTransactionType {
@@ -27,6 +28,16 @@ export interface PointWalletBalanceResponse {
   lifetimePoints: number;
 }
 
+export interface CustomerPointResponse {
+  id: string;
+  customerId: string;
+  customerPhone: string;
+  organizationId: string;
+  currentPoints: number;
+  lifetimePoints: number;
+  updatedAt: string;
+}
+
 export interface PointTransactionResponse {
   id: string;
   walletId: string;
@@ -40,30 +51,27 @@ export interface PointTransactionResponse {
 
 export interface VoucherResponse {
   id: string;
-  restaurantId: string;
+  branchId: string;
   title: string;
-  description: string | null;
+  description?: string | null;
   discountPercent: number;
-  minOrderAmount: number;
-  pointCost: number;
-  validDays: number;
-  isActive: boolean;
+  minBillAmount: number;
+  pointsRequired: number;
+  validDays?: number;
+  isActive: number;
+  expiredAt?: string | null;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface CustomerVoucherResponse {
   id: string;
   customerId: string;
-  voucherId: string;
-  restaurantId: string;
-  voucherTitle: string;
-  discountPercent: number;
-  minOrderAmount: number;
+  branchId: string;
+  voucher: VoucherResponse;
+  voucherSn: string;
   status: CustomerVoucherStatus;
-  redeemedAt: string;
   usedAt: string | null;
-  expiresAt: string;
+  orderId: string | null;
   createdAt: string;
 }
 
@@ -73,36 +81,31 @@ export interface IdentifyCustomerRequest {
 }
 
 export interface CreateVoucherRequest {
-  restaurantId: string;
+  branchId: string;
   title: string;
-  description?: string | null;
   discountPercent: number;
-  minOrderAmount: number;
-  pointCost: number;
-  validDays: number;
-  isActive?: boolean;
+  minBillAmount: number;
+  pointsRequired: number;
 }
 
 export interface UpdateVoucherRequest {
-  title?: string;
-  description?: string | null;
-  discountPercent?: number;
-  minOrderAmount?: number;
-  pointCost?: number;
-  validDays?: number;
-  isActive?: boolean;
+  title: string;
+  discountPercent: number;
+  minBillAmount: number;
+  pointsRequired: number;
+  isActive: number;
 }
 
 export interface RedeemVoucherRequest {
   customerId: string;
+  branchId: string;
   voucherId: string;
-  restaurantId: string;
 }
 
 export interface GiveVoucherRequest {
   customerId: string;
+  branchId: string;
   voucherId: string;
-  restaurantId: string;
 }
 
 export interface PagingParams {
