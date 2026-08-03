@@ -1,28 +1,64 @@
-    <div class="customer-entry-container" style="max-width: 400px; margin: 40px auto; padding: 24px;">
-      <h2>Chào mừng quý khách! 👋</h2>
-      <p>Vui lòng nhập số điện thoại để bắt đầu gọi món</p>
-
-      <!-- BƯỚC 1: NHẬP SĐT -->
-      @if (step === 'ENTER_PHONE') {
-        <div style="margin-bottom: 16px;">
-          <input nz-input [(ngModel)]="phone" placeholder="Số điện thoại (vd: 0901234567)" size="large" />
-        </div>
-        <button nz-button nzType="primary" nzBlock size="large" [nzLoading]="loading" (click)="onCheckPhone()">
-          Tiếp tục
-        </button>
-      }
-
-      <!-- BƯỚC 2: BẮT NHẬP OTP (CHỈ KHI SĐT CHƯA TỒN TẠI) -->
-      @if (step === 'ENTER_OTP') {
-        <div style="margin-bottom: 16px;">
-          <p style="color: #fa8c16;">SĐT mới! Vui lòng nhập mã OTP đã gửi đến {{ phone }}:</p>
-          <input nz-input [(ngModel)]="otp" placeholder="Nhập 6 số OTP" size="large" />
-        </div>
-        <button nz-button nzType="primary" nzBlock size="large" [nzLoading]="loading" (click)="onVerifyOtp()">
-          Xác thực & Gọi món
-        </button>
-        <button nz-button nzType="link" nzBlock (click)="step = 'ENTER_PHONE'" style="margin-top: 8px;">
-          Đổi SĐT khác
-        </button>
-      }
-    </div>
+<div class="customer-entry">
+  <nz-card>
+    @if (step === 'PHONE') {
+      <h2 class="entry-title">Nhập số điện thoại</h2>
+      <p class="entry-hint">Nhập số điện thoại để bắt đầu gọi món tại {{ branchName || 'nhà hàng' }}.</p>
+      <input
+        nz-input
+        class="entry-input"
+        nzSize="large"
+        inputmode="tel"
+        autocomplete="tel"
+        placeholder="Ví dụ: 0901234567"
+        [(ngModel)]="phone"
+        (keyup.enter)="submitPhone()"
+      />
+      <button nz-button class="entry-gap" nzType="primary" nzBlock nzSize="large" [nzLoading]="loading" (click)="submitPhone()">
+        Tiếp tục
+      </button>
+    } @else {
+      <h2 class="entry-title">Nhập mã OTP</h2>
+      <p class="entry-hint">Mã xác thực đã được gửi tới {{ maskedPhone }}.</p>
+      <input
+        nz-input
+        class="entry-input"
+        nzSize="large"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="6"
+        placeholder="Nhập 6 số"
+        [(ngModel)]="otp"
+        [disabled]="otpLocked"
+        (keyup.enter)="submitOtp()"
+      />
+      <button
+        nz-button
+        class="entry-gap"
+        nzType="primary"
+        nzBlock
+        nzSize="large"
+        [nzLoading]="loading"
+        [disabled]="otpLocked"
+        (click)="submitOtp()"
+      >
+        Xác thực & gọi món
+      </button>
+      <button
+        nz-button
+        class="entry-gap"
+        nzType="default"
+        nzBlock
+        nzSize="large"
+        [disabled]="resendSeconds > 0 || otpLocked"
+        (click)="resend()"
+      >
+        @if (resendSeconds > 0) {
+          Gửi lại mã sau {{ resendSeconds }}s
+        } @else {
+          Gửi lại mã
+        }
+      </button>
+      <button nz-button class="entry-link" nzType="link" nzBlock (click)="backToPhone()">Đổi số điện thoại</button>
+    }
+  </nz-card>
+</div>

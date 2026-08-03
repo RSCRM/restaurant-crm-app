@@ -1,34 +1,45 @@
-<div style="max-width: 450px; margin: 30px auto; padding: 16px; text-align: center;">
-  <nz-card nzTitle="📷 Quét mã QR Bàn">
-    <p>Đưa Camera về phía mã QR trên bàn để bắt đầu gọi món</p>
-    
-    <!-- Khung hiển thị Camera -->
-    <div id="qr-reader" style="width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 12px;"></div>
+<div class="customer-scan">
+  <nz-card nzTitle="Quét mã QR bàn">
+    @if (resolving) {
+      <div class="scan-loading">
+        <nz-spin nzSimple />
+        <p>Đang kiểm tra mã QR bàn...</p>
+      </div>
+    } @else if (table) {
+      <h2 class="scan-title">{{ table.branchName }}</h2>
+      <nz-descriptions nzBordered [nzColumn]="1" nzSize="small">
+        <nz-descriptions-item nzTitle="Khu vực">{{ table.areaName }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Bàn">{{ table.tableNumber }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Sức chứa">{{ table.capacity }} người</nz-descriptions-item>
+      </nz-descriptions>
 
-    <!-- Mẹo quét nhanh
-    <div style="background: #e6f7ff; border: 1px solid #91d5ff; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; text-align: left;">
-      💡 <strong>Mẹo quét Camera nhạy nhất:</strong>
-      <ul style="margin: 4px 0 0 16px; padding: 0;">
-        <li>Nếu quét từ màn hình điện thoại: Giảm nhẹ độ sáng màn hình (khoảng 70%) để không bị lóa Webcam.</li>
-        <li>Giữ điện thoại thẳng đứng cách Webcam khoảng 20 - 25cm.</li>
-      </ul>
-    </div> -->
+      @if (table.hasActiveSession) {
+        <nz-alert
+          class="scan-gap"
+          nzType="info"
+          nzShowIcon
+          nzMessage="Bàn này đã có người mở phiên"
+          nzDescription="Vui lòng xin mã QR nhóm từ người đã mở phiên để cùng gọi món."
+        />
+        <button nz-button class="scan-gap" nzType="default" nzBlock nzSize="large" (click)="rescan()">Quét mã khác</button>
+      } @else {
+        <button nz-button class="scan-gap" nzType="primary" nzBlock nzSize="large" (click)="openSession()">Mở phiên gọi món</button>
+      }
+    } @else {
+      <p class="scan-hint">Đưa camera về phía mã QR trên bàn để bắt đầu gọi món.</p>
+      <div id="qr-reader" class="scan-reader"></div>
+      <div id="qr-file-temp" class="scan-hidden"></div>
 
-    <!-- Div ẩn phục vụ đọc file ảnh -->
-    <div id="qr-file-temp" style="display: none;"></div>
+      @if (cameraError) {
+        <nz-alert class="scan-gap" nzType="error" nzShowIcon [nzMessage]="cameraError" />
+        <button nz-button class="scan-gap" nzType="primary" nzBlock nzSize="large" (click)="startScanner()">Thử lại camera</button>
+      }
 
-    @if (errorMessage) {
-      <p style="color: #ff4d4f; font-weight: 500;">{{ errorMessage }}</p>
-      <button nz-button nzType="primary" (click)="startScanner()" style="margin-bottom: 12px;">Thử lại Camera</button>
+      <div class="scan-file">
+        <p class="scan-hint">Hoặc chọn ảnh mã QR có sẵn trong máy:</p>
+        <button nz-button nzType="default" nzBlock nzSize="large" (click)="fileInput.click()">Tải ảnh mã QR</button>
+        <input #fileInput class="scan-hidden" type="file" accept="image/*" (change)="onFileSelected($event)" />
+      </div>
     }
-
-    <!-- Nút tùy chọn: Tải tệp ảnh QR trực tiếp từ máy -->
-    <div style="margin-top: 12px; border-top: 1px dashed #d9d9d9; padding-top: 12px;">
-      <p style="color: #8c8c8c; font-size: 13px;">Hoặc chọn ảnh mã QR từ máy tính/điện thoại:</p>
-      <button nz-button nzType="default" (click)="fileInput.click()">
-        📁 Tải ảnh mã QR để đọc
-      </button>
-      <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;" />
-    </div>
   </nz-card>
 </div>

@@ -1,12 +1,14 @@
-import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpResponse, HttpResponseBase } from '@angular/common/http';
+import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpResponseBase } from '@angular/common/http';
 import { Injector, inject } from '@angular/core';
 import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN } from '@delon/auth';
 import { IGNORE_BASE_URL } from '@delon/theme';
 import { environment } from '@env/environment';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { Observable, of, throwError, mergeMap, catchError } from 'rxjs';
 
-import { ReThrowHttpError, checkStatus, getAdditionalHeaders, toLogin } from './helper';
+import { ReThrowHttpError, checkStatus, getAdditionalHeaders, goTo, toLogin } from './helper';
 import { tryRefreshToken } from './refresh-token';
+import { CustomerSessionStore, USE_CUSTOMER_SESSION_TOKEN } from '../../routes/customer/customer-session.store';
 
 function handleData(
   injector: Injector,
@@ -19,6 +21,10 @@ function handleData(
     case 200:
       break;
     case 401:
+      if (isCustomerRequest(req)) {
+        handleCustomerUnauthorized(injector, req);
+        break;
+      }
       if (environment.api.refreshTokenEnabled && environment.api.refreshTokenType === 're-request') {
         return tryRefreshToken(injector, ev, req, next);
       }
@@ -43,6 +49,24 @@ function handleData(
   }
 }
 
+function isCustomerRequest(req: HttpRequest<unknown>): boolean {
+  return (
+    req.context.get(USE_CUSTOMER_SESSION_TOKEN) === true ||
+    req.url.includes('/api/v1/customer/') ||
+    req.url.includes('/api/v1/public/customer/')
+  );
+}
+
+function handleCustomerUnauthorized(injector: Injector, req: HttpRequest<unknown>): void {
+  const isAuthenticated = req.context.get(USE_CUSTOMER_SESSION_TOKEN) === true || req.url.includes('/api/v1/customer/');
+  if (!isAuthenticated) {
+    return;
+  }
+  injector.get(CustomerSessionStore).clear();
+  injector.get(NzNotificationService).error('Phiên đã hết hạn', 'Vui lòng quét lại mã QR trên bàn.');
+  goTo(injector, '/customer/scan');
+}
+
 export const defaultInterceptor: HttpInterceptorFn = (req, next) => {
   // Skip token for anonymous requests (login, register, etc.)
   const isAnonymous = req.context.get(ALLOW_ANONYMOUS);
@@ -58,7 +82,12 @@ export const defaultInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Add auth token if not anonymous (skip if request already has Authorization header)
   const headers: Record<string, string> = getAdditionalHeaders(req.headers);
-  if (!isAnonymous && !req.headers.has('Authorization')) {
+  if (req.context.get(USE_CUSTOMER_SESSION_TOKEN)) {
+    const customerToken = inject(CustomerSessionStore).token();
+    if (customerToken) {
+      headers['Authorization'] = `Bearer ${customerToken}`;
+    }
+  } else if (!isAnonymous && !req.headers.has('Authorization')) {
     const tokenService = inject(DA_SERVICE_TOKEN);
     const token = tokenService.get()?.token;
     if (token) {

@@ -1,0 +1,13 @@
+<div class="customer-join">
+  <nz-card nzTitle="Tham gia gọi món">
+    @if (loading) {
+      <div class="join-loading">
+        <nz-spin nzSimple />
+        <p>Đang tham gia phiên gọi món...</p>
+      </div>
+    } @else {
+      <nz-alert nzType="error" nzShowIcon [nzMessage]="errorText" />
+      <button nz-button class="join-gap" nzType="primary" nzBlock nzSize="large" (click)="rescan()">Quét lại mã QR</button>
+    }
+  </nz-card>
+</div>

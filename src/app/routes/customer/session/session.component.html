@@ -1,0 +1,41 @@
+<div class="customer-session">
+  <nz-card nzTitle="Phiên gọi món">
+    @if (loading) {
+      <div class="session-loading">
+        <nz-spin nzSimple />
+        <p>Đang tải phiên gọi món...</p>
+      </div>
+    } @else if (current) {
+      <nz-descriptions nzBordered [nzColumn]="1" nzSize="small">
+        @if (session()?.branchName; as branchName) {
+          <nz-descriptions-item nzTitle="Nhà hàng">{{ branchName }}</nz-descriptions-item>
+        }
+        <nz-descriptions-item nzTitle="Bàn">{{ current.tableNumber }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Vai trò">
+          <nz-tag [nzColor]="isOwner ? 'gold' : 'blue'">{{ isOwner ? 'Chủ bàn' : 'Thành viên' }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Số người">{{ current.memberCount }}</nz-descriptions-item>
+      </nz-descriptions>
+
+      @if (isOwner && current.groupQrToken) {
+        <div class="session-group">
+          <h3 class="session-subtitle">Mã QR nhóm</h3>
+          <p class="session-hint">Chia sẻ liên kết này để người cùng bàn tham gia gọi món:</p>
+          <p class="session-link" nz-typography nzCopyable [nzContent]="groupJoinUrl"></p>
+          <button nz-button nzType="default" nzBlock nzSize="large" [nzLoading]="refreshing" (click)="refreshGroupQr()">
+            Làm mới mã QR nhóm
+          </button>
+        </div>
+      }
+
+      @if (errorText) {
+        <nz-alert class="session-gap" nzType="warning" nzShowIcon [nzMessage]="errorText" />
+      }
+
+      <button nz-button class="session-gap" nzType="link" nzBlock (click)="leave()">Rời phiên</button>
+    } @else {
+      <nz-alert nzType="error" nzShowIcon [nzMessage]="errorText" />
+      <button nz-button class="session-gap" nzType="primary" nzBlock nzSize="large" (click)="leave()">Quét lại mã QR</button>
+    }
+  </nz-card>
+</div>

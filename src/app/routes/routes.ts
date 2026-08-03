@@ -1,16 +1,17 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './auth/guards/auth.guard';
+
 import { adminGuard } from './auth/guards/admin.guard';
+import { authGuard } from './auth/guards/auth.guard';
 import { portalGuard } from './auth/guards/portal.guard';
 import { LayoutAdmin } from '../layout/admin/admin';
-import { LayoutPortal } from '../layout/portal/portal';
 import { LayoutBlank } from '../layout/blank/blank';
+import { LayoutPortal } from '../layout/portal/portal';
 
 export const routes: Routes = [
-  { 
-    path: '', 
-    redirectTo: 'auth/login', 
-    pathMatch: 'full' 
+  {
+    path: '',
+    redirectTo: 'auth/login',
+    pathMatch: 'full'
   },
   {
     path: 'auth',
@@ -35,15 +36,11 @@ export const routes: Routes = [
     canActivate: []
   },
   {
-    path: 'public/qr-order',
-    loadComponent: () => import('./customer/customer-form/customer-entry.component').then(m => m.CustomerEntryComponent)
+    path: 'exception',
+    loadChildren: () => import('./exception/routes').then(m => m.routes)
   },
-  { 
-    path: 'exception', 
-    loadChildren: () => import('./exception/routes').then(m => m.routes) 
-  },
-  { 
-    path: '**', 
-    redirectTo: 'exception/404' 
+  {
+    path: '**',
+    redirectTo: 'exception/404'
   }
 ];
