@@ -16,6 +16,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { distinctUntilChanged } from 'rxjs';
 
 import { AuthService } from '../../auth/services/auth.service';

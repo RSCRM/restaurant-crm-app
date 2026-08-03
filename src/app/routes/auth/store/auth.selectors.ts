@@ -46,5 +46,9 @@ export const selectPermissions = createSelector(selectContextToken, selectAuthSt
   }
 });
 
-export const selectHasPermission = (permission: string) =>
-  createSelector(selectPermissions, selectIsAdmin, (perms, isAdmin) => isAdmin || perms.includes(permission));
+export const selectHasPermission = (permission: string | string[]) =>
+  createSelector(selectPermissions, selectIsAdmin, (perms, isAdmin) => {
+    if (isAdmin) return true;
+    const requiredPermissions = Array.isArray(permission) ? permission : [permission];
+    return requiredPermissions.some(item => perms.includes(item));
+  });

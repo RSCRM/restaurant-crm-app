@@ -13,6 +13,7 @@
 
   <nz-card [nzTitle]="'app.user.detail.info' | i18n">
     <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item [nzTitle]="'app.user.detail.id' | i18n">{{ user.id }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.user.username' | i18n">{{ user.username }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.user.email' | i18n">{{ user.email }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.user.detail.fullName' | i18n">{{ user.fullName || '-' }}</nz-descriptions-item>

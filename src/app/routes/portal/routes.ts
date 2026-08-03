@@ -31,24 +31,28 @@ export const routes: Routes = [
   },
   {
     path: 'table',
-    canActivate: [contextGuard, permissionGuard('TABLE_MANAGE')],
+    canActivate: [
+      contextGuard,
+      permissionGuard('TABLE_MAP_READ'),
+      permissionGuard('TABLE_SEARCH_READ'),
+      permissionGuard('TABLE_SESSION_CREATE')
+    ],
     loadComponent: () => import('./table/table.component').then(m => m.TableComponent)
+
   },
-  {
+  { 
     path: 'booking',
-    canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
+    // canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./booking/booking.component').then(m => m.BookingComponent)
   },
   {
     path: 'inventory',
     canActivate: [contextGuard, permissionGuard('INGREDIENT_VIEW')],
-    loadComponent: () => import('./inventory/inventory.component').then(m => m.InventoryComponent)
+    loadComponent: () => import('./inventory/inventory/inventory.component').then(m => m.InventoryComponent)
   },
   {
     path: 'employee',
     canActivate: [contextGuard, permissionGuard(['STAFF_VIEW', 'STAFF_MANAGE'])],
-
-    canActivate: [contextGuard, permissionGuard('PROFILE_VIEW')],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
   },
   {
@@ -64,6 +68,11 @@ export const routes: Routes = [
     path: 'customer',
     canActivate: [contextGuard, permissionGuard('CUSTOMER_READ')],
     loadComponent: () => import('./customer/customer.component').then(m => m.CustomerComponent)
+  },
+  {
+    path: 'attendance',
+    canActivate: [contextGuard],
+    loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
   },
   {
     path: 'schedule',

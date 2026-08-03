@@ -11,7 +11,6 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { combineLatest, map } from 'rxjs';
 
-import { PageHeaderModule } from '@delon/abc/page-header';
 import { I18nPipe } from '@delon/theme';
 import { AuthActions } from '../../auth/store/auth.actions';
 import { selectAuthLoading, selectContexts, selectSelectedContext } from '../../auth/store/auth.selectors';

@@ -22,6 +22,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 
 import { selectPermissions, selectSelectedContext } from '../../auth/store/auth.selectors';
@@ -34,8 +35,6 @@ import { EmployeeResponse, EmployeeRoleOption, EmployeeStatus } from './employee
 import { EmployeeRoleBadgeComponent } from './employee-role-badge/employee-role-badge.component';
 import { EmployeeService } from './employee.service';
 import { EmployeeStatusBadgeComponent } from './employee-status-badge/employee-status-badge.component';
-
-import { I18nPipe } from '@delon/theme';
 
 import { UserProfileResponse } from '../profile/profile.model';
 import { ProfileService } from '../profile/profile.service';
