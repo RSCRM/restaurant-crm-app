@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -33,12 +34,14 @@ export interface VoucherFormModalData {
     NzSwitchModule,
     NzButtonModule,
     NzSpinModule,
-    NzGridModule
+    NzGridModule,
+    I18nPipe
   ],
   templateUrl: './voucher-form.component.html',
   styleUrls: ['./voucher-form.component.less']
 })
 export class VoucherFormComponent implements OnInit {
+  private i18n = inject(ALAIN_I18N_TOKEN);
   private fb = inject(FormBuilder);
   private customerService = inject(CustomerService);
   private modalRef = inject(NzModalRef);
@@ -69,10 +72,10 @@ export class VoucherFormComponent implements OnInit {
     this.form = this.fb.group({
       title: [v?.title || '', [Validators.required, Validators.maxLength(100)]],
       description: [v?.description || ''],
-      discountPercent: [v?.discountPercent || 10, [Validators.required, Validators.min(1), Validators.max(100)]],
-      minOrderAmount: [v?.minOrderAmount || 0, [Validators.required, Validators.min(0)]],
-      pointCost: [v?.pointCost || 100, [Validators.required, Validators.min(0)]],
-      validDays: [v?.validDays || 30, [Validators.required, Validators.min(1)]],
+      discountPercent: [v?.discountPercent ?? 10, [Validators.required, Validators.min(1), Validators.max(100)]],
+      minBillAmount: [v?.minBillAmount ?? 0, [Validators.required, Validators.min(0)]],
+      pointsRequired: [v?.pointsRequired ?? 0, [Validators.required, Validators.min(0)]],
+      validDays: [v?.validDays ?? 30, [Validators.required, Validators.min(1)]],
       isActive: [v !== undefined && v !== null ? v.isActive : true]
     });
   }
@@ -92,52 +95,52 @@ export class VoucherFormComponent implements OnInit {
     this.cdr.markForCheck();
 
     const val = this.form.value;
+    const safeNumber = (v: any, fallback = 0): number => {
+      if (v === null || v === undefined || v === '') return fallback;
+      const num = Number(v);
+      return isNaN(num) ? fallback : num;
+    };
 
     if (this.isEdit && this.voucherId) {
       const updateReq = {
         title: val.title.trim(),
-        description: val.description ? val.description.trim() : null,
-        discountPercent: val.discountPercent,
-        minOrderAmount: val.minOrderAmount,
-        pointCost: val.pointCost,
-        validDays: val.validDays,
-        isActive: val.isActive
+        discountPercent: safeNumber(val.discountPercent, 10),
+        minBillAmount: safeNumber(val.minBillAmount, 0),
+        pointsRequired: safeNumber(val.pointsRequired, 0),
+        isActive: val.isActive ? 1 : 0
       };
 
       this.customerService.updateVoucher(this.voucherId, updateReq).subscribe({
         next: () => {
           this.submitting = false;
-          this.message.success('Cập nhật voucher thành công!');
+          this.message.success(this.i18n.fanyi('voucher-form.msg.update-success'));
           this.modalRef.close(true);
         },
         error: err => {
           this.submitting = false;
-          const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi cập nhật voucher.';
+          const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('voucher-form.msg.update-error');
           this.message.error(msg);
           this.cdr.markForCheck();
         }
       });
     } else {
       const createReq = {
-        restaurantId: this.restaurantId,
+        branchId: this.restaurantId,
         title: val.title.trim(),
-        description: val.description ? val.description.trim() : null,
-        discountPercent: val.discountPercent,
-        minOrderAmount: val.minOrderAmount,
-        pointCost: val.pointCost,
-        validDays: val.validDays,
-        isActive: val.isActive
+        discountPercent: safeNumber(val.discountPercent, 10),
+        minBillAmount: safeNumber(val.minBillAmount, 0),
+        pointsRequired: safeNumber(val.pointsRequired, 0)
       };
 
       this.customerService.createVoucher(createReq).subscribe({
         next: () => {
           this.submitting = false;
-          this.message.success('Tạo voucher mới thành công!');
+          this.message.success(this.i18n.fanyi('voucher-form.msg.create-success'));
           this.modalRef.close(true);
         },
         error: err => {
           this.submitting = false;
-          const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi tạo voucher.';
+          const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('voucher-form.msg.create-error');
           this.message.error(msg);
           this.cdr.markForCheck();
         }

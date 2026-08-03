@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 
 import {
   CreateVoucherRequest,
+  CustomerPointResponse,
   CustomerResponse,
   CustomerVoucherResponse,
   GiveVoucherRequest,
@@ -33,9 +34,16 @@ export class CustomerService {
     return this.http.get<ApiResponse<CustomerResponse>>(`${this.CRM_API}/customers/${customerId}`).pipe(map(res => res.data));
   }
 
+  // 2b. Get Organization Branches (for dynamic branchId resolution)
+  getOrganizationBranches(organizationId: string): Observable<Array<{ id: string; name: string }>> {
+    return this.http
+      .get<ApiResponse<PagingResponse<{ id: string; name: string }>>>(`/api/v1/erp/organization-branches/organization/${organizationId}`)
+      .pipe(map(res => res.data?.data || []));
+  }
+
   // 3. Get Point Wallet Balance
   getWalletBalance(customerId: string, restaurantId: string): Observable<PointWalletBalanceResponse> {
-    const params = new HttpParams().set('customerId', customerId).set('restaurantId', restaurantId);
+    const params = new HttpParams().set('customerId', customerId).set('organizationId', restaurantId);
 
     return this.http.get<ApiResponse<PointWalletBalanceResponse>>(`${this.CRM_API}/wallets/balance`, { params }).pipe(map(res => res.data));
   }
@@ -44,7 +52,7 @@ export class CustomerService {
   getPointHistory(customerId: string, restaurantId: string, paging: PagingParams): Observable<PagingResponse<PointTransactionResponse>> {
     const params = new HttpParams()
       .set('customerId', customerId)
-      .set('restaurantId', restaurantId)
+      .set('organizationId', restaurantId)
       .set('page', paging.page.toString())
       .set('size', paging.size.toString());
 
@@ -57,7 +65,7 @@ export class CustomerService {
   getCustomerVouchers(customerId: string, restaurantId: string, paging: PagingParams): Observable<PagingResponse<CustomerVoucherResponse>> {
     const params = new HttpParams()
       .set('customerId', customerId)
-      .set('restaurantId', restaurantId)
+      .set('branchId', restaurantId)
       .set('page', paging.page.toString())
       .set('size', paging.size.toString());
 
@@ -69,7 +77,7 @@ export class CustomerService {
   // 6. Get All System Vouchers
   getVouchers(restaurantId: string, paging: PagingParams): Observable<PagingResponse<VoucherResponse>> {
     const params = new HttpParams()
-      .set('restaurantId', restaurantId)
+      .set('branchId', restaurantId)
       .set('page', paging.page.toString())
       .set('size', paging.size.toString());
 
@@ -79,7 +87,7 @@ export class CustomerService {
   // 7. Get Active System Vouchers (for redeem/give selection)
   getActiveVouchers(restaurantId: string, paging: PagingParams): Observable<PagingResponse<VoucherResponse>> {
     const params = new HttpParams()
-      .set('restaurantId', restaurantId)
+      .set('branchId', restaurantId)
       .set('page', paging.page.toString())
       .set('size', paging.size.toString());
 
@@ -107,8 +115,28 @@ export class CustomerService {
 
   // 11. Give Voucher (Grant free voucher to customer without deducting points)
   giveVoucher(request: GiveVoucherRequest): Observable<CustomerVoucherResponse> {
+    const params = new HttpParams()
+      .set('customerId', request.customerId)
+      .set('branchId', request.branchId)
+      .set('voucherId', request.voucherId);
+
     return this.http
-      .post<ApiResponse<CustomerVoucherResponse>>(`${this.CRM_API}/customer-vouchers/give`, request)
+      .post<ApiResponse<CustomerVoucherResponse>>(`${this.CRM_API}/customer-vouchers/give`, null, { params })
+      .pipe(map(res => res.data));
+  }
+
+  // 12. Get Organization Member Customers
+  getOrganizationCustomers(restaurantId: string, searchPhone?: string, paging?: PagingParams): Observable<PagingResponse<CustomerPointResponse>> {
+    let params = new HttpParams()
+      .set('page', (paging?.page || 1).toString())
+      .set('size', (paging?.size || 10).toString());
+
+    if (searchPhone && searchPhone.trim()) {
+      params = params.set('searchPhone', searchPhone.trim());
+    }
+
+    return this.http
+      .get<ApiResponse<PagingResponse<CustomerPointResponse>>>(`${this.CRM_API}/wallets/organization/${restaurantId}/list`, { params })
       .pipe(map(res => res.data));
   }
 }
