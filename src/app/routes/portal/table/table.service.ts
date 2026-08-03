@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { forkJoin, map, Observable, switchMap } from 'rxjs';
 
-import { PagingResponse, TableMap, TableSearchItem, TableSearchParams, TableSession } from './table.model';
+import { PagingResponse, RegisterGuestRequest, TableMap, TableSearchItem, TableSearchParams, TableSession } from './table.model';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../auth/models/auth.model';
 
@@ -26,6 +26,10 @@ export class TableService {
     return this.http
       .get<ApiResponse<PagingResponse<TableSearchItem>>>(`${this.tableApi}/search`, { params })
       .pipe(map(response => response.data));
+  }
+
+  registerGuest(request: RegisterGuestRequest): Observable<TableSession> {
+    return this.http.post<ApiResponse<TableSession>>(`${this.base}/table-sessions`, request).pipe(map(response => response.data));
   }
 
   getTransferOptions(): Observable<{ occupied: TableSearchItem[]; available: TableSearchItem[] }> {

@@ -1,7 +1,6 @@
 <page-header [title]="'menu.attendance' | i18n" />
 
-<div class="attendance-container" style="padding: 24px">
-  <nz-card>
+<nz-card>
     <nz-tabs>
       @if (hasBranchRead) {
         <nz-tab [nzTitle]="'attendance.tab.branch' | i18n">
@@ -194,5 +193,4 @@
         </nz-tab>
       }
     </nz-tabs>
-  </nz-card>
-</div>
+</nz-card>

@@ -4,14 +4,19 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzResultModule } from 'ng-zorro-antd/result';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzStepsModule } from 'ng-zorro-antd/steps';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+
 import { CustomerService } from '../customer.service';
-import { CustomerResponse } from '../customer.model';
+import { QrResolveResponse } from '../customer.model';
 
 @Component({
   selector: 'app-customer-entry',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, NzInputModule, NzButtonModule],
+  imports: [FormsModule, NzInputModule, NzButtonModule, NzResultModule, NzSpinModule, NzStepsModule, NzIconModule],
   templateUrl: './customer-entry.component.html',
   styleUrls: ['./customer-entry.component.less']
 })
@@ -22,82 +27,89 @@ export class CustomerEntryComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
 
-  step: 'ENTER_PHONE' | 'ENTER_OTP' = 'ENTER_PHONE';
+  currentStep = 0; // 0=resolving, 1=enter phone, 2=enter OTP
   phone = '';
   otp = '';
-  branchId = '';
-  tableId = '';
   loading = false;
+  qrToken = '';
+  tableInfo: QrResolveResponse | null = null;
+  maskedPhone = '';
+  otpTicket = '';
+
+  private readonly VN_PHONE_REGEX = /^(0|\+84)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])\d{7}$/;
 
   ngOnInit(): void {
-    // 1. Kiểm tra nếu đã có Session cũ ➔ Chuyển thẳng tới Order
-    const existingSession = this.customerService.getSession();
-    if (existingSession) {
-      this.goToOrderMenu();
+    const token = this.route.snapshot.queryParamMap.get('token');
+    if (token) {
+      this.customerService.clearSession();
+      this.qrToken = token;
+      this.customerService.saveQrToken(token);
+      this.resolveQr();
       return;
     }
 
-    // 2. Lấy token QR từ URL (Vd: /public/qr-order?token=xxx)
-    const token = this.route.snapshot.queryParamMap.get('token');
-    if (token) {
-      const payload = this.customerService.decodeQrToken(token);
-      if (payload) {
-        this.branchId = payload.branchId;
-        this.tableId = payload.tableId;
-      }
+    if (this.customerService.hasSession()) {
+      this.router.navigate(['/customer/menu']);
+      return;
+    }
+
+    const savedToken = this.customerService.getQrToken();
+    if (savedToken) {
+      this.qrToken = savedToken;
+      this.resolveQr();
+    } else {
+      this.currentStep = -1; // error
+      this.cdr.markForCheck();
     }
   }
 
-  // Regex validate SĐT Việt Nam: 10 chữ số, đầu 03, 05, 07, 08, 09 hoặc +84
-  private readonly VN_PHONE_REGEX = /^(0|\+84)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])\d{7}$/;
-
-  // Bước 1: Check SĐT
-  onCheckPhone(): void {
-    const rawPhone = this.phone.trim();
-    if (!rawPhone || !this.VN_PHONE_REGEX.test(rawPhone)) {
-      this.message.warning('Vui lòng nhập số điện thoại Việt Nam hợp lệ (vd: 0901234567 hoặc +84901234567)!');
-      return;
-    }
-
+  private resolveQr(): void {
     this.loading = true;
-    this.customerService.checkPhone({ phone: rawPhone, branchId: this.branchId }).subscribe({
-      next: (res) => {
+    this.customerService.resolveQr({ qrToken: this.qrToken }).subscribe({
+      next: res => {
+        this.tableInfo = res;
         this.loading = false;
-        
-        if (res.exists && res.customer) {
-          // 👉 KHÁCH CŨ: Lưu Session & Nhảy thẳng xuống Menu Order!
-          this.customerService.saveSession(res.customer);
-          this.message.success(`Chào mừng ${res.customer.fullName || 'quý khách'} quay lại!`);
-          this.goToOrderMenu();
+        if (res.hasActiveSession) {
+          this.currentStep = 3;
+          this.message.warning('Bàn này đang có phiên gọi món đang mở!');
         } else {
-          // 👉 KHÁCH MỚI: Tự động gửi OTP & Chuyển sang Step nhập OTP!
-          this.sendOtpAndGoToOtpStep();
+          this.currentStep = 1;
         }
         this.cdr.markForCheck();
       },
       error: () => {
+        this.message.error('Mã QR không hợp lệ hoặc đã hết hạn!');
+        this.currentStep = -1;
         this.loading = false;
-        this.message.error('Lỗi khi kiểm tra SĐT.');
         this.cdr.markForCheck();
       }
     });
   }
 
-  private sendOtpAndGoToOtpStep(): void {
-    this.customerService.sendOtp(this.phone.trim()).subscribe({
-      next: () => {
-        this.step = 'ENTER_OTP';
-        this.message.info('Đã gửi mã OTP xác nhận SĐT mới.');
+  onRequestOtp(): void {
+    const rawPhone = this.phone.trim();
+    if (!rawPhone || !this.VN_PHONE_REGEX.test(rawPhone)) {
+      this.message.warning('Vui lòng nhập SĐT Việt Nam hợp lệ (vd: 0901234567)');
+      return;
+    }
+
+    this.loading = true;
+    this.customerService.requestOtp({ qrToken: this.qrToken, customerPhone: rawPhone }).subscribe({
+      next: res => {
+        this.maskedPhone = res.maskedPhone;
+        this.currentStep = 2;
+        this.loading = false;
+        this.message.success(`Đã gửi mã OTP đến ${res.maskedPhone}`);
         this.cdr.markForCheck();
       },
-      error: () => {
-        this.message.error('Không thể gửi mã OTP.');
+      error: err => {
+        this.loading = false;
+        this.message.error(err?.error?.errorMessage || 'Không thể gửi OTP. Vui lòng thử lại!');
         this.cdr.markForCheck();
       }
     });
   }
 
-  // Bước 2: Verify OTP cho Khách mới
   onVerifyOtp(): void {
     if (!this.otp || this.otp.trim().length === 0) {
       this.message.warning('Vui lòng nhập mã OTP!');
@@ -105,18 +117,16 @@ export class CustomerEntryComponent implements OnInit {
     }
 
     this.loading = true;
-    this.customerService.verifyAndCreate({
-      phone: this.phone.trim(),
-      otp: this.otp.trim(),
-      branchId: this.branchId
+    this.customerService.verifyOtp({
+      qrToken: this.qrToken,
+      customerPhone: this.phone.trim(),
+      otpCode: this.otp.trim()
     }).subscribe({
-      next: (newCustomer) => {
-        this.loading = false;
-        this.message.success('Xác thực thành công! Đã tạo tài khoản tích điểm.');
-        // 👉 Đã verify & save customer thành công ➔ Nhảy xuống Menu Order!
-        this.goToOrderMenu();
+      next: res => {
+        this.otpTicket = res.otpTicket;
+        this.createSession();
       },
-      error: (err) => {
+      error: err => {
         this.loading = false;
         this.message.error(err?.error?.errorMessage || 'Mã OTP không đúng!');
         this.cdr.markForCheck();
@@ -124,9 +134,32 @@ export class CustomerEntryComponent implements OnInit {
     });
   }
 
-  private goToOrderMenu(): void {
-    this.router.navigate(['/public/qr-order/menu'], {
-      queryParamsHandling: 'preserve' // Giữ lại token bàn trên URL
+  private createSession(): void {
+    this.customerService.startSession({
+      qrToken: this.qrToken,
+      customerPhone: this.phone.trim(),
+      otpTicket: this.otpTicket
+    }).subscribe({
+      next: () => {
+        this.loading = false;
+        this.message.success('Xác thực thành công! Chuyển đến thực đơn...');
+        this.router.navigate(['/customer/menu']);
+      },
+      error: err => {
+        this.loading = false;
+        if (err?.status === 409 || err?.error?.errorCode === 'TQR_TABLE_SESSION_EXISTS') {
+          this.message.error('Bàn 101 đang có phiên gọi món chưa đóng. Vui lòng chạy `node task/FE/flush-redis.js` để reset bàn!');
+        } else {
+          this.message.error(err?.error?.errorMessage || 'Không thể tạo phiên. Vui lòng thử lại!');
+        }
+        this.cdr.markForCheck();
+      }
     });
+  }
+
+  goBackToPhone(): void {
+    this.currentStep = 1;
+    this.otp = '';
+    this.cdr.markForCheck();
   }
 }

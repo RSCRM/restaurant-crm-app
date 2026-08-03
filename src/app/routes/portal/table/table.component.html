@@ -28,6 +28,11 @@
                 <strong>{{ table.tableNumber }}</strong>
                 <span>{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
                 <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
+                @if (table.status === 'AVAILABLE') {
+                  <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(table)">
+                    {{ 'table.register.action' | i18n }}
+                  </button>
+                }
               </div>
             }
           </div>
@@ -108,6 +113,7 @@
         <th>{{ 'table.area' | i18n }}</th>
         <th>{{ 'table.capacity' | i18n }}</th>
         <th>{{ 'table.status' | i18n }}</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -117,8 +123,48 @@
           <td>{{ item.areaName }}</td>
           <td>{{ item.capacity }}</td>
           <td><nz-tag [nzColor]="statusColor(item.status)">{{ 'table.status.' + item.status.toLowerCase() | i18n }}</nz-tag></td>
+          <td>
+            @if (item.status === 'AVAILABLE') {
+              <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(item)">
+                {{ 'table.register.action' | i18n }}
+              </button>
+            }
+          </td>
         </tr>
       }
     </tbody>
   </nz-table>
 </div>
+
+<nz-modal
+  [(nzVisible)]="modalVisible"
+  [nzTitle]="'table.register.form-title' | i18n"
+  [nzOkText]="'table.register.confirm' | i18n"
+  [nzCancelText]="'action.cancel' | i18n"
+  [nzOkLoading]="saving"
+  (nzOnCancel)="modalVisible = false"
+  (nzOnOk)="submit()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>{{ 'table.guest-name' | i18n }}</nz-form-label>
+        <nz-form-control><input nz-input [(ngModel)]="form.guestName" name="guestName" maxlength="255" /></nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>{{ 'table.guest-phone' | i18n }}</nz-form-label>
+        <nz-form-control><input nz-input [(ngModel)]="form.guestPhone" name="guestPhone" inputmode="numeric" maxlength="15" /></nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>{{ 'table.party-size' | i18n }}</nz-form-label>
+        <nz-form-control>
+          <nz-input-number [(ngModel)]="form.partySize" name="partySize" [nzMin]="1" [nzMax]="selectedTable?.capacity ?? 1" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>{{ 'table.note' | i18n }}</nz-form-label>
+        <nz-form-control><textarea nz-input [(ngModel)]="form.note" name="note" rows="3" maxlength="1000"></textarea></nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
