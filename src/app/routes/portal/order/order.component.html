@@ -1,6 +1,89 @@
-<div class="page-container">
-  <nz-card>
-    <h2 nz-typography>{{ 'app.portal.order.title' | i18n }}</h2>
-    <p nz-typography>{{ 'app.portal.order.desc' | i18n }}</p>
-  </nz-card>
-</div>
+<page-header [title]="'app.order.title' | i18n" />
+<nz-card>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <nz-radio-group [(ngModel)]="searchMode" class="search-mode">
+        <label nz-radio-button nzValue="orderId">{{ 'app.order.search.byOrderId' | i18n }}</label>
+        <label nz-radio-button nzValue="tableId">{{ 'app.order.search.byTableId' | i18n }}</label>
+      </nz-radio-group>
+
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 300px;">
+        <input
+          nz-input
+          [placeholder]="searchMode === 'orderId' ? ('app.order.search.orderIdPlaceholder' | i18n) : ('app.order.search.tableIdPlaceholder' | i18n)"
+          [(ngModel)]="searchValue"
+          (keyup.enter)="search()"
+        />
+      </nz-input-group>
+      <ng-template #prefixSearch>
+        <span nz-icon nzType="search" nzTheme="outline"></span>
+      </ng-template>
+
+      <button nz-button nzType="primary" (click)="search()">
+        {{ 'app.order.search.btn' | i18n }}
+      </button>
+    </div>
+
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus" nzTheme="outline"></span>
+      {{ 'app.order.create' | i18n }}
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (loading) {
+    <div class="loading-container">
+      <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error && !loading) {
+    <nz-alert [nzType]="'warning'" [nzMessage]="error" nzShowIcon></nz-alert>
+  }
+
+  <!-- Order Result -->
+  @if (order && !loading) {
+    <div class="order-result">
+      <nz-card [nzTitle]="'app.order.result.title' | i18n" class="mb-16">
+        <nz-descriptions nzBordered [nzColumn]="2">
+          <nz-descriptions-item [nzTitle]="'app.order.detail.orderCode' | i18n">{{ order.orderCode }}</nz-descriptions-item>
+          <nz-descriptions-item [nzTitle]="'app.order.detail.status' | i18n">
+            <nz-tag [nzColor]="getStatusColor(order.status)">
+              {{ getStatusText(order.status) | i18n }}
+            </nz-tag>
+          </nz-descriptions-item>
+          <nz-descriptions-item [nzTitle]="'app.order.detail.tableId' | i18n">{{ order.tableId || '-' }}</nz-descriptions-item>
+          <nz-descriptions-item [nzTitle]="'app.order.detail.total' | i18n">
+            <strong>{{ order.totalAmount?.toLocaleString('vi-VN') }} ₫</strong>
+          </nz-descriptions-item>
+        </nz-descriptions>
+
+        <div class="order-actions">
+          <button nz-button nzType="primary" (click)="goToDetail()">
+            <span nz-icon nzType="eye" nzTheme="outline"></span>
+            {{ 'app.order.viewDetail' | i18n }}
+          </button>
+        </div>
+      </nz-card>
+
+      <!-- Items Preview -->
+      <nz-card [nzTitle]="('app.order.result.items' | i18n) + ' (' + order.items.length + ')'">
+        <div class="items-list">
+          @for (item of order.items; track item.orderItemId) {
+            <div class="item-row">
+              <div class="item-info">
+                <span class="item-name">{{ item.itemName }}</span>
+                <span class="item-qty">x{{ item.quantity }}</span>
+              </div>
+              <nz-tag [nzColor]="getStatusColor(item.status)" nzSize="small">
+                {{ getStatusText(item.status) | i18n }}
+              </nz-tag>
+            </div>
+          }
+        </div>
+      </nz-card>
+    </div>
+  }
+</nz-card>
