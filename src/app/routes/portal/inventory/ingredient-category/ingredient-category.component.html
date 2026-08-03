@@ -1,0 +1,56 @@
+<page-header [title]="'app.ingredientCategory.title' | i18n" />
+
+<nz-card>
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px;">
+        <input
+          nz-input
+          [(ngModel)]="keyword"
+          [placeholder]="'app.ingredientCategory.searchPlaceholder' | i18n"
+          (keyup.enter)="search()"
+        />
+      </nz-input-group>
+
+      <ng-template #prefixSearch>
+        <span nz-icon nzType="search"></span>
+      </ng-template>
+
+      <button nz-button nzType="primary" (click)="search()">
+        {{ 'app.ingredientCategory.search' | i18n }}
+      </button>
+
+      @if (keyword) {
+        <button nz-button nzDanger (click)="clearSearch()">
+          <span nz-icon nzType="close-circle"></span>
+          {{ 'app.ingredientCategory.clearSearch' | i18n }}
+        </button>
+      }
+    </div>
+
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus"></span>
+      {{ 'app.ingredientCategory.create' | i18n }}
+    </button>
+  </div>
+
+  <!-- Table -->
+  <st
+    #st
+    [columns]="columns"
+    [data]="data"
+    [loading]="loading"
+    [total]="total"
+    [ps]="pageSize"
+    [pi]="currentPage"
+    [page]="{
+      show: true,
+      showSize: true,
+      front: false
+    }"
+    [scroll]="{ x: '1000px' }"
+    (change)="onSTChange($event)"
+  >
+  </st>
+</nz-card>

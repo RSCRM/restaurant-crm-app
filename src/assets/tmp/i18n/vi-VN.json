@@ -386,5 +386,58 @@
   "table.status.available": "Trống",
   "table.status.occupied": "Đang phục vụ",
   "table.status.reserved": "Đã đặt",
-  "validation.standard.required": "Vui lòng nhập chỉ số"
+  "validation.standard.required": "Vui lòng nhập chỉ số",
+
+  "app.inventory.title": "Quản lý kho",
+  "app.inventory.search": "Tìm kiếm",
+  "app.inventory.searchPlaceholder": "Tìm theo tên nguyên liệu",
+  "app.inventory.filter": "Bộ lọc",
+  "app.inventory.applyFilter": "Áp dụng bộ lọc",
+  "app.inventory.clearFilter": "Xóa bộ lọc",
+  "app.inventory.create": "Tạo tồn kho",
+
+  "app.inventory.ingredient": "Nguyên liệu",
+  "app.inventory.quantity": "Số lượng",
+  "app.inventory.minimumQuantity": "Tồn kho tối thiểu",
+  "app.inventory.status": "Trạng thái",
+  "app.inventory.createdAt": "Ngày tạo",
+  "app.inventory.updatedAt": "Ngày cập nhật",
+  "app.inventory.actions": "Thao tác",
+
+  "app.inventory.edit": "Chỉnh sửa",
+
+  "app.inventory.status.good": "Đủ hàng",
+  "app.inventory.status.low": "Sắp hết",
+  "app.inventory.status.outOfStock": "Hết hàng",
+
+  "app.inventory.filter.status": "Trạng thái",
+  "app.inventory.filter.all": "Tất cả",
+  "app.inventory.filter.quantityFrom": "Số lượng từ",
+  "app.inventory.filter.quantityTo": "Số lượng đến",
+  "app.inventory.filter.minimumQuantityFrom": "Tồn kho tối thiểu từ",
+  "app.inventory.filter.minimumQuantityTo": "Tồn kho tối thiểu đến",
+  "app.inventory.filter.createdAtFrom": "Ngày tạo từ",
+  "app.inventory.filter.createdAtTo": "Ngày tạo đến",
+
+  "app.ingredientCategory.create": "Tạo danh mục nguyên liệu",
+  "app.ingredientCategory.categoryName": "Tên danh mục",
+  "app.ingredientCategory.categoryNamePlaceholder": "Nhập tên danh mục",
+  "app.ingredientCategory.description": "Mô tả",
+  "app.ingredientCategory.descriptionPlaceholder": "Nhập mô tả",
+
+  "app.error.categoryName.required": "Tên danh mục không được để trống",
+
+  "app.ingredient.create": "Tạo nguyên liệu",
+  "app.ingredient.category": "Danh mục",
+  "app.ingredient.categoryPlaceholder": "Chọn danh mục",
+  "app.ingredient.name": "Tên nguyên liệu",
+  "app.ingredient.namePlaceholder": "Nhập tên nguyên liệu",
+  "app.ingredient.unit": "Đơn vị",
+  "app.ingredient.unitPlaceholder": "Chọn đơn vị",
+  "app.ingredient.description": "Mô tả",
+  "app.ingredient.descriptionPlaceholder": "Nhập mô tả",
+
+  "app.error.ingredient.category.required": "Danh mục không được để trống",
+  "app.error.ingredient.name.required": "Tên nguyên liệu không được để trống",
+  "app.error.ingredient.unit.required": "Đơn vị không được để trống"
 }
