@@ -1,11 +1,11 @@
-<page-header [title]="'Quản lý Khách hàng & Loyalty'" />
+<page-header [title]="'customer.title' | i18n" />
 
 <nz-tabs [(nzSelectedIndex)]="activeTabIndex">
   <!-- TAB 1: TRA CỨU KHÁCH HÀNG & THÔNG TIN TÍCH ĐỂM -->
   <nz-tab [nzTitle]="tab1TitleTpl">
     <ng-template #tab1TitleTpl>
       <span nz-icon nzType="user" nzTheme="outline"></span>
-      Tra cứu Khách hàng
+      {{ 'customer.tab.lookup' | i18n }}
     </ng-template>
 
     <nz-card style="margin-top: 16px">
@@ -20,7 +20,7 @@
                   nz-input
                   [(ngModel)]="searchPhone"
                   name="searchPhone"
-                  placeholder="Tìm theo SĐT khách (vd: 0966888888)..."
+                  [placeholder]="'customer.search.placeholder' | i18n"
                   style="width: 280px"
                   (keyup.enter)="searchCustomer()"
                 />
@@ -31,18 +31,35 @@
           <!-- Search / Reset Buttons -->
           <nz-form-item>
             <button nz-button nzType="primary" type="submit" [nzLoading]="searching">
-              <span nz-icon nzType="search"></span>Tìm kiếm
+              <span nz-icon nzType="search"></span>{{ 'customer.search.button' | i18n }}
             </button>
-            <button nz-button nzType="default" type="button" (click)="resetCustomerSearch()" style="margin-left: 8px"> Làm mới </button>
+            <button nz-button nzType="default" type="button" (click)="resetCustomerSearch()" style="margin-left: 8px"> {{ 'customer.search.reset' | i18n }} </button>
           </nz-form-item>
         </form>
       </div>
 
-      <!-- Trạng thái chưa tra cứu -->
-      @if (!currentCustomer && !searching) {
-        <div style="text-align: center; padding: 40px 0; color: #8c8c8c">
-          <span nz-icon nzType="user-search" style="font-size: 48px; color: #d9d9d9; margin-bottom: 12px; display: block"></span>
-          <p>Vui lòng nhập số điện thoại và bấm <strong>Tìm kiếm</strong> để xem ví điểm và thông tin thành viên.</p>
+      <!-- Danh sách Khách hàng Thành viên (khi chưa chọn 1 khách cụ thể) -->
+      @if (!currentCustomer) {
+        <div style="margin-top: 16px">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+            <h4 style="font-weight: bold; font-size: 15px; margin: 0">
+              <span nz-icon nzType="team" nzTheme="outline" style="margin-right: 8px; color: #1890ff"></span>
+              {{ 'customer.member-list.title' | i18n }}
+            </h4>
+            <span style="font-size: 13px; color: #8c8c8c">{{ 'customer.member-list.total' | i18n }} <strong>{{ memberCustomerTotal }}</strong> {{ 'customer.member-list.customers' | i18n }}</span>
+          </div>
+
+          <st
+            #memberCustomerSt
+            [data]="memberCustomersList"
+            [columns]="memberCustomerColumns"
+            [loading]="memberCustomerLoading"
+            [total]="memberCustomerTotal"
+            [pi]="memberCustomerPage"
+            [ps]="memberCustomerSize"
+            [page]="{ front: false }"
+            (change)="onMemberCustomerSTChange($event)"
+          />
         </div>
       }
 
@@ -54,7 +71,7 @@
             <div nz-col nzSpan="6">
               <nz-statistic
                 [nzValue]="walletBalance?.currentPoints ?? 0"
-                [nzTitle]="'Số Dư Điểm Khả Dụng'"
+                [nzTitle]="'customer.wallet.available' | i18n"
                 [nzValueStyle]="{ color: '#52c41a', 'font-weight': 'bold', 'font-size': '28px' }"
                 [nzPrefix]="pointsPrefixTpl"
               />
@@ -66,27 +83,27 @@
             <div nz-col nzSpan="6">
               <nz-statistic
                 [nzValue]="walletBalance?.lifetimePoints ?? 0"
-                [nzTitle]="'Điểm Tích Lũy Trọn Đời'"
+                [nzTitle]="'customer.wallet.lifetime' | i18n"
                 [nzValueStyle]="{ color: '#1890ff', 'font-weight': 'bold' }"
               />
             </div>
 
             <div nz-col nzSpan="6">
-              <div style="font-size: 13px; color: #8c8c8c">Mã Khách Hàng:</div>
+              <div style="font-size: 13px; color: #8c8c8c">{{ 'customer.wallet.id' | i18n }}</div>
               <div style="font-weight: 500; font-size: 14px">{{ currentCustomer.id }}</div>
               <div style="font-size: 13px; color: #8c8c8c; margin-top: 4px">
-                SĐT: <strong>{{ currentCustomer.phone }}</strong>
+                {{ 'customer.wallet.phone' | i18n }} <strong>{{ currentCustomer.phone }}</strong>
               </div>
             </div>
 
             <div nz-col nzSpan="6" style="text-align: right">
               <button nz-button nzType="primary" size="large" style="margin-bottom: 8px; width: 100%" (click)="openRedeemModal('redeem')">
                 <span nz-icon nzType="gift" nzTheme="outline"></span>
-                Đổi Điểm Lấy Voucher
+                {{ 'customer.action.redeem' | i18n }}
               </button>
               <button nz-button nzType="default" style="width: 100%" (click)="openRedeemModal('give')">
                 <span nz-icon nzType="plus-circle" nzTheme="outline"></span>
-                Tặng Voucher Trực Tiếp
+                {{ 'customer.action.give' | i18n }}
               </button>
             </div>
           </div>
@@ -95,7 +112,7 @@
         <!-- Section 1: Lịch Sử Giao Dịch Điểm Tích Lũy -->
         <h4 style="font-weight: bold; margin-bottom: 16px; font-size: 16px">
           <span nz-icon nzType="history" nzTheme="outline" style="margin-right: 8px; color: #1890ff"></span>
-          Lịch Sử Giao Dịch Ví Điểm
+          {{ 'customer.history.title' | i18n }}
         </h4>
 
         <st
@@ -119,12 +136,12 @@
             >
               {{
                 item.type === 'EARN'
-                  ? '+ Tích điểm'
+                  ? ('customer.history.type.earn' | i18n)
                   : item.type === 'REDEEM'
-                    ? '- Đổi voucher'
+                    ? ('customer.history.type.redeem' | i18n)
                     : item.type === 'DEDUCT'
-                      ? '- Trừ điểm'
-                      : 'Hết hạn'
+                      ? ('customer.history.type.deduct' | i18n)
+                      : ('customer.history.type.expire' | i18n)
               }}
             </nz-tag>
           </ng-template>
@@ -139,15 +156,12 @@
 
         <!-- Section 2: Danh Sách Voucher Khách Hàng Đang Sở Hữu -->
         <h4 style="font-weight: bold; margin-bottom: 16px; font-size: 16px">
-          <span nz-icon nzType="tags" nzTheme="outline" style="margin-right: 8px; color: #722ed1"></span>
-          Ví Voucher Của Thành Viên
+          {{ 'customer.vouchers.title' | i18n }}
         </h4>
 
         @if (customerVouchers.length === 0 && !voucherLoading) {
           <div style="text-align: center; padding: 24px; color: #8c8c8c; background-color: #fafafa; border-radius: 6px">
-            Khách hàng chưa sở hữu voucher nào. Hãy bấm <strong>"Đổi Điểm Lấy Voucher"</strong> hoặc
-            <strong>"Tặng Voucher Trực Tiếp"</strong>
-            để thêm quà cho thành viên.
+            {{ 'voucher.my-vouchers.empty' | i18n }}
           </div>
         }
 
@@ -157,23 +171,23 @@
               <div nz-col nzSpan="8">
                 <nz-card style="border-radius: 8px; border: 1px solid #e8e8e8">
                   <div style="display: flex; justify-content: space-between; align-items: flex-start">
-                    <h4 style="margin: 0; font-weight: bold; color: #1890ff">{{ cv.voucherTitle }}</h4>
-                    <nz-tag [nzColor]="cv.status === 'ACTIVE' ? 'success' : cv.status === 'USED' ? 'default' : 'error'">
-                      {{ cv.status === 'ACTIVE' ? 'Chưa dùng' : cv.status === 'USED' ? 'Đã dùng' : 'Hết hạn' }}
+                    <h4 style="margin: 0; font-weight: bold; color: #1890ff">{{ cv.voucher?.title }}</h4>
+                    <nz-tag [nzColor]="cv.status === 'AVAILABLE' ? 'success' : cv.status === 'USED' ? 'default' : 'error'">
+                      {{ cv.status === 'AVAILABLE' ? ('voucher.status.available' | i18n) : cv.status === 'USED' ? ('voucher.status.used' | i18n) : ('voucher.status.expired' | i18n) }}
                     </nz-tag>
                   </div>
 
                   <div style="margin-top: 12px; font-size: 12px; color: #595959">
                     <div>
-                      • Giảm giá: <strong style="color: #f5222d">{{ cv.discountPercent }}%</strong>
+                      • {{ 'voucher.discount' | i18n }}: <strong style="color: #f5222d">{{ cv.voucher?.discountPercent }}%</strong>
                     </div>
                     <div>
-                      • Đơn tối thiểu: <strong>{{ cv.minOrderAmount | number: '1.0-0' }} ₫</strong>
+                      • {{ 'voucher.min-order' | i18n }}: <strong>{{ cv.voucher?.minBillAmount | number: '1.0-0' }} ₫</strong>
                     </div>
-                    <div>• Ngày nhận: {{ cv.redeemedAt | date: 'yyyy-MM-dd HH:mm' }}</div>
                     <div>
-                      • Hạn dùng: <strong>{{ cv.expiresAt | date: 'yyyy-MM-dd HH:mm' }}</strong>
+                      • Mã Code: <strong style="color: #1890ff">{{ cv.voucherSn }}</strong>
                     </div>
+                    <div>• {{ 'voucher.expiry' | i18n }} <strong>{{ cv.voucher?.expiredAt ? (cv.voucher?.expiredAt | date: 'yyyy-MM-dd HH:mm') : ('voucher.status.no-expiry' | i18n) }}</strong></div>
                   </div>
                 </nz-card>
               </div>
@@ -188,7 +202,7 @@
   <nz-tab [nzTitle]="tab2TitleTpl">
     <ng-template #tab2TitleTpl>
       <span nz-icon nzType="appstore" nzTheme="outline"></span>
-      Danh mục Voucher Hệ Thống
+      {{ 'customer.tab.system-vouchers' | i18n }}
     </ng-template>
 
     <nz-card style="margin-top: 16px">
@@ -203,7 +217,7 @@
                   nz-input
                   [(ngModel)]="searchVoucherTitle"
                   name="searchVoucherTitle"
-                  placeholder="Tìm theo tên voucher..."
+                  [placeholder]="'customer.voucher.search.placeholder' | i18n"
                   style="width: 220px"
                   (keyup.enter)="searchVouchers()"
                 />
@@ -213,7 +227,7 @@
 
           <!-- Status Selection -->
           <nz-form-item style="margin-right: 16px">
-            <nz-form-label>Trạng thái</nz-form-label>
+            <nz-form-label>{{ 'customer.voucher.filter.status' | i18n }}</nz-form-label>
             <nz-form-control>
               <nz-select
                 [(ngModel)]="filterVoucherStatus"
@@ -221,24 +235,24 @@
                 style="width: 170px"
                 (ngModelChange)="filterSystemVouchers()"
               >
-                <nz-option nzValue="ALL" nzLabel="Tất cả" />
-                <nz-option nzValue="ACTIVE" nzLabel="Đang áp dụng" />
-                <nz-option nzValue="INACTIVE" nzLabel="Tạm ngưng" />
+                <nz-option nzValue="ALL" [nzLabel]="'customer.voucher.filter.all' | i18n" />
+                <nz-option nzValue="ACTIVE" [nzLabel]="'customer.voucher.filter.active' | i18n" />
+                <nz-option nzValue="INACTIVE" [nzLabel]="'customer.voucher.filter.inactive' | i18n" />
               </nz-select>
             </nz-form-control>
           </nz-form-item>
 
           <!-- Search / Reset Buttons -->
           <nz-form-item>
-            <button nz-button nzType="primary" (click)="searchVouchers()"> <span nz-icon nzType="search"></span>Tìm kiếm </button>
-            <button nz-button nzType="default" (click)="resetVoucherFilter()" style="margin-left: 8px">Làm mới</button>
+            <button nz-button nzType="primary" (click)="searchVouchers()"> <span nz-icon nzType="search"></span>{{ 'customer.search.button' | i18n }} </button>
+            <button nz-button nzType="default" (click)="resetVoucherFilter()" style="margin-left: 8px">{{ 'customer.search.reset' | i18n }}</button>
           </nz-form-item>
 
           <!-- Add Voucher Button -->
           <div style="margin-left: auto; display: flex; align-items: center">
             @if (hasVoucherCreatePermission) {
               <button nz-button nzType="primary" (click)="openCreateVoucherModal()">
-                <span nz-icon nzType="plus"></span>Tạo Voucher Mới
+                <span nz-icon nzType="plus"></span>{{ 'customer.voucher.create' | i18n }}
               </button>
             }
           </div>
@@ -260,16 +274,16 @@
         <!-- Custom render for Switch isActive -->
         <ng-template st-row="isActive" let-item>
           <nz-switch
-            [ngModel]="item.isActive"
+            [ngModel]="item.isActive === 1"
             (ngModelChange)="toggleVoucherStatus(item, $event)"
-            nzCheckedChildren="Bật"
-            nzUnCheckedChildren="Tắt"
+            [nzCheckedChildren]="'customer.voucher.switch.on' | i18n"
+            [nzUnCheckedChildren]="'customer.voucher.switch.off' | i18n"
           />
         </ng-template>
 
         <!-- Custom render for Actions -->
         <ng-template st-row="actions" let-item>
-          <button nz-button nzType="link" (click)="openEditVoucherModal(item)"><span nz-icon nzType="edit"></span>Sửa</button>
+          <button nz-button nzType="link" (click)="openEditVoucherModal(item)"><span nz-icon nzType="edit"></span>{{ 'customer.voucher.action.edit' | i18n }}</button>
         </ng-template>
       </st>
     </nz-card>

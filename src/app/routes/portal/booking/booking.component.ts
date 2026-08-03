@@ -19,6 +19,7 @@ import { BookingFormComponent } from './booking-form/booking-form.component';
 import { BookingResponse, BookingStatus } from './booking.model';
 import { BookingService } from './booking.service';
 import { selectContextToken } from '../../auth/store/auth.selectors';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 
 @Component({
   selector: 'app-booking',
@@ -71,6 +72,7 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
   ]
 })
 export class BookingComponent implements OnInit, OnDestroy {
+  private i18n = inject(ALAIN_I18N_TOKEN);
   private bookingService = inject(BookingService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
@@ -257,9 +259,14 @@ export class BookingComponent implements OnInit, OnDestroy {
   }
 
   updateStatus(booking: BookingResponse, status: BookingStatus): void {
+    if (status === BookingStatus.SEATED && !booking.tableId) {
+      this.message.warning(this.i18n.fanyi('booking.warning.no-table'));
+      return;
+    }
+
     let confirmMsg = '';
     if (status === BookingStatus.SEATED) {
-      confirmMsg = 'Xác nhận khách đã nhận bàn?';
+      confirmMsg = this.i18n.fanyi('booking.confirm.seated');
     } else if (status === BookingStatus.CANCELLED) {
       confirmMsg = 'Bạn có chắc chắn muốn hủy đặt bàn này?';
     }
@@ -272,7 +279,11 @@ export class BookingComponent implements OnInit, OnDestroy {
         this.bookingService.updateBookingStatus(booking.id, { status }).subscribe({
           next: () => {
             this.loading = false;
-            this.message.success('Cập nhật trạng thái thành công!');
+            if (status === BookingStatus.SEATED) {
+              this.message.success(this.i18n.fanyi('booking.success.seated'));
+            } else {
+              this.message.success('Cập nhật trạng thái thành công!');
+            }
             this.loadData();
           },
           error: err => {

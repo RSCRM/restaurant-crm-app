@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -25,11 +26,12 @@ export interface RedeemModalData {
   selector: 'app-redeem-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, NzCardModule, NzButtonModule, NzIconModule, NzTagModule, NzSpinModule, NzGridModule, NzTooltipModule],
+  imports: [CommonModule, NzCardModule, NzButtonModule, NzIconModule, NzTagModule, NzSpinModule, NzGridModule, NzTooltipModule, I18nPipe],
   templateUrl: './redeem-modal.component.html',
   styleUrls: ['./redeem-modal.component.less']
 })
 export class RedeemModalComponent implements OnInit {
+  private i18n = inject(ALAIN_I18N_TOKEN);
   private customerService = inject(CustomerService);
   private modalRef = inject(NzModalRef);
   private modalService = inject(NzModalService);
@@ -77,7 +79,7 @@ export class RedeemModalComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        this.message.error('Lỗi khi tải danh sách voucher hoạt động.');
+        this.message.error(this.i18n.fanyi('redeem-modal.msg.load-error'));
         this.cdr.markForCheck();
       }
     });
@@ -85,20 +87,22 @@ export class RedeemModalComponent implements OnInit {
 
   canRedeem(voucher: VoucherResponse): boolean {
     if (this.mode === 'give') return true;
-    return this.currentPoints >= voucher.pointCost;
+    return this.currentPoints >= voucher.pointsRequired;
   }
 
   actionVoucher(voucher: VoucherResponse): void {
     if (!this.canRedeem(voucher)) {
-      this.message.warning(`Khách hàng cần có ít nhất ${voucher.pointCost} điểm để đổi voucher này!`);
+      this.message.warning(this.i18n.fanyi('redeem-modal.msg.insufficient-points', { points: voucher.pointsRequired }));
       return;
     }
 
-    const titleAction = this.mode === 'redeem' ? 'Đổi Điểm Lấy Voucher' : 'Tặng Voucher Trực Tiếp';
-    const confirmMsg =
-      this.mode === 'redeem'
-        ? `Đổi ${voucher.pointCost} điểm của SĐT ${this.customerPhone} lấy "${voucher.title}"?`
-        : `Tặng miễn phí voucher "${voucher.title}" cho SĐT ${this.customerPhone}?`;
+    const titleAction = this.mode === 'redeem'
+      ? this.i18n.fanyi('redeem-modal.confirm.title.redeem')
+      : this.i18n.fanyi('redeem-modal.confirm.title.give');
+
+    const confirmMsg = this.mode === 'redeem'
+      ? this.i18n.fanyi('redeem-modal.confirm.content.redeem', { points: voucher.pointsRequired, phone: this.customerPhone, title: voucher.title })
+      : this.i18n.fanyi('redeem-modal.confirm.content.give', { phone: this.customerPhone, title: voucher.title });
 
     this.modalService.confirm({
       nzTitle: titleAction,
@@ -112,17 +116,17 @@ export class RedeemModalComponent implements OnInit {
             .redeemVoucher({
               customerId: this.customerId,
               voucherId: voucher.id,
-              restaurantId: this.restaurantId
+              branchId: this.restaurantId
             })
             .subscribe({
               next: () => {
                 this.submittingVoucherId = null;
-                this.message.success('Đổi voucher cho khách hàng thành công!');
+                this.message.success(this.i18n.fanyi('redeem-modal.msg.redeem-success'));
                 this.modalRef.close(true);
               },
               error: err => {
                 this.submittingVoucherId = null;
-                const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi đổi voucher.';
+                const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('redeem-modal.msg.redeem-error');
                 this.message.error(msg);
                 this.cdr.markForCheck();
               }
@@ -132,17 +136,17 @@ export class RedeemModalComponent implements OnInit {
             .giveVoucher({
               customerId: this.customerId,
               voucherId: voucher.id,
-              restaurantId: this.restaurantId
+              branchId: this.restaurantId
             })
             .subscribe({
               next: () => {
                 this.submittingVoucherId = null;
-                this.message.success('Tặng voucher cho khách hàng thành công!');
+                this.message.success(this.i18n.fanyi('redeem-modal.msg.give-success'));
                 this.modalRef.close(true);
               },
               error: err => {
                 this.submittingVoucherId = null;
-                const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi tặng voucher.';
+                const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('redeem-modal.msg.give-error');
                 this.message.error(msg);
                 this.cdr.markForCheck();
               }
