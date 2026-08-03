@@ -4,7 +4,7 @@
 
   <nz-spin [nzSpinning]="loading$ | async">
     <div class="context-grid">
-      @for (ctx of contexts$ | async; track ctx.organizationId) {
+      @for (ctx of contexts$ | async; track ctx.employeeId ?? ctx.branchId ?? ctx.organizationId) {
         <div class="context-item">
           <nz-card [nzTitle]="ctx.organizationName" nzHoverable>
             @if (ctx.branchName) {

@@ -77,7 +77,7 @@
 
       <!-- Tab 1: Check-in / Check-out -->
       @if (hasSelfWrite && !hasBranchRead) {
-        <nz-tab [nzTitle]="'attendance.tab.checkin-checkout' | i18n" (nzSelect)="loadCurrentStatus(); onSelectOtherTab()">
+        <nz-tab [nzTitle]="'attendance.tab.checkin-checkout' | i18n" (nzSelect)="onCheckInTabSelected()">
           <nz-spin [nzSpinning]="loadingStatus || submittingCheck">
             <div class="check-container">
               <!-- NOT CHECKED IN YET -->
@@ -85,23 +85,39 @@
                 <div class="status-box">
                   <nz-alert nzType="info" [nzMessage]="'attendance.not-checked-in' | i18n" nzShowIcon />
 
-                  <div class="action-box" style="margin-top: 24px; text-align: left">
-                    <nz-form-item>
-                      <nz-form-label>{{ 'attendance.paste-qr-label' | i18n }}</nz-form-label>
-                      <nz-form-control>
-                        <textarea
-                          nz-input
-                          [(ngModel)]="qrTokenInput"
-                          [placeholder]="'attendance.paste-qr-placeholder' | i18n"
-                          rows="4"
-                        ></textarea>
-                      </nz-form-control>
-                    </nz-form-item>
+                  <section class="attendance-scanner" aria-labelledby="attendance-scanner-title">
+                    <h3 id="attendance-scanner-title">
+                      <span nz-icon nzType="scan"></span>
+                      {{ 'attendance.scanner-title' | i18n }}
+                    </h3>
+                    <p>{{ 'attendance.scanner-instruction' | i18n }}</p>
 
-                    <button nz-button nzType="primary" nzBlock (click)="checkIn()" [disabled]="!qrTokenInput.trim()">
-                      <span nz-icon nzType="login"></span> {{ 'attendance.checkin-action' | i18n }}
-                    </button>
-                  </div>
+                    <div id="attendance-qr-reader" class="scanner-viewport"></div>
+                    <div id="attendance-qr-file" hidden></div>
+
+                    @if (scannerError) {
+                      <div class="scanner-error" role="alert">{{ scannerError }}</div>
+                      <button nz-button nzType="primary" (click)="startAttendanceScanner()">
+                        {{ 'attendance.scanner-retry' | i18n }}
+                      </button>
+                    }
+
+                    <div class="scanner-upload">
+                      <p>{{ 'attendance.scanner-upload-hint' | i18n }}</p>
+                      <button nz-button (click)="attendanceQrFile.click()">
+                        <span nz-icon nzType="folder-open"></span>
+                        {{ 'attendance.scanner-upload-action' | i18n }}
+                      </button>
+                      <input
+                        #attendanceQrFile
+                        type="file"
+                        accept="image/*"
+                        (change)="onAttendanceQrFileSelected($event)"
+                        [attr.aria-label]="'attendance.scanner-upload-action' | i18n"
+                        hidden
+                      />
+                    </div>
+                  </section>
                 </div>
               }
 

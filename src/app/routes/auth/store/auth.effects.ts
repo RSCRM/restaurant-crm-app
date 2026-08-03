@@ -81,9 +81,9 @@ export class AuthEffects {
   selectContext$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.selectContext),
-      switchMap(({ organizationId, employeeId, role }) => {
+      switchMap(({ organizationId, employeeId, branchId, role }) => {
         const accessToken = this.authService.getAccessToken();
-        return this.authService.selectContext({ organizationId, employeeId, role }, accessToken || '').pipe(
+        return this.authService.selectContext({ organizationId, employeeId, branchId, role }, accessToken || '').pipe(
           map(response => {
             // contextToken is the main API token for business calls
             this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);

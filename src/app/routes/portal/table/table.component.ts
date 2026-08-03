@@ -20,6 +20,7 @@ import {
   RegisterGuestRequest,
   RestaurantTableStatus,
   TableAreaMap,
+  TableBooking,
   TableSearchItem,
   TableStatus
 } from './table.model';
@@ -60,6 +61,8 @@ export class TableComponent implements OnInit {
   modalVisible = false;
   transferOptionsLoading = false;
   transferring = false;
+  finishingTableId: string | null = null;
+  bookingActionTableId: string | null = null;
 
   selectedAreaId: string | null = null;
   areas: TableAreaMap[] = [];
@@ -78,6 +81,7 @@ export class TableComponent implements OnInit {
   availableTables: TableSearchItem[] = [];
   sourceTableId: string | null = null;
   targetTableId: string | null = null;
+  bookingsByTable = new Map<string, TableBooking>();
   private searchSubscription?: Subscription;
 
   ngOnInit(): void {
@@ -105,9 +109,27 @@ export class TableComponent implements OnInit {
         })
       )
       .subscribe({
-        next: map => (this.areas = map.areas),
+        next: map => {
+          this.areas = map.areas;
+          this.loadBookings(map.branchId);
+        },
         error: () => this.message.error('Không thể tải sơ đồ bàn')
       });
+  }
+
+  loadBookings(branchId: string): void {
+    this.tableService.getActiveBookings(branchId).subscribe({
+      next: bookings => {
+        this.bookingsByTable = new Map(
+          bookings.filter((booking): booking is TableBooking & { tableId: string } => !!booking.tableId).map(booking => [booking.tableId, booking])
+        );
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.bookingsByTable.clear();
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   search(resetPage = false): void {
@@ -223,6 +245,39 @@ export class TableComponent implements OnInit {
     });
   }
 
+  confirmFinish(table: TableStatus): void {
+    this.modal.confirm({
+      nzTitle: 'Xác nhận dọn bàn',
+      nzContent: `Kết thúc phục vụ và dọn bàn ${table.tableNumber}?`,
+      nzOnOk: () => this.finish(table)
+    });
+  }
+
+  bookingFor(tableId: string): TableBooking | undefined {
+    return this.bookingsByTable.get(tableId);
+  }
+
+  confirmReservation(table: TableStatus): void {
+    const booking = this.bookingFor(table.id);
+    if (!booking || booking.status === 'CONFIRMED') return;
+    this.modal.confirm({
+      nzTitle: 'Xác nhận đặt bàn',
+      nzContent: `Xác nhận đặt bàn cho ${table.tableNumber}?`,
+      nzOnOk: () => this.updateReservation(table, 'CONFIRMED')
+    });
+  }
+
+  cancelReservation(table: TableStatus): void {
+    const booking = this.bookingFor(table.id);
+    if (!booking) return;
+    this.modal.confirm({
+      nzTitle: 'Hủy đặt bàn',
+      nzContent: `Hủy đặt bàn của ${table.tableNumber}?`,
+      nzOkDanger: true,
+      nzOnOk: () => this.updateReservation(table, 'CANCELLED')
+    });
+  }
+
   statusColor(status: RestaurantTableStatus): string {
     return status === 'AVAILABLE' ? 'green' : status === 'OCCUPIED' ? 'red' : 'gold';
   }
@@ -241,6 +296,40 @@ export class TableComponent implements OnInit {
       this.message.error(detail ?? 'Không thể chuyển bàn');
     } finally {
       this.transferring = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  private async finish(table: TableStatus): Promise<void> {
+    this.finishingTableId = table.id;
+    this.cdr.markForCheck();
+    try {
+      await firstValueFrom(this.tableService.finish(table.id));
+      this.message.success(`Đã dọn bàn ${table.tableNumber}`);
+      this.reload();
+    } catch (error: unknown) {
+      const detail = (error as { error?: { errorMessage?: { message?: string } } }).error?.errorMessage?.message;
+      this.message.error(detail ?? 'Không thể dọn bàn');
+    } finally {
+      this.finishingTableId = null;
+      this.cdr.markForCheck();
+    }
+  }
+
+  private async updateReservation(table: TableStatus, status: 'CONFIRMED' | 'CANCELLED'): Promise<void> {
+    this.bookingActionTableId = table.id;
+    this.cdr.markForCheck();
+    try {
+      await firstValueFrom(
+        status === 'CONFIRMED' ? this.tableService.confirmReservation(table.id) : this.tableService.cancelReservation(table.id)
+      );
+      this.message.success(status === 'CONFIRMED' ? 'Xác nhận đặt bàn thành công' : 'Đã hủy đặt bàn');
+      this.reload();
+    } catch (error: unknown) {
+      const detail = (error as { error?: { errorMessage?: { message?: string } } }).error?.errorMessage?.message;
+      this.message.error(detail ?? 'Không thể cập nhật đặt bàn');
+    } finally {
+      this.bookingActionTableId = null;
       this.cdr.markForCheck();
     }
   }

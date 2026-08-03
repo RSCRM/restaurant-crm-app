@@ -2,7 +2,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { forkJoin, map, Observable, switchMap } from 'rxjs';
 
-import { PagingResponse, RegisterGuestRequest, TableMap, TableSearchItem, TableSearchParams, TableSession } from './table.model';
+import {
+  PagingResponse,
+  RegisterGuestRequest,
+  TableBooking,
+  TableMap,
+  TableSearchItem,
+  TableSearchParams,
+  TableSession
+} from './table.model';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../auth/models/auth.model';
 
@@ -32,6 +40,25 @@ export class TableService {
     return this.http.post<ApiResponse<TableSession>>(`${this.base}/table-sessions`, request).pipe(map(response => response.data));
   }
 
+  getActiveBookings(branchId: string): Observable<TableBooking[]> {
+    const params = new HttpParams().set('page', 1).set('size', 100);
+    return this.http
+      .get<ApiResponse<PagingResponse<TableBooking>>>(`${this.base}/crm/bookings/branch/${branchId}`, { params })
+      .pipe(map(response => response.data.data.filter(booking => booking.status === 'PENDING' || booking.status === 'CONFIRMED')));
+  }
+
+  confirmReservation(tableId: string): Observable<unknown> {
+    return this.http
+      .put<ApiResponse<unknown>>(`${this.base}/erp/restaurant-tables/${tableId}/reservation/confirm`, {})
+      .pipe(map(response => response.data));
+  }
+
+  cancelReservation(tableId: string): Observable<unknown> {
+    return this.http
+      .put<ApiResponse<unknown>>(`${this.base}/erp/restaurant-tables/${tableId}/reservation/cancel`, {})
+      .pipe(map(response => response.data));
+  }
+
   getTransferOptions(): Observable<{ occupied: TableSearchItem[]; available: TableSearchItem[] }> {
     return forkJoin({ occupied: this.searchByStatus('OCCUPIED'), available: this.searchByStatus('AVAILABLE') });
   }
@@ -43,6 +70,18 @@ export class TableService {
       switchMap(session =>
         this.http
           .put<ApiResponse<TableSession>>(`${this.base}/table-sessions/${session.id}/transfer`, { targetTableId })
+          .pipe(map(response => response.data))
+      )
+    );
+  }
+
+  finish(tableId: string): Observable<TableSession> {
+    const params = new HttpParams().set('tableId', tableId);
+    return this.http.get<ApiResponse<TableSession>>(`${this.base}/table-sessions/active`, { params }).pipe(
+      map(response => response.data),
+      switchMap(session =>
+        this.http
+          .put<ApiResponse<TableSession>>(`${this.base}/table-sessions/${session.id}/close`, {})
           .pipe(map(response => response.data))
       )
     );

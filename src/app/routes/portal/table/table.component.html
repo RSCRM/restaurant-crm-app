@@ -25,14 +25,56 @@
           <div class="table-map">
             @for (table of area.tables; track table.id) {
               <div class="table-item" [attr.data-status]="table.status">
-                <strong>{{ table.tableNumber }}</strong>
-                <span>{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
-                <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
-                @if (table.status === 'AVAILABLE') {
-                  <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(table)">
-                    {{ 'table.register.action' | i18n }}
-                  </button>
-                }
+                <div class="table-info">
+                  <strong>{{ table.tableNumber }}</strong>
+                  <span class="capacity-text">{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
+                </div>
+                
+                <div class="table-status-tag">
+                  <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
+                </div>
+
+                <div class="table-action">
+                  @if (table.status === 'AVAILABLE') {
+                    <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(table)">
+                      {{ 'table.register.action' | i18n }}
+                    </button>
+                  } @else if (table.status === 'OCCUPIED') {
+                    <button
+                      nz-button
+                      nzType="primary"
+                      nzDanger
+                      nzSize="small"
+                      [nzLoading]="finishingTableId === table.id"
+                      (click)="confirmFinish(table)"
+                    >
+                      {{ 'table.finish.action' | i18n }}
+                    </button>
+                  } @else if (table.status === 'RESERVED') {
+                    <div class="reserved-actions">
+                      <button
+                        nz-button
+                        nzType="primary"
+                        nzSize="small"
+                        [disabled]="!bookingFor(table.id) || bookingFor(table.id)?.status === 'CONFIRMED'"
+                        [nzLoading]="bookingActionTableId === table.id"
+                        (click)="confirmReservation(table)"
+                      >
+                        {{ 'table.booking.confirm' | i18n }}
+                      </button>
+                      <button
+                        nz-button
+                        nzDanger
+                        nzSize="small"
+                        [disabled]="!bookingFor(table.id)"
+                        [nzLoading]="bookingActionTableId === table.id"
+                        (click)="cancelReservation(table)"
+                      >
+                        {{ 'table.booking.cancel' | i18n }}
+                      </button>
+                    </div>
+                  }
+                </div>
               </div>
             }
           </div>
