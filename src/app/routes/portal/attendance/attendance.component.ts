@@ -135,9 +135,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         const payload = this.authService.parseJwtPayload(token);
         this.ownerContext = payload['orgRole'] === 'OWNER';
         this.selectedBranchId = typeof payload['branchId'] === 'string' ? payload['branchId'] : null;
-        const organizationId = payload['organizationId'];
-        if (this.ownerContext && typeof organizationId === 'string') {
-          this.loadBranches(organizationId);
+        if (this.ownerContext) {
+          this.loadBranches();
         }
       });
 
@@ -232,13 +231,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadBranches(organizationId: string): void {
+  loadBranches(): void {
     this.attendanceService
-      .getOrganizationBranches(organizationId)
+      .getOrganizationBranches()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(branches => {
         this.branches = branches;
-        this.selectedBranchId = branches[0]?.id ?? null;
+        if (!branches.some(branch => branch.id === this.selectedBranchId)) {
+          this.selectedBranchId = branches[0]?.id ?? null;
+        }
         this.loadBranchAttendance();
         this.startAttendanceRealtime();
         this.cdr.markForCheck();

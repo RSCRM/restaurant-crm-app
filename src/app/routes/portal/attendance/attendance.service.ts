@@ -59,10 +59,10 @@ export class AttendanceService {
       .pipe(map(response => response.data));
   }
 
-  getOrganizationBranches(organizationId: string): Observable<AttendanceBranchResponse[]> {
+  getOrganizationBranches(): Observable<AttendanceBranchResponse[]> {
     return this.http
       .get<ApiResponse<PagingResponse<AttendanceBranchResponse>>>(
-        `${this.apiRoot}/erp/organization-branches/organization/${organizationId}`,
+        `${this.apiRoot}/erp/organization-branches`,
         { params: { page: 1, size: 100 } }
       )
       .pipe(map(response => response.data.data));
