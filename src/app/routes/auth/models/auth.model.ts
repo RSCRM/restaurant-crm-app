@@ -27,6 +27,7 @@ export interface ContextInfoResponse {
 
 export interface ContextSelectionRequest {
   employeeId?: string;
+  branchId?: string;
   organizationId: string;
   role: string;
 }

@@ -9,12 +9,15 @@ import { Store } from '@ngrx/store';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
-import { PersonalScheduleResponse } from './schedule.model';
+import { PersonalScheduleResponse, ScheduleEmployeeResponse } from './schedule.model';
 import { ScheduleService } from './schedule.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { selectContextToken } from '../../auth/store/auth.selectors';
@@ -31,7 +34,10 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
     NzButtonModule,
     NzCardModule,
     NzDatePickerModule,
+    NzFormModule,
     NzIconModule,
+    NzInputModule,
+    NzModalModule,
     NzSelectModule,
     NzTagModule,
     I18nPipe
@@ -51,8 +57,13 @@ export class ScheduleComponent implements OnInit {
   allSchedules: PersonalScheduleResponse[] = [];
   schedules: PersonalScheduleResponse[] = [];
   employees: Array<{ id: string; name: string }> = [];
+  managedEmployees: ScheduleEmployeeResponse[] = [];
   selectedEmployeeId: string | null = null;
   loading = false;
+  creating = false;
+  createVisible = false;
+  createDateRange: Date[] = [new Date(), new Date()];
+  createForm = { employeeId: '', startTime: '08:00', endTime: '16:00', note: '' };
   managerMode = false;
   columns: STColumn[] = [];
 
@@ -64,10 +75,10 @@ export class ScheduleComponent implements OnInit {
       .subscribe(token => {
         if (!token) return;
         const payload = this.authService.parseJwtPayload(token);
-        const dataScope = payload['dataScope'];
         const orgRole = payload['orgRole'];
-        this.managerMode = dataScope === 'BRANCH' || dataScope === 'ORGANIZATION' || orgRole === 'MANAGER' || orgRole === 'OWNER';
+        this.managerMode = orgRole === 'MANAGER' || orgRole === 'OWNER';
         this.updateColumns();
+        if (this.managerMode) this.loadManagedEmployees();
         this.load();
       });
   }
@@ -128,6 +139,47 @@ export class ScheduleComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  openCreate(): void {
+    this.createDateRange = [...this.dateRange];
+    this.createForm = { employeeId: '', startTime: '08:00', endTime: '16:00', note: '' };
+    this.createVisible = true;
+  }
+
+  createSchedules(): void {
+    const [from, to] = this.createDateRange;
+    if (!this.createForm.employeeId || !from || !to || this.createForm.startTime >= this.createForm.endTime) {
+      this.message.warning(this.i18n.fanyi('schedule.create-invalid'));
+      return;
+    }
+    if (Math.floor((to.getTime() - from.getTime()) / 86_400_000) >= 31) {
+      this.message.warning(this.i18n.fanyi('schedule.range-exceeded'));
+      return;
+    }
+
+    this.creating = true;
+    this.service
+      .createSchedules({
+        ...this.createForm,
+        from: this.formatDate(from),
+        to: this.formatDate(to),
+        note: this.createForm.note.trim() || undefined
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: schedules => {
+          this.creating = false;
+          this.createVisible = false;
+          this.message.success(this.i18n.fanyi('schedule.create-success', { count: schedules.length }));
+          this.load();
+        },
+        error: error => {
+          this.creating = false;
+          this.message.error(error?.error?.errorMessage?.message ?? this.i18n.fanyi('schedule.create-failed'));
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
   getStatus(schedule: PersonalScheduleResponse): 'current' | 'upcoming' | 'completed' {
     const now = Date.now();
     const start = this.toDate(schedule.workDate, schedule.startTime).getTime();
@@ -145,6 +197,19 @@ export class ScheduleComponent implements OnInit {
       { title: this.i18n.fanyi('schedule.status'), render: 'status', width: 130 }
     ];
     this.cdr.markForCheck();
+  }
+
+  private loadManagedEmployees(): void {
+    this.service
+      .getManagedEmployees()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: employees => {
+          this.managedEmployees = employees;
+          this.cdr.markForCheck();
+        },
+        error: () => this.message.error(this.i18n.fanyi('schedule.employee-load-failed'))
+      });
   }
 
   private formatDate(date: Date): string {

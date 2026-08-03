@@ -12,7 +12,7 @@ export const AuthActions = createActionGroup({
     'Login Success': props<{ accessToken: string; refreshToken: string; contexts: ContextInfo[]; systemRoles: string[] }>(),
     'Login Failure': props<{ error: string }>(),
 
-    'Select Context': props<{ organizationId: string; employeeId?: string; role: string }>(),
+    'Select Context': props<{ organizationId: string; employeeId?: string; branchId?: string; role: string }>(),
     'Select Context Success': props<{ contextToken: string }>(),
     'Select Context Failure': props<{ error: string }>(),
 

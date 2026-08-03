@@ -20,6 +20,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import {
+  CustomerPointResponse,
   CustomerResponse,
   CustomerVoucherResponse,
   PointTransactionResponse,
@@ -30,6 +31,8 @@ import { CustomerService } from './customer.service';
 import { RedeemModalComponent } from './redeem-modal/redeem-modal.component';
 import { VoucherFormComponent } from './voucher-form/voucher-form.component';
 import { selectContextToken } from '../../auth/store/auth.selectors';
+
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 
 @Component({
   selector: 'app-customer',
@@ -51,12 +54,14 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
     NzStatisticModule,
     NzSpinModule,
     NzSwitchModule,
-    STModule
+    STModule,
+    I18nPipe
   ],
   templateUrl: './customer.component.html',
   styleUrls: ['./customer.component.less']
 })
 export class CustomerComponent implements OnInit {
+  private i18n = inject(ALAIN_I18N_TOKEN);
   private customerService = inject(CustomerService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
@@ -65,7 +70,8 @@ export class CustomerComponent implements OnInit {
 
   private readonly VN_PHONE_REGEX = /^(0|\+84)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])\d{7}$/;
 
-  restaurantId: string | null = null;
+  organizationId: string | null = null;
+  branchId: string | null = null;
   hasVoucherCreatePermission = false;
   hasRedeemPermission = false;
 
@@ -103,30 +109,10 @@ export class CustomerComponent implements OnInit {
   filterVoucherStatus = 'ALL';
 
   // Delon ST Columns for Point History
-  pointColumns: STColumn[] = [
-    { title: 'Loại giao dịch', render: 'type', width: 130 },
-    { title: 'Số điểm', render: 'amount', width: 120 },
-    { title: 'Số dư sau', index: 'balanceAfter', width: 120, type: 'number' },
-    { title: 'Nguồn / Lý do', index: 'source' },
-    { title: 'Mã tham chiếu', index: 'referenceId' },
-    { title: 'Thời gian', index: 'createdAt', width: 160, type: 'date' }
-  ];
+  pointColumns: STColumn[] = [];
 
   // Delon ST Columns for System Vouchers
-  sysVoucherColumns: STColumn[] = [
-    { title: 'Tiêu đề Voucher', index: 'title', width: 220 },
-    { title: '% Giảm', index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%` },
-    {
-      title: 'Đơn tối thiểu',
-      index: 'minOrderAmount',
-      width: 140,
-      format: item => `${item.minOrderAmount?.toLocaleString('vi-VN')} ₫`
-    },
-    { title: 'Điểm đổi', index: 'pointCost', width: 110, format: item => `${item.pointCost} điểm` },
-    { title: 'Hạn dùng', index: 'validDays', width: 110, format: item => `${item.validDays} ngày` },
-    { title: 'Cho phép đổi', width: 130, render: 'isActive' },
-    { title: 'Thao tác', width: 120, fixed: 'right', render: 'actions' }
-  ];
+  sysVoucherColumns: STColumn[] = [];
 
   private parseTokenPayload(token: string | null): Record<string, unknown> | null {
     if (!token) return null;
@@ -146,45 +132,167 @@ export class CustomerComponent implements OnInit {
     }
   }
 
+  // Member Customers List State
+  memberCustomersList: CustomerPointResponse[] = [];
+  memberCustomerTotal = 0;
+  memberCustomerPage = 1;
+  memberCustomerSize = 10;
+  memberCustomerLoading = false;
+
+  memberCustomerColumns: STColumn[] = [];
+
+  private initColumns(): void {
+    this.pointColumns = [
+      { title: this.i18n.fanyi('customer.history.col.type'), render: 'type', width: 130 },
+      { title: this.i18n.fanyi('customer.history.col.amount'), render: 'amount', width: 120 },
+      { title: this.i18n.fanyi('customer.history.col.balanceAfter'), index: 'balanceAfter', width: 120, type: 'number' },
+      { title: this.i18n.fanyi('customer.history.col.source'), index: 'source' },
+      { title: this.i18n.fanyi('customer.history.col.referenceId'), index: 'referenceId' },
+      { title: this.i18n.fanyi('customer.history.col.createdAt'), index: 'createdAt', width: 160, type: 'date' }
+    ];
+
+    this.sysVoucherColumns = [
+      { title: this.i18n.fanyi('customer.sys-voucher.col.title'), index: 'title', width: 220 },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.discountPercent'), index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%` },
+      {
+        title: this.i18n.fanyi('customer.sys-voucher.col.minBillAmount'),
+        index: 'minBillAmount',
+        width: 140,
+        format: item => `${item.minBillAmount?.toLocaleString('vi-VN')} ₫`
+      },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.pointsRequired'), index: 'pointsRequired', width: 110, format: item => `${item.pointsRequired} ${this.i18n.fanyi('voucher.points')}` },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.isActive'), width: 130, render: 'isActive' },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.actions'), width: 120, fixed: 'right', render: 'actions' }
+    ];
+
+    this.memberCustomerColumns = [
+      { title: this.i18n.fanyi('customer.column.phone'), index: 'customerPhone', width: 160 },
+      { title: this.i18n.fanyi('customer.column.points'), index: 'currentPoints', width: 140, type: 'number' },
+      { title: this.i18n.fanyi('customer.column.lifetime-points'), index: 'lifetimePoints', width: 160, type: 'number' },
+      { title: this.i18n.fanyi('customer.column.updated-at'), index: 'updatedAt', width: 160, type: 'date' },
+      {
+        title: this.i18n.fanyi('customer.column.actions'),
+        width: 140,
+        buttons: [
+          {
+            text: this.i18n.fanyi('customer.action.view-wallet'),
+            type: 'link',
+            click: (record: CustomerPointResponse) => this.selectCustomerFromList(record)
+          }
+        ]
+      }
+    ];
+  }
+
   ngOnInit(): void {
+    this.initColumns();
+
     this.store.select(selectContextToken).subscribe(token => {
       const payload = this.parseTokenPayload(token);
       if (payload) {
-        this.restaurantId = (payload['organizationId'] as string) || (payload['branchId'] as string) || null;
+        this.organizationId = (payload['organizationId'] as string) || null;
+        this.branchId = (payload['branchId'] as string) || null;
         const permissions: string[] = (payload['permission'] as string[]) || [];
         this.hasVoucherCreatePermission = permissions.includes('VOUCHER_CREATE') || permissions.includes('ADMIN');
         this.hasRedeemPermission = permissions.includes('CUSTOMER_VOUCHER_REDEEM') || permissions.includes('ADMIN');
 
-        // Vouchers loaded on-demand when tab is opened or after CRUD operations
+        // Load member customers list for this organization
+        this.loadMemberCustomers();
+
+        // Dynamically resolve branchId if not present in context token (e.g. Owner)
+        if (this.organizationId) {
+          if (!this.branchId) {
+            this.customerService.getOrganizationBranches(this.organizationId).subscribe({
+              next: branches => {
+                if (branches && branches.length > 0) {
+                  this.branchId = branches[0].id;
+                }
+                this.loadSystemVouchers();
+              },
+              error: () => {
+                this.loadSystemVouchers();
+              }
+            });
+          } else {
+            this.loadSystemVouchers();
+          }
+        }
       }
     });
+  }
+
+  loadMemberCustomers(): void {
+    if (!this.organizationId) return;
+
+    this.memberCustomerLoading = true;
+    this.cdr.markForCheck();
+
+    this.customerService
+      .getOrganizationCustomers(this.organizationId, this.searchPhone, {
+        page: this.memberCustomerPage,
+        size: this.memberCustomerSize
+      })
+      .subscribe({
+        next: res => {
+          this.memberCustomersList = res.data;
+          this.memberCustomerTotal = res.totalElement;
+          this.memberCustomerLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.memberCustomerLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  selectCustomerFromList(customerPoint: CustomerPointResponse): void {
+    this.searchPhone = customerPoint.customerPhone || '';
+    this.currentCustomer = {
+      id: customerPoint.customerId,
+      phone: customerPoint.customerPhone,
+      createdAt: '',
+      updatedAt: customerPoint.updatedAt
+    };
+    this.loadCustomerWalletAndHistory();
+  }
+
+  onMemberCustomerSTChange(e: STChange): void {
+    if (e.type === 'pi') {
+      this.memberCustomerPage = e.pi!;
+      this.loadMemberCustomers();
+    } else if (e.type === 'ps') {
+      this.memberCustomerSize = e.ps!;
+      this.memberCustomerPage = 1;
+      this.loadMemberCustomers();
+    }
   }
 
   searchCustomer(): void {
     const rawPhone = this.searchPhone.trim();
     if (!rawPhone || !this.VN_PHONE_REGEX.test(rawPhone)) {
-      this.message.warning('Vui lòng nhập số điện thoại Việt Nam hợp lệ (vd: 0966888888 hoặc 0901234567)!');
+      this.message.warning(this.i18n.fanyi('customer.msg.invalid-phone'));
       return;
     }
 
-    if (!this.restaurantId) {
-      this.message.error('Không tìm thấy thông tin tổ chức/nhà hàng.');
+    if (!this.organizationId) {
+      this.message.error(this.i18n.fanyi('customer.msg.org-not-found'));
       return;
     }
 
     this.searching = true;
     this.cdr.markForCheck();
 
-    this.customerService.identifyCustomer({ phone: rawPhone, restaurantId: this.restaurantId }).subscribe({
+    this.customerService.identifyCustomer({ phone: rawPhone, restaurantId: this.organizationId }).subscribe({
       next: customer => {
         this.currentCustomer = customer;
         this.searching = false;
-        this.message.success(`Định danh thành công khách hàng SĐT ${customer.phone}`);
+        this.message.success(this.i18n.fanyi('customer.msg.identify-success', { phone: customer.phone }));
         this.loadCustomerWalletAndHistory();
       },
       error: err => {
         this.searching = false;
-        const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi tra cứu khách hàng.';
+        const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('customer.msg.identify-error');
         this.message.error(msg);
         this.cdr.markForCheck();
       }
@@ -197,22 +305,23 @@ export class CustomerComponent implements OnInit {
     this.walletBalance = null;
     this.pointHistory = [];
     this.customerVouchers = [];
+    this.loadMemberCustomers();
     this.cdr.markForCheck();
   }
 
   loadCustomerWalletAndHistory(): void {
-    if (!this.currentCustomer || !this.restaurantId) return;
+    if (!this.currentCustomer || !this.organizationId) return;
 
     const customerId = this.currentCustomer.id;
 
     // Load Wallet Balance
-    this.customerService.getWalletBalance(customerId, this.restaurantId).subscribe({
+    this.customerService.getWalletBalance(customerId, this.organizationId).subscribe({
       next: balance => {
         this.walletBalance = balance;
         this.cdr.markForCheck();
       },
       error: () => {
-        this.message.error('Lỗi khi tải số dư ví điểm.');
+        this.message.error(this.i18n.fanyi('customer.msg.load-wallet-error'));
       }
     });
 
@@ -224,13 +333,13 @@ export class CustomerComponent implements OnInit {
   }
 
   loadPointHistory(): void {
-    if (!this.currentCustomer || !this.restaurantId) return;
+    if (!this.currentCustomer || !this.organizationId) return;
 
     this.pointLoading = true;
     this.cdr.markForCheck();
 
     this.customerService
-      .getPointHistory(this.currentCustomer.id, this.restaurantId, {
+      .getPointHistory(this.currentCustomer.id, this.organizationId, {
         page: this.pointPage,
         size: this.pointSize
       })
@@ -249,13 +358,13 @@ export class CustomerComponent implements OnInit {
   }
 
   loadCustomerVouchers(): void {
-    if (!this.currentCustomer || !this.restaurantId) return;
+    if (!this.currentCustomer || !this.branchId) return;
 
     this.voucherLoading = true;
     this.cdr.markForCheck();
 
     this.customerService
-      .getCustomerVouchers(this.currentCustomer.id, this.restaurantId, {
+      .getCustomerVouchers(this.currentCustomer.id, this.branchId, {
         page: this.voucherPage,
         size: this.voucherSize
       })
@@ -286,13 +395,13 @@ export class CustomerComponent implements OnInit {
 
   // System Vouchers (Tab 2)
   loadSystemVouchers(): void {
-    if (!this.restaurantId) return;
+    if (!this.branchId) return;
 
     this.sysVoucherLoading = true;
     this.cdr.markForCheck();
 
     this.customerService
-      .getVouchers(this.restaurantId, {
+      .getVouchers(this.branchId, {
         page: this.sysVoucherPage,
         size: this.sysVoucherSize
       })
@@ -305,7 +414,7 @@ export class CustomerComponent implements OnInit {
         },
         error: () => {
           this.sysVoucherLoading = false;
-          this.message.error('Lỗi khi tải danh sách voucher hệ thống.');
+          this.message.error(this.i18n.fanyi('customer.msg.load-vouchers-error'));
           this.cdr.markForCheck();
         }
       });
@@ -315,9 +424,9 @@ export class CustomerComponent implements OnInit {
     let filtered = [...this.systemVouchersList];
 
     if (this.filterVoucherStatus === 'ACTIVE') {
-      filtered = filtered.filter(v => v.isActive);
+      filtered = filtered.filter(v => v.isActive === 1);
     } else if (this.filterVoucherStatus === 'INACTIVE') {
-      filtered = filtered.filter(v => !v.isActive);
+      filtered = filtered.filter(v => v.isActive === 0);
     }
 
     if (this.searchVoucherTitle.trim()) {
@@ -352,14 +461,26 @@ export class CustomerComponent implements OnInit {
   }
 
   toggleVoucherStatus(voucher: VoucherResponse, active: boolean): void {
-    this.customerService.updateVoucher(voucher.id, { isActive: active }).subscribe({
+    const updateReq = {
+      title: voucher.title,
+      discountPercent: voucher.discountPercent,
+      minBillAmount: voucher.minBillAmount,
+      pointsRequired: voucher.pointsRequired,
+      isActive: active ? 1 : 0
+    };
+    this.customerService.updateVoucher(voucher.id, updateReq).subscribe({
       next: () => {
-        voucher.isActive = active;
-        this.message.success(`${active ? 'Bật' : 'Tắt'} quyền đổi voucher "${voucher.title}" thành công.`);
+        voucher.isActive = active ? 1 : 0;
+        const idx = this.systemVouchersList.findIndex(v => v.id === voucher.id);
+        if (idx > -1) {
+          this.systemVouchersList[idx].isActive = active ? 1 : 0;
+        }
+        const msgKey = active ? 'customer.msg.toggle-status-enable-success' : 'customer.msg.toggle-status-disable-success';
+        this.message.success(this.i18n.fanyi(msgKey, { title: voucher.title }));
         this.filterSystemVouchers();
       },
       error: err => {
-        const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi cập nhật trạng thái.';
+        const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('customer.msg.toggle-status-error');
         this.message.error(msg);
         this.loadSystemVouchers();
       }
@@ -367,7 +488,7 @@ export class CustomerComponent implements OnInit {
   }
 
   openCreateVoucherModal(): void {
-    if (!this.restaurantId) return;
+    if (!this.branchId) return;
 
     const modalRef = this.modal.create({
       nzTitle: undefined,
@@ -375,7 +496,7 @@ export class CustomerComponent implements OnInit {
       nzWidth: 600,
       nzFooter: null,
       nzData: {
-        restaurantId: this.restaurantId
+        restaurantId: this.branchId
       }
     });
 
@@ -387,7 +508,7 @@ export class CustomerComponent implements OnInit {
   }
 
   openEditVoucherModal(voucher: VoucherResponse): void {
-    if (!this.restaurantId) return;
+    if (!this.branchId) return;
 
     const modalRef = this.modal.create({
       nzTitle: undefined,
@@ -396,7 +517,7 @@ export class CustomerComponent implements OnInit {
       nzFooter: null,
       nzData: {
         voucher,
-        restaurantId: this.restaurantId
+        restaurantId: this.branchId
       }
     });
 
@@ -408,7 +529,7 @@ export class CustomerComponent implements OnInit {
   }
 
   openRedeemModal(mode: 'redeem' | 'give'): void {
-    if (!this.currentCustomer || !this.restaurantId) return;
+    if (!this.currentCustomer || !this.branchId) return;
 
     const modalRef = this.modal.create({
       nzTitle: undefined,
@@ -419,7 +540,7 @@ export class CustomerComponent implements OnInit {
         customerId: this.currentCustomer.id,
         customerPhone: this.currentCustomer.phone,
         currentPoints: this.walletBalance?.currentPoints || 0,
-        restaurantId: this.restaurantId,
+        restaurantId: this.branchId,
         mode
       }
     });
@@ -427,6 +548,7 @@ export class CustomerComponent implements OnInit {
     modalRef.afterClose.subscribe(result => {
       if (result) {
         this.loadCustomerWalletAndHistory();
+        this.loadMemberCustomers();
       }
     });
   }

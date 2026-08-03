@@ -4,7 +4,7 @@
       <h2>{{ 'table.map.title' | i18n }}</h2>
       <p>{{ 'table.map.description' | i18n }}</p>
     </div>
-    <button nz-button nzType="primary" [nzLoading]="mapLoading || searchLoading" (click)="reload()">
+    <button nz-button nzType="primary" [nzLoading]="mapLoading || searchLoading || transferOptionsLoading" (click)="reload()">
       {{ 'action.reload' | i18n }}
     </button>
   </div>
@@ -25,14 +25,56 @@
           <div class="table-map">
             @for (table of area.tables; track table.id) {
               <div class="table-item" [attr.data-status]="table.status">
-                <strong>{{ table.tableNumber }}</strong>
-                <span>{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
-                <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
-                @if (table.status === 'AVAILABLE') {
-                  <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(table)">
-                    {{ 'table.register.action' | i18n }}
-                  </button>
-                }
+                <div class="table-info">
+                  <strong>{{ table.tableNumber }}</strong>
+                  <span class="capacity-text">{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
+                </div>
+                
+                <div class="table-status-tag">
+                  <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
+                </div>
+
+                <div class="table-action">
+                  @if (table.status === 'AVAILABLE') {
+                    <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(table)">
+                      {{ 'table.register.action' | i18n }}
+                    </button>
+                  } @else if (table.status === 'OCCUPIED') {
+                    <button
+                      nz-button
+                      nzType="primary"
+                      nzDanger
+                      nzSize="small"
+                      [nzLoading]="finishingTableId === table.id"
+                      (click)="confirmFinish(table)"
+                    >
+                      {{ 'table.finish.action' | i18n }}
+                    </button>
+                  } @else if (table.status === 'RESERVED') {
+                    <div class="reserved-actions">
+                      <button
+                        nz-button
+                        nzType="primary"
+                        nzSize="small"
+                        [disabled]="!bookingFor(table.id) || bookingFor(table.id)?.status === 'CONFIRMED'"
+                        [nzLoading]="bookingActionTableId === table.id"
+                        (click)="confirmReservation(table)"
+                      >
+                        {{ 'table.booking.confirm' | i18n }}
+                      </button>
+                      <button
+                        nz-button
+                        nzDanger
+                        nzSize="small"
+                        [disabled]="!bookingFor(table.id)"
+                        [nzLoading]="bookingActionTableId === table.id"
+                        (click)="cancelReservation(table)"
+                      >
+                        {{ 'table.booking.cancel' | i18n }}
+                      </button>
+                    </div>
+                  }
+                </div>
               </div>
             }
           </div>
@@ -42,6 +84,34 @@
       <nz-empty [nzNotFoundContent]="'table.empty' | i18n" />
     }
   </nz-spin>
+
+  <nz-card class="transfer-card" [nzTitle]="'table.transfer.title' | i18n">
+    <p>{{ 'table.transfer.description' | i18n }}</p>
+    <nz-spin [nzSpinning]="transferOptionsLoading">
+      <div class="transfer-form">
+        <label>
+          <span>{{ 'table.transfer.source' | i18n }}</span>
+          <nz-select [(ngModel)]="sourceTableId" [nzPlaceHolder]="'table.transfer.select-source' | i18n">
+            @for (table of occupiedTables; track table.id) {
+              <nz-option [nzValue]="table.id" [nzLabel]="table.tableNumber + ' - ' + table.areaName" />
+            }
+          </nz-select>
+        </label>
+        <div class="arrow">→</div>
+        <label>
+          <span>{{ 'table.transfer.target' | i18n }}</span>
+          <nz-select [(ngModel)]="targetTableId" [nzPlaceHolder]="'table.transfer.select-target' | i18n">
+            @for (table of availableTables; track table.id) {
+              <nz-option [nzValue]="table.id" [nzLabel]="table.tableNumber + ' - ' + table.areaName + ' (' + table.capacity + ')'" />
+            }
+          </nz-select>
+        </label>
+        <button nz-button nzType="primary" [nzLoading]="transferring" (click)="confirmTransfer()">
+          {{ 'table.transfer.action' | i18n }}
+        </button>
+      </div>
+    </nz-spin>
+  </nz-card>
 
   <h2>{{ 'table.search.title' | i18n }}</h2>
   <nz-card class="filter-card">

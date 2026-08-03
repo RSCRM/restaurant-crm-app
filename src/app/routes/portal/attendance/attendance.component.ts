@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
+import { Html5Qrcode } from 'html5-qrcode';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -59,39 +60,7 @@ import { selectContextToken, selectHasPermission } from '../../auth/store/auth.s
     I18nPipe
   ],
   templateUrl: './attendance.component.html',
-  styles: [
-    `
-      .qr-card-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-        text-align: center;
-      }
-      .countdown-timer {
-        font-size: 16px;
-        font-weight: 500;
-        color: #f5222d;
-      }
-      .check-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 24px;
-      }
-      .status-box {
-        width: 100%;
-        max-width: 480px;
-        margin-bottom: 24px;
-        text-align: center;
-      }
-      .action-box {
-        width: 100%;
-        max-width: 480px;
-      }
-    `
-  ]
+  styleUrl: './attendance.component.less'
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
   private readonly attendanceService = inject(AttendanceService);
@@ -101,6 +70,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly i18n = inject(ALAIN_I18N_TOKEN);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
 
   // Permissions
   hasQrDisplay = false;
@@ -113,6 +83,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   loadingStatus = false;
   submittingCheck = false;
   qrTokenInput = '';
+  scannerStarting = false;
+  scannerError = '';
+  private attendanceQrScanner?: Html5Qrcode;
 
   // History Tab state
   historyList: AttendanceResponse[] = [];
@@ -162,9 +135,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         const payload = this.authService.parseJwtPayload(token);
         this.ownerContext = payload['orgRole'] === 'OWNER';
         this.selectedBranchId = typeof payload['branchId'] === 'string' ? payload['branchId'] : null;
-        const organizationId = payload['organizationId'];
-        if (this.ownerContext && typeof organizationId === 'string') {
-          this.loadBranches(organizationId);
+        if (this.ownerContext) {
+          this.loadBranches();
         }
       });
 
@@ -215,6 +187,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.clearQrTimer();
     this.attendanceEventsSubscription?.unsubscribe();
+    void this.stopAttendanceScanner();
   }
 
   updateColumns(): void {
@@ -258,13 +231,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadBranches(organizationId: string): void {
+  loadBranches(): void {
     this.attendanceService
-      .getOrganizationBranches(organizationId)
+      .getOrganizationBranches()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(branches => {
         this.branches = branches;
-        this.selectedBranchId = branches[0]?.id ?? null;
+        if (!branches.some(branch => branch.id === this.selectedBranchId)) {
+          this.selectedBranchId = branches[0]?.id ?? null;
+        }
         this.loadBranchAttendance();
         this.startAttendanceRealtime();
         this.cdr.markForCheck();
@@ -348,6 +323,11 @@ export class AttendanceComponent implements OnInit, OnDestroy {
           } else {
             this.currentAttendance = null;
           }
+          if (this.currentAttendance) {
+            void this.stopAttendanceScanner();
+          } else {
+            setTimeout(() => this.startAttendanceScanner());
+          }
           this.cdr.markForCheck();
         },
         error: () => {
@@ -375,6 +355,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       error: () => {
         this.submittingCheck = false;
         this.message.error(this.i18n.fanyi('attendance.checkin-failed'));
+        setTimeout(() => this.startAttendanceScanner());
         this.cdr.markForCheck();
       }
     });
@@ -391,6 +372,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.currentAttendance = null;
         this.message.success(this.i18n.fanyi('attendance.checkout-success'));
         this.loadHistory();
+        setTimeout(() => this.startAttendanceScanner());
         this.cdr.markForCheck();
       },
       error: () => {
@@ -514,6 +496,81 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   onSelectOtherTab(): void {
     this.clearQrTimer();
+    void this.stopAttendanceScanner();
+  }
+
+  onCheckInTabSelected(): void {
+    this.loadCurrentStatus();
+  }
+
+  startAttendanceScanner(): void {
+    if (this.currentAttendance || this.scannerStarting || this.attendanceQrScanner?.isScanning) return;
+    if (!document.getElementById('attendance-qr-reader')) return;
+
+    this.scannerStarting = true;
+    this.scannerError = '';
+    this.cdr.markForCheck();
+    this.attendanceQrScanner ??= new Html5Qrcode('attendance-qr-reader', {
+      verbose: false,
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+    });
+
+    this.attendanceQrScanner
+      .start(
+        { facingMode: 'environment' },
+        {
+          fps: 15,
+          qrbox: (width, height) => {
+            const size = Math.floor(Math.min(width, height) * 0.8);
+            return { width: size, height: size };
+          }
+        },
+        decodedText => {
+          this.ngZone.run(() => {
+            this.qrTokenInput = decodedText;
+            void this.stopAttendanceScanner();
+            this.checkIn();
+          });
+        },
+        () => {}
+      )
+      .then(() => {
+        this.scannerStarting = false;
+        this.cdr.markForCheck();
+      })
+      .catch(() => {
+        this.scannerStarting = false;
+        this.scannerError = this.i18n.fanyi('attendance.scanner-camera-error');
+        this.cdr.markForCheck();
+      });
+  }
+
+  async onAttendanceQrFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    await this.stopAttendanceScanner();
+    const fileScanner = new Html5Qrcode('attendance-qr-file');
+    try {
+      this.qrTokenInput = await fileScanner.scanFile(file, true);
+      this.checkIn();
+    } catch {
+      this.message.error(this.i18n.fanyi('attendance.scanner-file-error'));
+      setTimeout(() => this.startAttendanceScanner());
+    } finally {
+      input.value = '';
+      fileScanner.clear();
+    }
+  }
+
+  private async stopAttendanceScanner(): Promise<void> {
+    this.scannerStarting = false;
+    if (this.attendanceQrScanner?.isScanning) {
+      try {
+        await this.attendanceQrScanner.stop();
+      } catch {}
+    }
   }
 
   private startAttendanceRealtime(): void {

@@ -46,6 +46,12 @@ describe('AttendanceService', () => {
     expect(branch.request.method).toBe('GET');
     expect(branch.request.params.get('date')).toBe('2026-07-31');
 
+    service.getOrganizationBranches().subscribe();
+    const branches = http.expectOne(request => request.url === '/api/v1/erp/organization-branches');
+    expect(branches.request.method).toBe('GET');
+    expect(branches.request.params.get('page')).toBe('1');
+    expect(branches.request.params.get('size')).toBe('100');
+
     service.getEmployeeHistory('employee-1', '2026-07-01', '2026-07-31', 2, 20, 'branch-1').subscribe();
     const employeeHistory = http.expectOne(request => request.url === '/api/v1/erp/attendances/branch/employees/employee-1/history');
     expect(employeeHistory.request.method).toBe('GET');

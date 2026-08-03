@@ -47,6 +47,7 @@ export class ContextSelectComponent implements OnInit {
     this.store.dispatch(AuthActions.selectContext({
       organizationId: context.organizationId,
       employeeId: context.employeeId ?? undefined,
+      branchId: context.branchId ?? undefined,
       role: context.role
     }));
   }
