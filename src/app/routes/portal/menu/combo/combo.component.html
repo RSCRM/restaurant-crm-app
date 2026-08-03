@@ -1,0 +1,130 @@
+<page-header [title]="'app.portal.menu.combo.title' | i18n" />
+<nz-card>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <nz-input-group [nzPrefix]="prefixSearch" class="search-input">
+        <input
+          nz-input
+          [placeholder]="'app.portal.menu.combo.searchPlaceholder' | i18n"
+          [(ngModel)]="searchValue"
+          (keyup.enter)="search()"
+        />
+      </nz-input-group>
+      <ng-template #prefixSearch>
+        <span nz-icon nzType="search" nzTheme="outline"></span>
+      </ng-template>
+
+      <button nz-button nzType="primary" (click)="search()">
+        {{ 'app.portal.menu.combo.search' | i18n }}
+      </button>
+
+      <button nz-button nzType="default" (click)="toggleFilter()">
+        <span nz-icon nzType="filter" nzTheme="outline"></span>
+        {{ 'app.portal.menu.combo.filter' | i18n }}
+        @if (hasActiveFilter) {
+          <span class="filter-badge"></span>
+        }
+      </button>
+
+      @if (hasActiveFilter) {
+        <button nz-button nzType="default" nzDanger (click)="clearFilter()">
+          <span nz-icon nzType="close-circle" nzTheme="outline"></span>
+          {{ 'app.portal.menu.combo.clearFilter' | i18n }}
+        </button>
+      }
+    </div>
+
+    @if (canAddCombo) {
+      <button nz-button nzType="primary" (click)="openCreate()">
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+        {{ 'app.portal.menu.combo.create' | i18n }}
+      </button>
+    }
+  </div>
+
+  @if (showFilter) {
+    <div class="filter-panel">
+      <div nz-row [nzGutter]="[16, 16]">
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label>{{ 'app.portal.menu.combo.filter.status' | i18n }}</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="filter.status" [nzPlaceHolder]="'app.portal.menu.combo.filter.all' | i18n" [nzAllowClear]="true">
+                @for (opt of statusOptions; track opt.value) {
+                  <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label>{{ 'app.portal.menu.combo.filter.priceRange' | i18n }}</nz-form-label>
+            <nz-form-control>
+              <div class="price-range">
+                <nz-input-number
+                  [(ngModel)]="filter.minPrice"
+                  [nzMin]="0"
+                  [nzStep]="1000"
+                  [nzPlaceHolder]="'app.portal.menu.combo.filter.minPrice' | i18n"
+                />
+                <span class="price-range-separator">-</span>
+                <nz-input-number
+                  [(ngModel)]="filter.maxPrice"
+                  [nzMin]="0"
+                  [nzStep]="1000"
+                  [nzPlaceHolder]="'app.portal.menu.combo.filter.maxPrice' | i18n"
+                />
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div class="filter-actions">
+        <button nz-button nzType="primary" (click)="search()">
+          <span nz-icon nzType="search" nzTheme="outline"></span>
+          {{ 'app.portal.menu.combo.applyFilter' | i18n }}
+        </button>
+        <button nz-button nzType="default" (click)="clearFilter()">
+          {{ 'app.portal.menu.combo.clearFilter' | i18n }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <st
+    #st
+    [columns]="columns"
+    [data]="data"
+    [total]="total"
+    [ps]="pageSize"
+    [pi]="currentPage"
+    [loading]="loading"
+    [page]="{ show: true, showSize: true, front: false }"
+    [scroll]="{ x: '700px' }"
+    (change)="onSTChange($event)"
+  >
+    <ng-template st-row="image" let-item>
+      @if (item.imageUrl) {
+        <nz-avatar [nzSrc]="item.imageUrl" [nzSize]="40" [nzShape]="'square'" />
+      } @else {
+        <nz-avatar [nzText]="item.comboName.charAt(0)" [nzSize]="40" [nzShape]="'square'" />
+      }
+    </ng-template>
+    <ng-template st-row="price" let-item> {{ item.price.toLocaleString('vi-VN') }} đ </ng-template>
+    <ng-template st-row="itemCount" let-item>
+      {{ item.items.length }}
+    </ng-template>
+    <ng-template st-row="status" let-item>
+      <nz-tag [nzColor]="item.status === 'AVAILABLE' ? 'success' : 'default'">
+        {{
+          item.status === 'AVAILABLE'
+            ? ('app.portal.menu.product.status.available' | i18n)
+            : ('app.portal.menu.product.status.unavailable' | i18n)
+        }}
+      </nz-tag>
+    </ng-template>
+  </st>
+</nz-card>

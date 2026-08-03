@@ -26,7 +26,17 @@ export const routes: Routes = [
   {
     path: 'menu',
     canActivate: [contextGuard, permissionGuard('MENU_MANAGE')],
-    loadComponent: () => import('./menu/menu.component').then(m => m.MenuComponent)
+    children: [
+      { path: '', redirectTo: 'product', pathMatch: 'full' },
+      {
+        path: 'product',
+        loadComponent: () => import('./menu/product/product.component').then(m => m.ProductComponent)
+      },
+      {
+        path: 'combo',
+        loadComponent: () => import('./menu/combo/combo.component').then(m => m.ComboComponent)
+      }
+    ]
   },
   {
     path: 'table',
@@ -37,9 +47,8 @@ export const routes: Routes = [
       permissionGuard('TABLE_SESSION_CREATE')
     ],
     loadComponent: () => import('./table/table.component').then(m => m.TableComponent)
-
   },
-  { 
+  {
     path: 'booking',
     // canActivate: [contextGuard, permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./booking/booking.component').then(m => m.BookingComponent)
