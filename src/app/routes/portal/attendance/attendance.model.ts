@@ -6,6 +6,7 @@ export enum AttendanceStatus {
 export interface AttendanceResponse {
   id: string;
   employeeId: string;
+  employeeName?: string;
   branchId: string;
   shiftAssignmentId: string;
   workDate: string;
