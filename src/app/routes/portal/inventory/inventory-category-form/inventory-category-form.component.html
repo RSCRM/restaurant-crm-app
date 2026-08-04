@@ -1,45 +1,52 @@
 <div class="modal-header">
   <div class="modal-title">
-    {{ isEdit ? ('app.form.update' | i18n) : ('app.ingredientCategory.create' | i18n) }}
+    {{
+      isEdit
+        ? ('app.form.update' | i18n)
+        : ('app.inventory.category.create' | i18n)
+    }}
   </div>
 </div>
 
 <form
   nz-form
-  nzLayout="vertical"
   [formGroup]="form"
   (ngSubmit)="submit()"
+  nzLayout="vertical"
 >
+
   <nz-form-item>
     <nz-form-label [nzRequired]="true">
-      {{ 'app.ingredientCategory.categoryName' | i18n }}
+      {{ 'app.inventory.category.categoryName' | i18n }}
     </nz-form-label>
 
     <nz-form-control
-      [nzErrorTip]="'app.error.categoryName.required' | i18n"
+      [nzErrorTip]="'app.error.inventoryCategoryName.required' | i18n"
     >
       <input
         nz-input
         formControlName="categoryName"
-        [placeholder]="'app.ingredientCategory.categoryNamePlaceholder' | i18n"
+        [placeholder]="'app.inventory.category.categoryNamePlaceholder' | i18n"
       />
     </nz-form-control>
   </nz-form-item>
 
+
   <nz-form-item>
     <nz-form-label>
-      {{ 'app.ingredientCategory.description' | i18n }}
+      {{ 'app.inventory.category.description' | i18n }}
     </nz-form-label>
 
     <nz-form-control>
       <textarea
         nz-input
         formControlName="description"
-        [nzAutosize]="{ minRows: 3, maxRows: 5 }"
-        [placeholder]="'app.ingredientCategory.descriptionPlaceholder' | i18n"
-      ></textarea>
+        [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+        [placeholder]="'app.inventory.category.descriptionPlaceholder' | i18n">
+      </textarea>
     </nz-form-control>
   </nz-form-item>
+
 
   <div class="modal-footer">
     <button
@@ -57,7 +64,12 @@
       [nzLoading]="loading"
       [disabled]="form.invalid"
     >
-      {{ isEdit ? ('app.form.update' | i18n) : ('app.form.create' | i18n) }}
+      {{
+        isEdit
+          ? ('app.form.update' | i18n)
+          : ('app.form.create' | i18n)
+      }}
     </button>
   </div>
+
 </form>

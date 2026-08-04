@@ -4,10 +4,10 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-left">
-      <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px;">
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px">
         <input
           nz-input
-          [(ngModel)]="filter.ingredientName"
+          [(ngModel)]="filter.inventoryName"
           [placeholder]="'app.inventory.searchPlaceholder' | i18n"
           (keyup.enter)="search()"
         />
@@ -18,6 +18,7 @@
       </ng-template>
 
       <button nz-button nzType="primary" (click)="search()">
+        <span nz-icon nzType="search"></span>
         {{ 'app.inventory.search' | i18n }}
       </button>
 
@@ -38,7 +39,7 @@
       }
     </div>
 
-    <button nz-button nzType="primary">
+    <button nz-button nzType="primary" (click)="openCreate()">
       <span nz-icon nzType="plus"></span>
       {{ 'app.inventory.create' | i18n }}
     </button>
@@ -47,7 +48,30 @@
   <!-- Filter -->
   @if (showFilter) {
     <div class="filter-panel">
-      <div nz-row [nzGutter]="[16,16]">
+      <div nz-row [nzGutter]="[16, 16]">
+
+        <div nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label>
+              {{ 'app.inventory.filter.category' | i18n }}
+            </nz-form-label>
+
+            <nz-form-control>
+              <nz-select
+                [(ngModel)]="filter.inventoryCategoryId"
+                nzAllowClear
+                [nzPlaceHolder]="'app.inventory.filter.category' | i18n"
+              >
+                @for (category of categoryOptions; track category.id) {
+                  <nz-option
+                    [nzValue]="category.id"
+                    [nzLabel]="category.categoryName">
+                  </nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
 
         <div nz-col [nzSpan]="6">
           <nz-form-item>
@@ -58,13 +82,13 @@
             <nz-form-control>
               <nz-select
                 [(ngModel)]="filter.status"
-                [nzAllowClear]="true"
+                nzAllowClear
                 [nzPlaceHolder]="'app.inventory.filter.all' | i18n"
               >
-                @for (item of statusOptions; track item.value) {
+                @for (status of statusOptions; track status.value) {
                   <nz-option
-                    [nzValue]="item.value"
-                    [nzLabel]="item.label | i18n">
+                    [nzValue]="status.value"
+                    [nzLabel]="status.label | i18n">
                   </nz-option>
                 }
               </nz-select>
@@ -80,7 +104,7 @@
 
             <nz-form-control>
               <nz-input-number
-                style="width:100%;"
+                style="width: 100%;"
                 [nzMin]="0"
                 [(ngModel)]="filter.quantityFrom"
                 [nzPlaceHolder]="'app.inventory.filter.quantityFrom' | i18n">
@@ -97,7 +121,7 @@
 
             <nz-form-control>
               <nz-input-number
-                style="width:100%;"
+                style="width: 100%;"
                 [nzMin]="0"
                 [(ngModel)]="filter.quantityTo"
                 [nzPlaceHolder]="'app.inventory.filter.quantityTo' | i18n">
@@ -114,7 +138,7 @@
 
             <nz-form-control>
               <nz-input-number
-                style="width:100%;"
+                style="width: 100%;"
                 [nzMin]="0"
                 [(ngModel)]="filter.minimumQuantityFrom"
                 [nzPlaceHolder]="'app.inventory.filter.minimumQuantityFrom' | i18n">
@@ -131,43 +155,11 @@
 
             <nz-form-control>
               <nz-input-number
-                style="width:100%;"
+                style="width: 100%;"
                 [nzMin]="0"
                 [(ngModel)]="filter.minimumQuantityTo"
                 [nzPlaceHolder]="'app.inventory.filter.minimumQuantityTo' | i18n">
               </nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>
-              {{ 'app.inventory.filter.createdAtFrom' | i18n }}
-            </nz-form-label>
-
-            <nz-form-control>
-              <nz-date-picker
-                style="width:100%;"
-                [(ngModel)]="filter.createdAtFrom"
-                [nzPlaceHolder]="'app.inventory.filter.createdAtFrom' | i18n">
-              </nz-date-picker>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>
-              {{ 'app.inventory.filter.createdAtTo' | i18n }}
-            </nz-form-label>
-
-            <nz-form-control>
-              <nz-date-picker
-                style="width:100%;"
-                [(ngModel)]="filter.createdAtTo"
-                [nzPlaceHolder]="'app.inventory.filter.createdAtTo' | i18n">
-              </nz-date-picker>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -187,7 +179,7 @@
     </div>
   }
 
-  <!-- Table -->
+  <!-- Inventory Table -->
   <st
     #st
     [columns]="columns"
@@ -201,10 +193,9 @@
       showSize: true,
       front: false
     }"
-    [scroll]="{ x: '1100px' }"
+    [scroll]="{ x: '1000px' }"
     (change)="onSTChange($event)"
   >
-
     <ng-template st-row="status" let-item>
       <nz-tag [nzColor]="getStatusColor(item.status)">
         @switch (item.status) {
@@ -214,13 +205,14 @@
           @case ('LOW') {
             {{ 'app.inventory.status.low' | i18n }}
           }
-          @default {
+          @case ('OUT_OF_STOCK') {
             {{ 'app.inventory.status.outOfStock' | i18n }}
+          }
+          @default {
+            {{ item.status }}
           }
         }
       </nz-tag>
     </ng-template>
-
   </st>
-
 </nz-card>

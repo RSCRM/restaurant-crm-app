@@ -5,13 +5,9 @@ import { Observable, map } from 'rxjs';
 
 import { ApiResponse } from '../../auth/models/auth.model';
 import {
-  CreateIngredientCategoryRequest,
-  UpdateIngredientCategoryRequest,
-  IngredientCategoryResponse,
-
-  CreateIngredientRequest,
-  UpdateIngredientRequest,
-  IngredientResponse,
+  CreateInventoryCategoryRequest,
+  UpdateInventoryCategoryRequest,
+  InventoryCategoryResponse,
 
   CreateInventoryRequest,
   UpdateInventoryRequest,
@@ -32,122 +28,52 @@ const API = environment.api['apiPrefix'];
 export class InventoryService {
   private http = inject(HttpClient);
 
-  private readonly CATEGORY_API = `${API}/erp/ingredient-categories`;
-  private readonly INGREDIENT_API = `${API}/erp/ingredients`;
+  private readonly CATEGORY_API = `${API}/erp/inventory-categories`;
   private readonly INVENTORY_API = `${API}/erp/inventories`;
   private readonly TRANSACTION_API = `${API}/erp/inventory-transactions`;
 
   // ============================================================
-  // Ingredient Category
+  // Inventory Category
   // ============================================================
 
-  getIngredientCategories(params: PagingParams): Observable<PagingResponse<IngredientCategoryResponse>> {
+  getInventoryCategories(params: PagingParams): Observable<PagingResponse<InventoryCategoryResponse>> {
     const httpParams = new HttpParams()
       .set('page', params.page)
       .set('size', params.size);
 
     return this.http
-      .get<ApiResponse<PagingResponse<IngredientCategoryResponse>>>(this.CATEGORY_API, { params: httpParams })
+      .get<ApiResponse<PagingResponse<InventoryCategoryResponse>>>(this.CATEGORY_API, {
+        params: httpParams
+      })
       .pipe(map(res => res.data));
   }
 
-  getIngredientCategory(id: string): Observable<IngredientCategoryResponse> {
+  getInventoryCategory(id: string): Observable<InventoryCategoryResponse> {
     return this.http
-      .get<ApiResponse<IngredientCategoryResponse>>(`${this.CATEGORY_API}/${id}`)
+      .get<ApiResponse<InventoryCategoryResponse>>(`${this.CATEGORY_API}/${id}`)
       .pipe(map(res => res.data));
   }
 
-  createIngredientCategory(request: CreateIngredientCategoryRequest): Observable<IngredientCategoryResponse> {
+  createInventoryCategory(
+    request: CreateInventoryCategoryRequest
+  ): Observable<InventoryCategoryResponse> {
     return this.http
-      .post<ApiResponse<IngredientCategoryResponse>>(this.CATEGORY_API, request)
+      .post<ApiResponse<InventoryCategoryResponse>>(this.CATEGORY_API, request)
       .pipe(map(res => res.data));
   }
 
-  updateIngredientCategory(
+  updateInventoryCategory(
     id: string,
-    request: UpdateIngredientCategoryRequest
-  ): Observable<IngredientCategoryResponse> {
+    request: UpdateInventoryCategoryRequest
+  ): Observable<InventoryCategoryResponse> {
     return this.http
-      .patch<ApiResponse<IngredientCategoryResponse>>(`${this.CATEGORY_API}/${id}`, request)
+      .patch<ApiResponse<InventoryCategoryResponse>>(`${this.CATEGORY_API}/${id}`, request)
       .pipe(map(res => res.data));
   }
 
-  deleteIngredientCategory(id: string): Observable<void> {
+  deleteInventoryCategory(id: string): Observable<void> {
     return this.http
       .delete<ApiResponse<void>>(`${this.CATEGORY_API}/${id}`)
-      .pipe(map(res => res.data));
-  }
-
-  // ============================================================
-  // Ingredient
-  // ============================================================
-
-  getIngredients(params: PagingParams): Observable<PagingResponse<IngredientResponse>> {
-    const httpParams = new HttpParams()
-      .set('page', params.page)
-      .set('size', params.size);
-
-    return this.http
-      .get<ApiResponse<PagingResponse<IngredientResponse>>>(this.INGREDIENT_API, { params: httpParams })
-      .pipe(map(res => res.data));
-  }
-
-  getIngredient(id: string): Observable<IngredientResponse> {
-    return this.http
-      .get<ApiResponse<IngredientResponse>>(`${this.INGREDIENT_API}/${id}`)
-      .pipe(map(res => res.data));
-  }
-
-  searchIngredients(
-    ingredientName: string,
-    page = 1,
-    size = 10
-  ): Observable<PagingResponse<IngredientResponse>> {
-    const params = new HttpParams()
-      .set('ingredientName', ingredientName)
-      .set('page', page)
-      .set('size', size);
-
-    return this.http
-      .get<ApiResponse<PagingResponse<IngredientResponse>>>(`${this.INGREDIENT_API}/search`, { params })
-      .pipe(map(res => res.data));
-  }
-
-  getIngredientsByCategory(
-    categoryId: string,
-    page = 1,
-    size = 10
-  ): Observable<PagingResponse<IngredientResponse>> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
-
-    return this.http
-      .get<ApiResponse<PagingResponse<IngredientResponse>>>(
-        `${this.INGREDIENT_API}/category/${categoryId}`,
-        { params }
-      )
-      .pipe(map(res => res.data));
-  }
-
-  createIngredient(request: CreateIngredientRequest): Observable<IngredientResponse> {
-    return this.http
-      .post<ApiResponse<IngredientResponse>>(this.INGREDIENT_API, request)
-      .pipe(map(res => res.data));
-  }
-
-  updateIngredient(
-    id: string,
-    request: UpdateIngredientRequest
-  ): Observable<IngredientResponse> {
-    return this.http
-      .patch<ApiResponse<IngredientResponse>>(`${this.INGREDIENT_API}/${id}`, request)
-      .pipe(map(res => res.data));
-  }
-
-  deleteIngredient(id: string): Observable<void> {
-    return this.http
-      .delete<ApiResponse<void>>(`${this.INGREDIENT_API}/${id}`)
       .pipe(map(res => res.data));
   }
 
@@ -160,11 +86,18 @@ export class InventoryService {
       .set('page', params.page)
       .set('size', params.size);
 
-    if (params.direction) httpParams = httpParams.set('direction', params.direction);
-    if (params.field) httpParams = httpParams.set('field', params.field);
+    if (params.direction) {
+      httpParams = httpParams.set('direction', params.direction);
+    }
+
+    if (params.field) {
+      httpParams = httpParams.set('field', params.field);
+    }
 
     return this.http
-      .get<ApiResponse<PagingResponse<InventoryResponse>>>(this.INVENTORY_API, { params: httpParams })
+      .get<ApiResponse<PagingResponse<InventoryResponse>>>(this.INVENTORY_API, {
+        params: httpParams
+      })
       .pipe(map(res => res.data));
   }
 
@@ -174,9 +107,20 @@ export class InventoryService {
       .pipe(map(res => res.data));
   }
 
-  getInventoryByIngredient(ingredientId: string): Observable<InventoryResponse> {
+  getInventoriesByCategory(
+    categoryId: string,
+    page = 1,
+    size = 10
+  ): Observable<PagingResponse<InventoryResponse>> {
+    const params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
     return this.http
-      .get<ApiResponse<InventoryResponse>>(`${this.INVENTORY_API}/ingredient/${ingredientId}`)
+      .get<ApiResponse<PagingResponse<InventoryResponse>>>(
+        `${this.INVENTORY_API}/category/${categoryId}`,
+        { params }
+      )
       .pipe(map(res => res.data));
   }
 
@@ -194,11 +138,17 @@ export class InventoryService {
       .set('field', field);
 
     return this.http
-      .post<ApiResponse<PagingResponse<InventoryResponse>>>(`${this.INVENTORY_API}/search`, filter, { params })
+      .post<ApiResponse<PagingResponse<InventoryResponse>>>(
+        `${this.INVENTORY_API}/search`,
+        filter,
+        { params }
+      )
       .pipe(map(res => res.data));
   }
 
-  createInventory(request: CreateInventoryRequest): Observable<InventoryResponse> {
+  createInventory(
+    request: CreateInventoryRequest
+  ): Observable<InventoryResponse> {
     return this.http
       .post<ApiResponse<InventoryResponse>>(this.INVENTORY_API, request)
       .pipe(map(res => res.data));
@@ -213,6 +163,12 @@ export class InventoryService {
       .pipe(map(res => res.data));
   }
 
+  deleteInventory(id: string): Observable<void> {
+    return this.http
+      .delete<ApiResponse<void>>(`${this.INVENTORY_API}/${id}`)
+      .pipe(map(res => res.data));
+  }
+
   // ============================================================
   // Inventory Transaction
   // ============================================================
@@ -222,11 +178,18 @@ export class InventoryService {
       .set('page', params.page)
       .set('size', params.size);
 
-    if (params.direction) httpParams = httpParams.set('direction', params.direction);
-    if (params.field) httpParams = httpParams.set('field', params.field);
+    if (params.direction) {
+      httpParams = httpParams.set('direction', params.direction);
+    }
+
+    if (params.field) {
+      httpParams = httpParams.set('field', params.field);
+    }
 
     return this.http
-      .get<ApiResponse<PagingResponse<InventoryTransactionResponse>>>(this.TRANSACTION_API, { params: httpParams })
+      .get<ApiResponse<PagingResponse<InventoryTransactionResponse>>>(this.TRANSACTION_API, {
+        params: httpParams
+      })
       .pipe(map(res => res.data));
   }
 

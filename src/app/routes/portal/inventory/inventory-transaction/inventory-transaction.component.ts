@@ -2,13 +2,21 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   OnInit,
   inject
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EMPTY, catchError, finalize } from 'rxjs';
+
 import { FormsModule } from '@angular/forms';
 
+import {
+  STChange,
+  STColumn,
+  STModule
+} from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
-import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -18,6 +26,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 import {
   InventoryTransactionDirection,
@@ -27,6 +36,7 @@ import {
   PagingResponse
 } from '../inventory.model';
 import { InventoryService } from '../inventory.service';
+import { InventoryTransactionFormComponent } from '../inventory-transaction-form/inventory-transaction-form.component';
 
 @Component({
   selector: 'app-inventory-transaction',
@@ -34,23 +44,29 @@ import { InventoryService } from '../inventory.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
+
     PageHeaderModule,
     STModule,
+
     NzCardModule,
     NzButtonModule,
     NzInputModule,
     NzSelectModule,
     NzIconModule,
     NzTagModule,
+    NzModalModule,
+
     I18nPipe
   ],
   templateUrl: './inventory-transaction.component.html',
   styleUrl: './inventory-transaction.component.less'
 })
 export class InventoryTransactionComponent implements OnInit {
-  private inventoryService = inject(InventoryService);
-  private cdr = inject(ChangeDetectorRef);
-  private message = inject(NzMessageService);
+  private readonly inventoryService = inject(InventoryService);
+  private readonly modal = inject(NzModalService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly message = inject(NzMessageService);
+  private readonly destroyRef = inject(DestroyRef);
 
   loading = false;
 
@@ -62,24 +78,26 @@ export class InventoryTransactionComponent implements OnInit {
 
   filter: InventoryTransactionSearchRequest = {};
 
-  transactionTypes = Object.values(InventoryTransactionType);
-  transactionDirections = Object.values(InventoryTransactionDirection);
+  readonly transactionTypes = Object.values(InventoryTransactionType);
+  readonly transactionDirections = Object.values(
+    InventoryTransactionDirection
+  );
 
   columns: STColumn[] = [
     {
-      title: { i18n: 'app.inventory.transaction.ingredient' },
-      index: 'ingredientName',
+      title: { i18n: 'app.inventory.transaction.inventory' },
+      index: 'inventoryName',
       width: 220
     },
     {
       title: { i18n: 'app.inventory.transaction.type' },
-      width: 150,
-      render: 'type'
+      render: 'type',
+      width: 150
     },
     {
       title: { i18n: 'app.inventory.transaction.direction' },
-      width: 130,
-      render: 'direction'
+      render: 'direction',
+      width: 130
     },
     {
       title: { i18n: 'app.inventory.transaction.quantity' },
@@ -89,7 +107,7 @@ export class InventoryTransactionComponent implements OnInit {
     },
     {
       title: { i18n: 'app.inventory.transaction.employee' },
-      index: 'employeeId',
+      index: 'employeeName',
       width: 180
     },
     {
@@ -118,19 +136,40 @@ export class InventoryTransactionComponent implements OnInit {
         this.currentPage,
         this.pageSize
       )
-      .subscribe({
-        next: (res: PagingResponse<InventoryTransactionResponse>) => {
-          this.transactions = res.data;
-          this.total = res.totalElement;
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.transactions = [];
+          this.total = 0;
+          this.message.error('Load inventory transactions failed');
+          return EMPTY;
+        }),
+        finalize(() => {
           this.loading = false;
           this.cdr.markForCheck();
-        },
-        error: () => {
-          this.loading = false;
-          this.message.error('app.inventory.transaction.loadError');
-          this.cdr.markForCheck();
-        }
+        })
+      )
+      .subscribe((res: PagingResponse<InventoryTransactionResponse>) => {
+        this.transactions = res.data;
+        this.total = res.totalElement;
+        this.cdr.markForCheck();
       });
+  }
+
+  openCreate(): void {
+    const modalRef = this.modal.create({
+      nzTitle: undefined,
+      nzContent: InventoryTransactionFormComponent,
+      nzWidth: 700,
+      nzData: null,
+      nzFooter: null
+    });
+
+    modalRef.afterClose.subscribe(result => {
+      if (result) {
+        this.loadData();
+      }
+    });
   }
 
   search(): void {
@@ -144,21 +183,30 @@ export class InventoryTransactionComponent implements OnInit {
     this.loadData();
   }
 
-  onSTChange(e: STChange): void {
-    if (e.type === 'pi') {
-      this.currentPage = e.pi!;
+  onSTChange(event: STChange): void {
+    if (event.type === 'pi') {
+      this.currentPage = event.pi!;
       this.loadData();
     }
 
-    if (e.type === 'ps') {
-      this.pageSize = e.ps!;
+    if (event.type === 'ps') {
+      this.pageSize = event.ps!;
       this.currentPage = 1;
       this.loadData();
     }
   }
 
   getDirectionColor(direction: InventoryTransactionDirection): string {
-    return direction === InventoryTransactionDirection.IN ? 'success' : 'error';
+    switch (direction) {
+      case InventoryTransactionDirection.IN:
+        return 'success';
+
+      case InventoryTransactionDirection.OUT:
+        return 'error';
+
+      default:
+        return 'default';
+    }
   }
 
   getDirectionLabel(direction: InventoryTransactionDirection): string {

@@ -12,8 +12,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
-
-import { EMPTY, catchError, finalize } from 'rxjs';
+import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { I18nPipe } from '@delon/theme';
 
@@ -21,34 +20,32 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import {
-  NZ_MODAL_DATA,
-  NzModalRef
-} from 'ng-zorro-antd/modal';
-import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 
 import {
-  IngredientCategoryResponse,
-  IngredientResponse
+  CreateInventoryCategoryRequest,
+  InventoryCategoryResponse,
+  UpdateInventoryCategoryRequest
 } from '../inventory.model';
 import { InventoryService } from '../inventory.service';
 
 @Component({
-  selector: 'app-ingredient-form',
+  selector: 'app-inventory-category-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
+
     NzFormModule,
     NzInputModule,
-    NzSelectModule,
     NzButtonModule,
+
     I18nPipe
   ],
-  templateUrl: './ingredient-form.component.html',
-  styleUrl: './ingredient-form.component.less'
+  templateUrl: './inventory-category-form.component.html',
+  styleUrl: './inventory-category-form.component.less'
 })
-export class IngredientFormComponent implements OnInit {
+export class InventoryCategoryFormComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly modalRef = inject(NzModalRef);
   private readonly inventoryService = inject(InventoryService);
@@ -56,49 +53,25 @@ export class IngredientFormComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly modalData =
-    inject<IngredientResponse | null>(
-      NZ_MODAL_DATA,
-      { optional: true }
-    );
+  private readonly modalData = inject<InventoryCategoryResponse | null>(
+    NZ_MODAL_DATA,
+    { optional: true }
+  );
 
-  isEdit = false;
   loading = false;
-
-  categories: IngredientCategoryResponse[] = [];
-
-  readonly units = [
-    'kg',
-    'g',
-    'l',
-    'ml',
-    'piece',
-    'pack',
-    'box',
-    'bottle',
-    'can'
-  ];
+  isEdit = false;
 
   form = this.fb.group({
-    ingredientCategoryId: this.fb.control('', [
-      Validators.required
-    ]),
-    ingredientName: this.fb.control('', [
+    categoryName: this.fb.control('', [
       Validators.required,
-      Validators.maxLength(100)
-    ]),
-    unit: this.fb.control('', [
-      Validators.required,
-      Validators.maxLength(30)
+      Validators.maxLength(255)
     ]),
     description: this.fb.control('', [
-      Validators.maxLength(255)
+      Validators.maxLength(500)
     ])
   });
 
   ngOnInit(): void {
-    this.loadCategories();
-
     if (!this.modalData) {
       return;
     }
@@ -106,31 +79,11 @@ export class IngredientFormComponent implements OnInit {
     this.isEdit = true;
 
     this.form.patchValue({
-      ingredientCategoryId: this.modalData.ingredientCategoryId,
-      ingredientName: this.modalData.ingredientName,
-      unit: this.modalData.unit,
+      categoryName: this.modalData.categoryName,
       description: this.modalData.description ?? ''
     });
   }
 
-  private loadCategories(): void {
-    this.inventoryService
-      .getIngredientCategories({
-        page: 1,
-        size: 1000
-      })
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Load ingredient categories failed');
-          return EMPTY;
-        })
-      )
-      .subscribe(res => {
-        this.categories = res.data;
-        this.cdr.markForCheck();
-      });
-  }
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -140,20 +93,22 @@ export class IngredientFormComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
 
-    const value = this.form.getRawValue();
+    const raw = this.form.getRawValue();
 
     if (this.isEdit && this.modalData) {
+      const request: UpdateInventoryCategoryRequest = {
+        categoryName: raw.categoryName,
+        description: raw.description
+      };
+
       this.inventoryService
-        .updateIngredient(this.modalData.id, {
-          ingredientCategoryId: value.ingredientCategoryId,
-          ingredientName: value.ingredientName,
-          unit: value.unit,
-          description: value.description
-        })
+        .updateInventoryCategory(this.modalData.id, request)
         .pipe(
           takeUntilDestroyed(this.destroyRef),
           catchError(() => {
-            this.message.error('Update ingredient failed');
+            this.message.error(
+              'Update inventory category failed'
+            );
             return EMPTY;
           }),
           finalize(() => {
@@ -162,24 +117,28 @@ export class IngredientFormComponent implements OnInit {
           })
         )
         .subscribe(() => {
-          this.message.success('Ingredient updated successfully');
+          this.message.success(
+            'Inventory category updated successfully'
+          );
           this.modalRef.destroy(true);
         });
 
       return;
     }
 
+    const request: CreateInventoryCategoryRequest = {
+      categoryName: raw.categoryName,
+      description: raw.description
+    };
+
     this.inventoryService
-      .createIngredient({
-        ingredientCategoryId: value.ingredientCategoryId,
-        ingredientName: value.ingredientName,
-        unit: value.unit,
-        description: value.description
-      })
+      .createInventoryCategory(request)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
-          this.message.error('Create ingredient failed');
+          this.message.error(
+            'Create inventory category failed'
+          );
           return EMPTY;
         }),
         finalize(() => {
@@ -188,7 +147,9 @@ export class IngredientFormComponent implements OnInit {
         })
       )
       .subscribe(() => {
-        this.message.success('Ingredient created successfully');
+        this.message.success(
+          'Inventory category created successfully'
+        );
         this.modalRef.destroy(true);
       });
   }

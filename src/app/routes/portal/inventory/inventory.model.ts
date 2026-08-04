@@ -17,37 +17,33 @@ export enum InventoryTransactionType {
   RETURN = 'RETURN'
 }
 
-export interface CreateIngredientCategoryRequest {
+/* ===========================
+ * REQUESTS
+ * =========================== */
+
+export interface CreateInventoryCategoryRequest {
   categoryName: string;
   description?: string;
 }
 
-export interface CreateIngredientRequest {
-  ingredientCategoryId: string;
-  ingredientName: string;
-  unit: string;
-  description?: string;
-}
-
-export interface UpdateIngredientRequest {
-  ingredientCategoryId?: string;
-  ingredientName?: string;
-  unit?: string;
-  description?: string;
-}
-
-export interface UpdateIngredientCategoryRequest {
+export interface UpdateInventoryCategoryRequest {
   categoryName?: string;
   description?: string;
 }
 
 export interface CreateInventoryRequest {
-  ingredientId: string;
-  quantity: number;
+  inventoryCategoryId: string;
+  inventoryName: string;
+  unit: string;
+  description?: string;
   minimumQuantity: number;
 }
 
 export interface UpdateInventoryRequest {
+  inventoryCategoryId?: string;
+  inventoryName?: string;
+  unit?: string;
+  description?: string;
   minimumQuantity?: number;
 }
 
@@ -60,8 +56,11 @@ export interface CreateInventoryTransactionRequest {
   note?: string;
 }
 
+/* ===========================
+ * RESPONSES
+ * =========================== */
 
-export interface IngredientCategoryResponse {
+export interface InventoryCategoryResponse {
   id: string;
   branchId: string;
   categoryName: string;
@@ -70,45 +69,56 @@ export interface IngredientCategoryResponse {
   updatedAt: string;
 }
 
-export interface IngredientResponse {
-  id: string;
-  branchId: string;
-  ingredientCategoryId: string;
-  ingredientName: string;
-  unit: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface InventoryResponse {
   id: string;
-  ingredientId: string;
-  ingredientName: string;
+  branchId: string;
+  inventoryCategoryId: string;
+  inventoryCategoryName: string;
+
+  inventoryName: string;
+  unit: string;
+  description: string;
+
   quantity: number;
   minimumQuantity: number;
+
   status: InventoryStatus;
+
   createdAt: string;
   updatedAt: string;
 }
 
 export interface InventoryTransactionResponse {
   id: string;
+
   inventoryId: string;
-  ingredientName: string;
+  inventoryName: string;
+
   employeeId: string | null;
+  employeeName: string | null;
+
   transactionType: InventoryTransactionType;
   transactionDirection: InventoryTransactionDirection;
+
   quantity: number;
   note: string | null;
+
   transactionTime: string;
+
   createdAt: string;
   updatedAt: string;
 }
 
-export interface InventorySearchRequest {
-  ingredientName?: string;
+/* ===========================
+ * SEARCH REQUESTS
+ * =========================== */
 
+export interface InventorySearchRequest {
+  // Search
+  inventoryName?: string;
+
+  // Filter
+  inventoryCategoryId?: string;
   status?: InventoryStatus;
 
   quantityFrom?: number;
@@ -122,8 +132,11 @@ export interface InventorySearchRequest {
 }
 
 export interface InventoryTransactionSearchRequest {
-  ingredientName?: string;
+  // Search
+  inventoryName?: string;
+  employeeName?: string;
 
+  // Filter
   transactionType?: InventoryTransactionType;
   transactionDirection?: InventoryTransactionDirection;
 
@@ -132,9 +145,11 @@ export interface InventoryTransactionSearchRequest {
 
   transactionTimeFrom?: string;
   transactionTimeTo?: string;
-
-  employeeId?: string;
 }
+
+/* ===========================
+ * PAGING
+ * =========================== */
 
 export interface PagingResponse<T> {
   currentPage: number;
