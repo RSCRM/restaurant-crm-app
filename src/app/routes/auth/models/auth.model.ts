@@ -27,24 +27,9 @@ export interface ContextInfoResponse {
 
 export interface ContextSelectionRequest {
   employeeId?: string;
-  branchId?: string;
-  orgRole?: string;
-  dataScope?: 'ORGANIZATION' | 'BRANCH' | 'SELF' | string;
-  permission?: string[];
-  exp: number;
-  iat: number;
+  organizationId: string;
+  role: string;
 }
-
-export interface UserProfile {
-  userId: string;
-  email: string;
-  fullName: string;
-  phone: string | null;
-  avatar: string | null;
-}
-//   organizationId: string;
-//   role: string;
-// }
 
 export interface ContextSelectionResponse {
   contextToken: string;
@@ -58,15 +43,8 @@ export interface TokenPayload {
   organizationId?: string;
   branchId?: string;
   orgRole?: string;
+  dataScope?: 'ORGANIZATION' | 'BRANCH' | 'SELF' | string;
   permission?: string[];
   exp: number;
   iat: number;
-}
-
-export interface UserProfile {
-  userId: string;
-  email: string;
-  fullName: string;
-  phone: string | null;
-  avatar: string | null;
 }

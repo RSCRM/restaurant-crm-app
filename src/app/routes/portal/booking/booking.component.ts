@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STModule, STChange } from '@delon/abc/st';
@@ -14,12 +15,12 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { combineLatest } from 'rxjs';
 
 import { BookingFormComponent } from './booking-form/booking-form.component';
 import { BookingResponse, BookingStatus } from './booking.model';
 import { BookingService } from './booking.service';
-import { selectContextToken } from '../../auth/store/auth.selectors';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
+import { selectHasPermission, selectSelectedBranchId, selectSelectedRole } from '../../auth/store/auth.selectors';
 
 @Component({
   selector: 'app-booking',
@@ -72,12 +73,12 @@ import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
   ]
 })
 export class BookingComponent implements OnInit, OnDestroy {
-  private i18n = inject(ALAIN_I18N_TOKEN);
   private bookingService = inject(BookingService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private store = inject(Store);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   bookingStatus = BookingStatus; // Expose to template
 
@@ -134,40 +135,25 @@ export class BookingComponent implements OnInit, OnDestroy {
     }
   }
 
-  private parseTokenPayload(token: string | null): Record<string, unknown> | null {
-    if (!token) return null;
-    try {
-      const base64Url = token.split('.')[1];
-      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) {
-        base64 += '=';
-      }
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch {
-      return null;
-    }
-  }
-
   ngOnInit(): void {
-    this.store.select(selectContextToken).subscribe(token => {
-      const payload = this.parseTokenPayload(token);
-      if (payload) {
-        this.branchId = (payload['branchId'] as string) || null;
-        const permissions: string[] = (payload['permission'] as string[]) || [];
-        const isManager = payload['role'] === 'ADMIN' || payload['orgRole'] === 'OWNER' || payload['orgRole'] === 'MANAGER';
-        this.hasCreatePermission = permissions.includes('BOOKING_CREATE') || isManager;
-        this.hasUpdatePermission = permissions.includes('BOOKING_UPDATE') || isManager;
-        if (this.branchId) {
+    combineLatest([
+      this.store.select(selectSelectedBranchId),
+      this.store.select(selectSelectedRole),
+      this.store.select(selectHasPermission('BOOKING_CREATE')),
+      this.store.select(selectHasPermission('BOOKING_UPDATE'))
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([branchId, role, canCreate, canUpdate]) => {
+        const isManager = role === 'OWNER' || role === 'MANAGER';
+        const previousBranchId = this.branchId;
+        this.branchId = branchId;
+        this.hasCreatePermission = canCreate || isManager;
+        this.hasUpdatePermission = canUpdate || isManager;
+        if (this.branchId && this.branchId !== previousBranchId) {
           this.loadData();
         }
-      }
-    });
+        this.cdr.markForCheck();
+      });
 
     this.refreshIntervalId = setInterval(() => {
       this.cdr.markForCheck();
@@ -259,14 +245,9 @@ export class BookingComponent implements OnInit, OnDestroy {
   }
 
   updateStatus(booking: BookingResponse, status: BookingStatus): void {
-    if (status === BookingStatus.SEATED && !booking.tableId) {
-      this.message.warning(this.i18n.fanyi('booking.warning.no-table'));
-      return;
-    }
-
     let confirmMsg = '';
     if (status === BookingStatus.SEATED) {
-      confirmMsg = this.i18n.fanyi('booking.confirm.seated');
+      confirmMsg = 'Xác nhận khách đã nhận bàn?';
     } else if (status === BookingStatus.CANCELLED) {
       confirmMsg = 'Bạn có chắc chắn muốn hủy đặt bàn này?';
     }
@@ -279,11 +260,7 @@ export class BookingComponent implements OnInit, OnDestroy {
         this.bookingService.updateBookingStatus(booking.id, { status }).subscribe({
           next: () => {
             this.loading = false;
-            if (status === BookingStatus.SEATED) {
-              this.message.success(this.i18n.fanyi('booking.success.seated'));
-            } else {
-              this.message.success('Cập nhật trạng thái thành công!');
-            }
+            this.message.success('Cập nhật trạng thái thành công!');
             this.loadData();
           },
           error: err => {

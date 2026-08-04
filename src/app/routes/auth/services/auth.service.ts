@@ -43,10 +43,6 @@ export class AuthService {
     this.tokenService.set({ token, time: +new Date() + expiresInMs });
   }
 
-  getToken(): string | null {
-    return this.tokenService.get()?.token ?? null;
-  }
-
   clearToken(): void {
     this.tokenService.clear();
   }
@@ -163,27 +159,6 @@ export class AuthService {
     } catch {
       return {};
     }
-  }
-
-  private unwrapData<T>(response: ApiResponse<T>, fallbackMessage: string): T {
-    if (!response.success || typeof response.data === 'undefined') {
-      throw new Error(this.extractApiMessage(response.errorMessage) ?? fallbackMessage);
-    }
-
-    return response.data;
-  }
-
-  private extractApiMessage(errorMessage: unknown): string | null {
-    if (typeof errorMessage === 'string' && errorMessage.length > 0) {
-      return errorMessage;
-    }
-
-    if (typeof errorMessage !== 'object' || errorMessage === null) {
-      return null;
-    }
-
-    const message = (errorMessage as Record<string, unknown>)['message'];
-    return typeof message === 'string' && message.length > 0 ? message : null;
   }
 
   private isContextInfo(value: unknown): value is ContextInfo {

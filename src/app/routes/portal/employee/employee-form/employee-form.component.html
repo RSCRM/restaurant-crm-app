@@ -9,16 +9,9 @@
 <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
   <div class="employee-form-grid">
     <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.firstName' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.firstNameRequired' | i18n">
-        <input nz-input formControlName="firstName" [placeholder]="'employee.placeholders.firstName' | i18n" />
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.lastName' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.lastNameRequired' | i18n">
-        <input nz-input formControlName="lastName" [placeholder]="'employee.placeholders.lastName' | i18n" />
+      <nz-form-label nzRequired>{{ 'employee.fields.fullName' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'employee.validation.fullNameRequired' | i18n">
+        <input nz-input formControlName="fullName" [placeholder]="'employee.placeholders.fullName' | i18n" />
       </nz-form-control>
     </nz-form-item>
 

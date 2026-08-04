@@ -9,12 +9,12 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { combineLatest, map } from 'rxjs';
+import { map } from 'rxjs';
 
 import { I18nPipe } from '@delon/theme';
 import { AuthActions } from '../../auth/store/auth.actions';
-import { selectAuthLoading, selectContexts, selectSelectedContext } from '../../auth/store/auth.selectors';
-import { ContextInfo, SelectedContext } from '../../auth/store/auth.state';
+import { selectAuthLoading, selectContexts } from '../../auth/store/auth.selectors';
+import { ContextInfo } from '../../auth/store/auth.state';
 
 @Component({
   selector: 'app-context-select',
@@ -39,9 +39,7 @@ export class ContextSelectComponent implements OnInit {
   private store = inject(Store);
   private cdr = inject(ChangeDetectorRef);
 
-  contexts$ = combineLatest([this.store.select(selectContexts), this.store.select(selectSelectedContext)]).pipe(
-    map(([contexts, selectedContext]) => (contexts.length > 0 ? contexts : this.createContextsFromSelectedContext(selectedContext)))
-  );
+  contexts$ = this.store.select(selectContexts).pipe(map(contexts => contexts));
   loading$ = this.store.select(selectAuthLoading);
 
   ngOnInit(): void {
@@ -52,29 +50,10 @@ export class ContextSelectComponent implements OnInit {
     this.store.dispatch(
       AuthActions.selectContext({
         organizationId: context.organizationId,
-        organizationName: context.organizationName,
         employeeId: context.employeeId ?? undefined,
         branchId: context.branchId,
-        branchName: context.branchName,
         role: context.role
       })
     );
-  }
-
-  private createContextsFromSelectedContext(selectedContext: SelectedContext | null): ContextInfo[] {
-    if (!selectedContext?.organizationId || !selectedContext.role) {
-      return [];
-    }
-
-    return [
-      {
-        employeeId: selectedContext.employeeId,
-        organizationId: selectedContext.organizationId,
-        organizationName: selectedContext.organizationName ?? selectedContext.organizationId,
-        branchId: selectedContext.branchId,
-        branchName: selectedContext.branchName,
-        role: selectedContext.role
-      }
-    ];
   }
 }

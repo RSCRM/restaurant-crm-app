@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
@@ -16,7 +16,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { Subscription } from 'rxjs';
 
 import { AuthActions } from '../../routes/auth/store/auth.actions';
-import { selectAuthUser, selectContextToken, selectHasContext } from '../../routes/auth/store/auth.selectors';
+import { selectHasContext, selectSelectedBranchId } from '../../routes/auth/store/auth.selectors';
 import { NotificationResponse, NotificationStatus } from '../../routes/portal/notification/notification.model';
 import { NotificationService } from '../../routes/portal/notification/notification.service';
 
@@ -26,7 +26,6 @@ import { NotificationService } from '../../routes/portal/notification/notificati
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    AsyncPipe,
     DatePipe,
     RouterLink,
     RouterOutlet,
@@ -52,9 +51,6 @@ export class LayoutPortal implements OnInit, OnDestroy {
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
 
-  user$ = this.store.select(selectAuthUser);
-  hasContext$ = this.store.select(selectHasContext);
-
   notifications: NotificationResponse[] = [];
   notificationCount = 0;
   branchId: string | null = null;
@@ -72,31 +68,10 @@ export class LayoutPortal implements OnInit, OnDestroy {
     this.settingsService.setUser({ name: 'User', avatar: '' });
   }
 
-  private parseTokenPayload(token: string | null): Record<string, unknown> | null {
-    if (!token) return null;
-    try {
-      const base64Url = token.split('.')[1];
-      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) base64 += '=';
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch {
-      return null;
-    }
-  }
-
   ngOnInit(): void {
-    this.tokenSub = this.store.select(selectContextToken).subscribe(token => {
-      const payload = this.parseTokenPayload(token);
-      if (payload) {
-        this.branchId = (payload['branchId'] as string) || null;
-        // Notifications loaded on-demand, not on context select
-      }
+    this.tokenSub = this.store.select(selectSelectedBranchId).subscribe(branchId => {
+      this.branchId = branchId;
+      // Notifications loaded on-demand, not on context select
     });
 
     this.store.select(selectHasContext).subscribe(hasContext => {

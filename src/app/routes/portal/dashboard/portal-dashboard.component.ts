@@ -23,6 +23,7 @@ import { AuthService } from '../../auth/services/auth.service';
 import { AuthActions } from '../../auth/store/auth.actions';
 import { selectSelectedContext } from '../../auth/store/auth.selectors';
 import { SelectedContext } from '../../auth/store/auth.state';
+import { OrganizationService } from '../../admin/organization/organization.service';
 import { BranchManagerResponse, OrganizationBranchResponse } from '../branch/branch.model';
 import { BranchService } from '../branch/branch.service';
 
@@ -62,6 +63,7 @@ import { I18nPipe } from '@delon/theme';
 export class PortalDashboardComponent implements OnInit {
   private store = inject(Store);
   private branchService = inject(BranchService);
+  private organizationService = inject(OrganizationService);
   private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -94,10 +96,9 @@ export class PortalDashboardComponent implements OnInit {
         distinctUntilChanged(
           (previous, current) =>
             previous?.organizationId === current?.organizationId &&
-            previous?.organizationName === current?.organizationName &&
             previous?.branchId === current?.branchId &&
-            previous?.branchName === current?.branchName &&
-            previous?.role === current?.role
+            previous?.role === current?.role &&
+            previous?.dataScope === current?.dataScope
         ),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -118,7 +119,7 @@ export class PortalDashboardComponent implements OnInit {
     this.currentBranchId = branchId;
     const selected = this.branchOptions.find(branch => branch.id === branchId);
     this.currentBranchName = selected?.branchName ?? branchId;
-    this.persistSelectedBranch(branchId, this.currentBranchName);
+    this.persistSelectedBranch(branchId);
   }
 
   goToBranch(): void {
@@ -129,15 +130,17 @@ export class PortalDashboardComponent implements OnInit {
     this.loadingContext = false;
     this.dashboardError = null;
     this.selectedContext = context;
-    this.currentOrganizationName = context?.organizationName ?? context?.organizationId ?? null;
+    this.currentOrganizationName = null;
     this.currentBranchId = context?.branchId ?? null;
-    this.currentBranchName = context?.branchName ?? context?.branchId ?? null;
+    this.currentBranchName = null;
     this.currentRole = context?.role ?? null;
 
     if (!context?.organizationId) {
       this.dashboardError = 'Không tìm thấy organization trong context hiện tại';
       return;
     }
+
+    this.loadOrganizationDetail(context.organizationId);
 
     if (context.branchId) {
       this.loadBranchDetail(context.branchId);
@@ -159,7 +162,7 @@ export class PortalDashboardComponent implements OnInit {
         this.currentBranchName = firstBranch?.branchName ?? null;
         this.loadingContext = false;
         if (firstBranch) {
-          this.persistSelectedBranch(firstBranch.id, firstBranch.branchName);
+          this.persistSelectedBranch(firstBranch.id);
         }
         this.cdr.markForCheck();
       },
@@ -176,7 +179,7 @@ export class PortalDashboardComponent implements OnInit {
       next: branch => {
         this.currentBranchId = branch.id;
         this.currentBranchName = branch.branchName;
-        this.persistSelectedBranch(branch.id, branch.branchName);
+        this.persistSelectedBranch(branch.id);
         this.cdr.markForCheck();
       },
       error: error => {
@@ -218,13 +221,25 @@ export class PortalDashboardComponent implements OnInit {
     });
   }
 
-  private persistSelectedBranch(branchId: string, branchName: string | null): void {
+  private loadOrganizationDetail(organizationId: string): void {
+    this.organizationService.getOrganizationById(organizationId).subscribe({
+      next: organization => {
+        this.currentOrganizationName = organization.organizationName;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.currentOrganizationName = organizationId;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private persistSelectedBranch(branchId: string): void {
     if (!this.selectedContext?.organizationId) return;
 
     const selectedContext: SelectedContext = {
       ...this.selectedContext,
-      branchId,
-      branchName
+      branchId
     };
     this.selectedContext = selectedContext;
     this.authService.setSelectedContext(selectedContext);

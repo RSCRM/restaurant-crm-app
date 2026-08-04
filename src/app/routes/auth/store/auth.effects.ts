@@ -97,7 +97,7 @@ export class AuthEffects {
   selectContext$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.selectContext),
-      switchMap(({ organizationId, organizationName, employeeId, branchId, branchName, role }) => {
+      switchMap(({ organizationId, employeeId, branchId, role }) => {
         const accessToken = this.authService.getAccessToken();
         return this.authService.selectContext({ organizationId, employeeId, branchId, role }, accessToken || '').pipe(
           map(response => {
@@ -108,9 +108,7 @@ export class AuthEffects {
             const selectedContext = this.mergeSelectedContext(contextState.selectedContext, {
               employeeId: employeeId ?? null,
               organizationId,
-              organizationName: organizationName ?? null,
               branchId: branchId ?? null,
-              branchName: branchName ?? null,
               role,
               dataScope: null
             });
@@ -199,9 +197,7 @@ export class AuthEffects {
     const selectedContext: SelectedContext = {
       employeeId: this.toNullableString(payload.employeeId),
       organizationId: this.toNullableString(payload.organizationId),
-      organizationName: null,
       branchId: this.toNullableString(payload.branchId),
-      branchName: null,
       role: this.toNullableString(payload.orgRole),
       dataScope: this.toNullableString(payload.dataScope)
     };
@@ -230,9 +226,7 @@ export class AuthEffects {
     return {
       employeeId: tokenContext?.employeeId ?? savedContext?.employeeId ?? null,
       organizationId: tokenContext?.organizationId ?? savedContext?.organizationId ?? null,
-      organizationName: savedContext?.organizationName ?? tokenContext?.organizationName ?? null,
       branchId: tokenContext?.branchId ?? savedContext?.branchId ?? null,
-      branchName: savedContext?.branchName ?? tokenContext?.branchName ?? null,
       role: tokenContext?.role ?? savedContext?.role ?? null,
       dataScope: tokenContext?.dataScope ?? savedContext?.dataScope ?? null
     };

@@ -13,8 +13,6 @@ export interface EmployeeResponse {
   id: string;
   employeeId?: string | null;
   employeeCode?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
   fullName: string | null;
   userId?: string | null;
   username: string | null;
@@ -49,8 +47,7 @@ export interface EmployeeListParams {
 }
 
 export interface EmployeeMutationRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   username: string;
   password?: string | null;
   email: string;

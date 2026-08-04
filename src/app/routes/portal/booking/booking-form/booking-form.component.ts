@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { differenceInCalendarDays } from 'date-fns';
@@ -16,7 +17,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
-import { selectContextToken } from '../../../auth/store/auth.selectors';
+import { selectSelectedBranchId } from '../../../auth/store/auth.selectors';
 import { BookingStatus, BookingResponse, TableSearchResponse } from '../booking.model';
 import { BookingService } from '../booking.service';
 
@@ -54,6 +55,7 @@ export class BookingFormComponent implements OnInit {
   private modalRef = inject(NzModalRef);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   branchId: string | null = null;
@@ -68,35 +70,19 @@ export class BookingFormComponent implements OnInit {
   tablesWithAvailability: TableAvailability[] = [];
   selectedTableId: string | null = null;
 
-  private getBranchIdFromToken(token: string | null): string | null {
-    if (!token) return null;
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
-          .join('')
-      );
-      const payload = JSON.parse(jsonPayload);
-      return payload.branchId || null;
-    } catch {
-      return null;
-    }
-  }
-
   ngOnInit(): void {
     this.initForm();
-    this.store.select(selectContextToken).subscribe(token => {
-      const id = this.getBranchIdFromToken(token);
-      this.branchId = id;
-      if (id) {
-        this.loadData();
-      } else {
-        this.message.error('Không tìm thấy thông tin chi nhánh hiện tại. Vui lòng chọn chi nhánh.');
-      }
-    });
+    this.store
+      .select(selectSelectedBranchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(branchId => {
+        this.branchId = branchId;
+        if (branchId) {
+          this.loadData();
+        } else {
+          this.message.error('Không tìm thấy thông tin chi nhánh hiện tại. Vui lòng chọn chi nhánh.');
+        }
+      });
 
     // Recheck availability when booking time, duration, or guest count changes
     this.form.valueChanges.subscribe(() => {

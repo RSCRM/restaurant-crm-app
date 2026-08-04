@@ -21,10 +21,8 @@ export const AuthActions = createActionGroup({
 
     'Select Context': props<{
       organizationId: string;
-      organizationName?: string;
       employeeId?: string;
       branchId?: string | null;
-      branchName?: string | null;
       role: string;
     }>(),
     'Select Context Success': props<{ contextToken: string; permissions: string[]; selectedContext: SelectedContext | null }>(),

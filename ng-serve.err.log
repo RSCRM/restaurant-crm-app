@@ -1,0 +1,1541 @@
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\auth\\login\\login.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-form\\employee-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\order\\order.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\license\\subscription-form\\subscription-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\organization\\organization-detail\\organization-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\license\\license.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\organization\\organization.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\user\\user-form\\user-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\dashboard\\admin-dashboard.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\user\\user.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\profile\\profile.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-form\\branch-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\license\\license-form\\license-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\license\\license-detail\\license-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\context-select\\context-select.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\table\\table.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\customer\\customer-form\\customer-entry.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-detail\\employee-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\inventory\\ingredient\\ingredient.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-card\\employee-card.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\inventory\\ingredient-form\\ingredient-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\organization\\organization-form\\organization-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\exception\\exception.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\inventory\\inventory\\inventory.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\customer\\voucher-form\\voucher-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\customer\\menu\\customer-menu.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\inventory\\ingredient-category\\ingredient-category.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\inventory\\inventory-transaction\\inventory-transaction.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\customer\\redeem-modal\\redeem-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\booking\\booking-form\\booking-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\customer\\cooking-status\\cooking-status.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\inventory\\inventory-transaction-form\\inventory-transaction-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\inventory\\ingredient-category-form\\ingredient-category-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\menu\\menu.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\admin\\user\\user-detail\\user-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\dashboard\\portal-dashboard.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\customer\\customer.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-detail\\branch-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\context-select\\context-select.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-detail\\branch-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-form\\branch-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-form\\employee-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\context-select\\context-select.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-detail\\branch-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-form\\branch-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-form\\employee-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-detail\\branch-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\context-select\\context-select.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-detail\\branch-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-form\\branch-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-form\\employee-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\context-select\\context-select.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-detail\\branch-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-form\\branch-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-form\\employee-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\context-select\\context-select.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-detail\\branch-detail.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-form\\branch-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-form\\employee-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch-form\\branch-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-selection-modal\\employee-selection-modal.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\branch\\branch.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee-form\\employee-form.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+nt-crm-app\\src\\main.ts"[0m
+
+[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. Find more at https://v21.angular.dev/extended-diagnostics/NG8107[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/license/license-detail/license-detail.component.html:20:85:
+[37m      20 │ ... i18n">{{ license.price?.[32mtoLocaleString[37m('vi-VN') }} ₫</nz-des...
+         ╵                             [32m~~~~~~~~~~~~~~[0m
+
+  Warning occurs in the template of component LicenseDetailComponent.
+
+    src/app/routes/admin/license/license-detail/license-detail.component.ts:40:15:
+[37m      40 │   templateUrl: [32m'./license-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8113: DatePipe is not used within the template of UserDetailComponent[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/routes/admin/user/user-detail/user-detail.component.ts:23:4:
+[37m      23 │     [32mDatePipe[37m,
+         ╵     [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "src/styles.less"[0m
+
+    angular:styles/global:styles:1:8:
+[37m      1 │ @import [32m'src/styles.less'[37m;
+        ╵         [32m~~~~~~~~~~~~~~~~~[0m
+
+  You can mark the path "src/styles.less" as external to exclude it from the bundle, which will remove this error and leave the unresolved path in the bundle.
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\app\\routes\\portal\\employee\\employee.component.less"[0m [1m[35m[plugin angular-compiler][0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCannot read directory "../../..": Access is denied.[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "C:\\Users\\Huong\\Documents\\Chain_Restaurant_Management\\restaurant-crm-app\\src\\main.ts"[0m
+
+[39m[22m

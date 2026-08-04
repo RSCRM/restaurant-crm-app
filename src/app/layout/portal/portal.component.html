@@ -72,8 +72,8 @@
   <!-- User Menu Dropdown -->
   <layout-default-header-item direction="right">
     <div class="alain-default__nav-item" nz-dropdown [nzDropdownMenu]="userMenu" nzPlacement="bottomRight">
-      <nz-avatar [nzSrc]="(user$ | async)?.avatar || ''" nzSize="small" class="alain-default__nav-item-avatar" />
-      <span class="alain-default__nav-item-text">{{ (user$ | async)?.fullName || 'User' }}</span>
+      <nz-avatar nzSize="small" class="alain-default__nav-item-avatar" />
+      <span class="alain-default__nav-item-text">User</span>
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">
       <ul nz-menu>
@@ -86,9 +86,9 @@
 
   <ng-template #asideUserTpl>
     <div class="alain-default__aside-user">
-      <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="(user$ | async)?.avatar || ''" />
+      <nz-avatar class="alain-default__aside-user-avatar" />
       <div class="alain-default__aside-user-info">
-        <strong>{{ (user$ | async)?.fullName || 'User' }}</strong>
+        <strong>User</strong>
       </div>
     </div>
   </ng-template>

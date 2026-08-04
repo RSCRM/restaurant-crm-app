@@ -53,8 +53,7 @@ export class EmployeeFormComponent implements OnInit {
   errorMessageKey: string | null = null;
 
   form = this.fb.group({
-    firstName: this.fb.control('', [Validators.required, Validators.maxLength(120)]),
-    lastName: this.fb.control('', [Validators.required, Validators.maxLength(120)]),
+    fullName: this.fb.control('', [Validators.required, Validators.maxLength(120)]),
     username: this.fb.control('', [Validators.required, Validators.maxLength(100)]),
     password: this.fb.control('', [Validators.minLength(8), Validators.maxLength(100)]),
     email: this.fb.control('', [Validators.required, Validators.email, Validators.maxLength(255)]),
@@ -74,10 +73,8 @@ export class EmployeeFormComponent implements OnInit {
     }
 
     if (this.employee) {
-      const name = this.splitFullName(this.employee);
       this.form.patchValue({
-        firstName: name.firstName,
-        lastName: name.lastName,
+        fullName: this.employee.fullName ?? '',
         username: this.employee.username ?? '',
         password: '',
         email: this.employee.email ?? '',
@@ -144,8 +141,7 @@ export class EmployeeFormComponent implements OnInit {
     const password = raw.password?.trim();
 
     return {
-      firstName: raw.firstName?.trim() ?? '',
-      lastName: raw.lastName?.trim() ?? '',
+      fullName: raw.fullName?.trim() ?? '',
       username: raw.username?.trim() ?? '',
       password: password || null,
       email: raw.email?.trim() ?? '',
@@ -163,20 +159,6 @@ export class EmployeeFormComponent implements OnInit {
     if (value === null || value === undefined || value === '') return null;
     const salary = Number(value);
     return Number.isFinite(salary) ? salary : null;
-  }
-
-  private splitFullName(employee: EmployeeResponse): { firstName: string; lastName: string } {
-    if (employee.firstName || employee.lastName) {
-      return {
-        firstName: employee.firstName ?? '',
-        lastName: employee.lastName ?? ''
-      };
-    }
-    const parts = (employee.fullName ?? '').trim().split(/\s+/);
-    return {
-      firstName: parts.shift() ?? '',
-      lastName: parts.join(' ')
-    };
   }
 
   private toDate(value: string | null | undefined): Date | null {

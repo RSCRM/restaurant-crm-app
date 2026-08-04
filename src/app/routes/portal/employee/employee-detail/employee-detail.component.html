@@ -5,8 +5,6 @@
     <h3>{{ 'employee.detail.personalInformation' | i18n }}</h3>
     <nz-descriptions nzBordered [nzColumn]="1">
       <nz-descriptions-item [nzTitle]="'employee.fields.fullName' | i18n">{{ employee.fullName || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'employee.fields.firstName' | i18n">{{ employee.firstName || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'employee.fields.lastName' | i18n">{{ employee.lastName || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'employee.fields.email' | i18n">{{ employee.email || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'employee.fields.phone' | i18n">{{ employee.phone || ('common.emptyValue' | i18n) }}</nz-descriptions-item>
     </nz-descriptions>

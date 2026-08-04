@@ -129,8 +129,7 @@ export class EmployeeService {
     const id = employee.id ?? employee.employeeId ?? '';
     const branchId = employee.branchId ?? employee.branch?.id ?? null;
     const roleName = employee.orgRoleName ?? employee.role ?? employee.orgRole?.roleName ?? employee.orgRole?.name ?? null;
-    const fullName =
-      employee.fullName ?? employee.employeeName ?? employee.name ?? this.buildFullName(employee.firstName, employee.lastName);
+    const fullName = employee.fullName ?? employee.employeeName ?? employee.name ?? null;
 
     return {
       ...employee,
@@ -157,8 +156,4 @@ export class EmployeeService {
     };
   }
 
-  private buildFullName(firstName: string | null | undefined, lastName: string | null | undefined): string | null {
-    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
-    return fullName || null;
-  }
 }

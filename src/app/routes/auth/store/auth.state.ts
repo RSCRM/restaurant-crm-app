@@ -5,7 +5,6 @@ export interface AuthState {
   contexts: ContextInfo[];
   selectedContext: SelectedContext | null;
   systemRoles: string[];
-  user: AuthUser | null;
   permissions: string[];
   loading: boolean;
   error: string | null;
@@ -23,18 +22,9 @@ export interface ContextInfo {
 export interface SelectedContext {
   employeeId: string | null;
   organizationId: string | null;
-  organizationName: string | null;
   branchId: string | null;
-  branchName: string | null;
   role: string | null;
   dataScope: string | null;
-}
-
-export interface AuthUser {
-  userId: string;
-  email: string;
-  fullName: string;
-  avatar: string | null;
 }
 
 export const initialAuthState: AuthState = {
@@ -44,7 +34,6 @@ export const initialAuthState: AuthState = {
   contexts: [],
   selectedContext: null,
   systemRoles: [],
-  user: null,
   permissions: [],
   loading: false,
   error: null
