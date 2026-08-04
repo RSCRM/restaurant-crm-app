@@ -50,4 +50,5 @@ export interface CheckoutRequest {
   orderId: string;
   paymentMethod: PaymentMethod;
   note?: string;
+  voucherCode?: string;
 }
