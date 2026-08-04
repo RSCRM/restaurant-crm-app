@@ -377,6 +377,7 @@
   "app.portal.menu.combo.form.selectProduct": "Select product",
   "app.portal.menu.combo.form.quantity": "Quantity",
   "app.portal.menu.combo.form.selectOption": "Select option",
+  "app.portal.menu.combo.form.noOptionAvailable": "No options available (backend does not support listing yet)",
   "app.portal.table.title": "Table Management",
   "app.portal.table.desc": "Table layout and status",
   "app.portal.booking.title": "Booking",

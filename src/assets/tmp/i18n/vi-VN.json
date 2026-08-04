@@ -330,6 +330,7 @@
   "app.portal.menu.combo.form.selectProduct": "Chọn món",
   "app.portal.menu.combo.form.quantity": "Số lượng",
   "app.portal.menu.combo.form.selectOption": "Chọn tuỳ chọn",
+  "app.portal.menu.combo.form.noOptionAvailable": "Chưa có tuỳ chọn (backend chưa hỗ trợ tải danh sách)",
   "app.portal.table.title": "Quản lý Bàn",
   "app.portal.table.desc": "Sơ đồ bàn và trạng thái",
   "app.portal.booking.title": "Đặt bàn",

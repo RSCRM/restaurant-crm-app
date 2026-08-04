@@ -1,7 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { I18nPipe } from '@delon/theme';
+import { Store } from '@ngrx/store';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -14,8 +16,10 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { catchError, EMPTY, finalize, forkJoin, map } from 'rxjs';
+import { catchError, combineLatest, EMPTY, finalize } from 'rxjs';
 
+import { selectHasPermission, selectIsOwnerContext } from '../../../../auth/store/auth.selectors';
+import { menuErrorMessage } from '../../menu-error';
 import {
   MENU_STATUS_AVAILABLE,
   MENU_STATUS_UNAVAILABLE,
@@ -65,11 +69,13 @@ export class ModifierManagerComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private modalData = inject<ModifierManagerModalData | null>(NZ_MODAL_DATA, { optional: true });
+  private store = inject(Store);
 
   product: ProductResponse | null = null;
   loading = false;
   savingGroup = false;
   savingOption = false;
+  canManageModifier = true;
 
   groups: ModifierGroupResponse[] = [];
   optionsByGroup: Record<string, ModifierOptionResponse[]> = {};
@@ -105,6 +111,13 @@ export class ModifierManagerComponent implements OnInit {
   ngOnInit(): void {
     this.product = this.modalData?.product ?? null;
     this.loadGroups();
+
+    combineLatest([this.store.select(selectIsOwnerContext), this.store.select(selectHasPermission('PRODUCT_UPDATE'))])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([isOwner, canUpdate]) => {
+        this.canManageModifier = isOwner || canUpdate;
+        this.cdr.markForCheck();
+      });
   }
 
   private loadGroups(): void {
@@ -116,6 +129,11 @@ export class ModifierManagerComponent implements OnInit {
       .listModifierGroups(this.product.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
+          this.groups = [];
+          return EMPTY;
+        }),
         finalize(() => {
           this.loading = false;
           this.cdr.markForCheck();
@@ -123,25 +141,9 @@ export class ModifierManagerComponent implements OnInit {
       )
       .subscribe(groups => {
         this.groups = groups;
-        this.loadOptions();
-      });
-  }
-
-  private loadOptions(): void {
-    if (this.groups.length === 0) {
-      this.optionsByGroup = {};
-      this.cdr.markForCheck();
-      return;
-    }
-
-    forkJoin(
-      this.groups.map(group => this.menuService.listModifierOptions(group.id).pipe(map(options => ({ groupId: group.id, options }))))
-    )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(results => {
         const optionsMap: Record<string, ModifierOptionResponse[]> = {};
-        results.forEach(result => {
-          optionsMap[result.groupId] = result.options;
+        groups.forEach(group => {
+          optionsMap[group.id] = this.optionsByGroup[group.id] ?? [];
         });
         this.optionsByGroup = optionsMap;
         this.cdr.markForCheck();
@@ -194,8 +196,8 @@ export class ModifierManagerComponent implements OnInit {
     request$
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error(this.editingGroup ? 'Cập nhật nhóm thất bại' : 'Tạo nhóm thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         }),
         finalize(() => {
@@ -216,13 +218,15 @@ export class ModifierManagerComponent implements OnInit {
       .deleteModifierGroup(group.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Xoá nhóm thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         })
       )
       .subscribe(() => {
         this.message.success('Xoá nhóm thành công');
+        const { [group.id]: _removed, ...rest } = this.optionsByGroup;
+        this.optionsByGroup = rest;
         this.loadGroups();
       });
   }
@@ -263,11 +267,13 @@ export class ModifierManagerComponent implements OnInit {
       ? this.menuService.updateModifierOption(this.editingOption.id, request)
       : this.menuService.createModifierOption(this.activeGroupIdForOption, request);
 
+    const groupId = this.activeGroupIdForOption;
+
     request$
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error(this.editingOption ? 'Cập nhật tuỳ chọn thất bại' : 'Tạo tuỳ chọn thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         }),
         finalize(() => {
@@ -275,28 +281,37 @@ export class ModifierManagerComponent implements OnInit {
           this.cdr.markForCheck();
         })
       )
-      .subscribe(() => {
+      .subscribe(option => {
         this.message.success(this.editingOption ? 'Cập nhật tuỳ chọn thành công' : 'Tạo tuỳ chọn thành công');
+        const existing = this.optionsByGroup[groupId] ?? [];
+        this.optionsByGroup = {
+          ...this.optionsByGroup,
+          [groupId]: this.editingOption ? existing.map(o => (o.id === option.id ? option : o)) : [...existing, option]
+        };
         this.optionFormVisible = false;
         this.editingOption = null;
         this.activeGroupIdForOption = null;
-        this.loadOptions();
+        this.cdr.markForCheck();
       });
   }
 
-  deleteOption(option: ModifierOptionResponse): void {
+  deleteOption(group: ModifierGroupResponse, option: ModifierOptionResponse): void {
     this.menuService
       .deleteModifierOption(option.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Xoá tuỳ chọn thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         })
       )
       .subscribe(() => {
         this.message.success('Xoá tuỳ chọn thành công');
-        this.loadOptions();
+        this.optionsByGroup = {
+          ...this.optionsByGroup,
+          [group.id]: (this.optionsByGroup[group.id] ?? []).filter(o => o.id !== option.id)
+        };
+        this.cdr.markForCheck();
       });
   }
 
