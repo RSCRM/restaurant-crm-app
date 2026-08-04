@@ -57,7 +57,8 @@ export class CheckoutModalComponent {
     this.invoiceService.checkout({
       orderId: this.orderId.trim(),
       paymentMethod: this.paymentMethod,
-      note: this.note.trim() || undefined
+      note: this.note.trim() || undefined,
+      voucherCode: this.voucherCode.trim() || undefined
     }).subscribe({
       next: invoice => {
         this.loading = false;

@@ -18,6 +18,7 @@ import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
 import {
   CustomerPointResponse,
@@ -54,6 +55,7 @@ import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
     NzStatisticModule,
     NzSpinModule,
     NzSwitchModule,
+    NzInputNumberModule,
     STModule,
     I18nPipe
   ],
@@ -103,10 +105,15 @@ export class CustomerComponent implements OnInit {
   sysVoucherPage = 1;
   sysVoucherSize = 10;
   sysVoucherLoading = false;
+  showVoucherFilter = false;
 
   // Filters for System Vouchers
   searchVoucherTitle = '';
   filterVoucherStatus = 'ALL';
+  filterMinDiscount: number | null = null;
+  filterMaxDiscount: number | null = null;
+  filterVoucherMinPoints: number | null = null;
+  filterVoucherMaxPoints: number | null = null;
 
   // Delon ST Columns for Point History
   pointColumns: STColumn[] = [];
@@ -140,6 +147,16 @@ export class CustomerComponent implements OnInit {
   memberCustomerLoading = false;
 
   memberCustomerColumns: STColumn[] = [];
+  originalMemberCustomerColumns: STColumn[] = [];
+  sortBy = 'updatedAt';
+  sortDirection = 'DESC';
+  isBulkGivingActive = false;
+  selectedCustomerIds: string[] = [];
+  showCustomerFilter = false;
+  filterMinPoints: number | null = null;
+  filterMaxPoints: number | null = null;
+  filterMinLifetimePoints: number | null = null;
+  filterMaxLifetimePoints: number | null = null;
 
   private initColumns(): void {
     this.pointColumns = [
@@ -152,24 +169,26 @@ export class CustomerComponent implements OnInit {
     ];
 
     this.sysVoucherColumns = [
-      { title: this.i18n.fanyi('customer.sys-voucher.col.title'), index: 'title', width: 220 },
-      { title: this.i18n.fanyi('customer.sys-voucher.col.discountPercent'), index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%` },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.title'), index: 'title', width: 220, sort: true },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.type'), width: 180, render: 'voucherType' },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.discountPercent'), index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%`, sort: true },
       {
         title: this.i18n.fanyi('customer.sys-voucher.col.minBillAmount'),
         index: 'minBillAmount',
         width: 140,
-        format: item => `${item.minBillAmount?.toLocaleString('vi-VN')} ₫`
+        format: item => `${item.minBillAmount?.toLocaleString('vi-VN')} ₫`,
+        sort: true
       },
-      { title: this.i18n.fanyi('customer.sys-voucher.col.pointsRequired'), index: 'pointsRequired', width: 110, format: item => `${item.pointsRequired} ${this.i18n.fanyi('voucher.points')}` },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.pointsRequired'), index: 'pointsRequired', width: 110, format: item => `${item.pointsRequired} ${this.i18n.fanyi('voucher.points')}`, sort: true },
       { title: this.i18n.fanyi('customer.sys-voucher.col.isActive'), width: 130, render: 'isActive' },
       { title: this.i18n.fanyi('customer.sys-voucher.col.actions'), width: 120, fixed: 'right', render: 'actions' }
     ];
 
     this.memberCustomerColumns = [
-      { title: this.i18n.fanyi('customer.column.phone'), index: 'customerPhone', width: 160 },
-      { title: this.i18n.fanyi('customer.column.points'), index: 'currentPoints', width: 140, type: 'number' },
-      { title: this.i18n.fanyi('customer.column.lifetime-points'), index: 'lifetimePoints', width: 160, type: 'number' },
-      { title: this.i18n.fanyi('customer.column.updated-at'), index: 'updatedAt', width: 160, type: 'date' },
+      { title: this.i18n.fanyi('customer.column.phone'), index: 'customerPhone', width: 160, sort: { key: 'customer.phone', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.points'), index: 'currentPoints', width: 140, type: 'number', sort: { key: 'currentPoints', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.lifetime-points'), index: 'lifetimePoints', width: 160, type: 'number', sort: { key: 'lifetimePoints', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.updated-at'), index: 'updatedAt', width: 160, type: 'date', sort: { key: 'updatedAt', reName: { ascend: 'ASC', descend: 'DESC' } } },
       {
         title: this.i18n.fanyi('customer.column.actions'),
         width: 140,
@@ -182,6 +201,7 @@ export class CustomerComponent implements OnInit {
         ]
       }
     ];
+    this.originalMemberCustomerColumns = [...this.memberCustomerColumns];
   }
 
   ngOnInit(): void {
@@ -228,10 +248,20 @@ export class CustomerComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.customerService
-      .getOrganizationCustomers(this.organizationId, this.searchPhone, {
-        page: this.memberCustomerPage,
-        size: this.memberCustomerSize
-      })
+      .getOrganizationCustomers(
+        this.organizationId,
+        this.searchPhone,
+        {
+          page: this.memberCustomerPage,
+          size: this.memberCustomerSize
+        },
+        this.sortBy,
+        this.sortDirection,
+        this.filterMinPoints,
+        this.filterMaxPoints,
+        this.filterMinLifetimePoints,
+        this.filterMaxLifetimePoints
+      )
       .subscribe({
         next: res => {
           this.memberCustomersList = res.data;
@@ -244,6 +274,91 @@ export class CustomerComponent implements OnInit {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  toggleBulkGiving(): void {
+    this.isBulkGivingActive = !this.isBulkGivingActive;
+    this.selectedCustomerIds = [];
+    if (this.isBulkGivingActive) {
+      this.memberCustomerColumns = [
+        { title: '', index: 'customerId', type: 'checkbox', width: 50 },
+        ...this.originalMemberCustomerColumns
+      ];
+    } else {
+      this.memberCustomerColumns = [...this.originalMemberCustomerColumns];
+    }
+    this.cdr.markForCheck();
+  }
+
+  openBulkGiftVoucherModal(): void {
+    if (this.selectedCustomerIds.length === 0 || !this.branchId) return;
+
+    this.customerService.getVouchers(this.branchId, { page: 1, size: 100 }).subscribe({
+      next: res => {
+        const activeVouchers = res.data.filter(v => v.isActive === 1 && !v.voucherCode);
+        if (activeVouchers.length === 0) {
+          this.message.warning(this.i18n.fanyi('customer.msg.no-active-vouchers'));
+          return;
+        }
+
+        let selectedVoucherId = activeVouchers[0].id;
+
+        const titleText = this.i18n.fanyi('customer.bulk-give-modal.title');
+        const descText = this.i18n.fanyi('customer.bulk-give-modal.desc', { count: this.selectedCustomerIds.length });
+        const okText = this.i18n.fanyi('customer.bulk-give-modal.ok');
+        const cancelText = this.i18n.fanyi('customer.bulk-give-modal.cancel');
+
+        const modalRef = this.modal.create({
+          nzTitle: titleText,
+          nzContent: `
+            <div style="padding: 16px 0">
+              <p style="margin-bottom: 8px">${descText}</p>
+              <select class="ant-select-selector" style="width: 100%; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 4px 11px;" id="voucher-bulk-select">
+                ${activeVouchers.map(v => {
+                  const typeText = v.voucherCode ? ` [Code: ${v.voucherCode}]` : '';
+                  return `<option value="${v.id}">${v.title}${typeText} (Off ${v.discountPercent}%)</option>`;
+                }).join('')}
+              </select>
+            </div>
+          `,
+          nzOkText: okText,
+          nzCancelText: cancelText,
+          nzOnOk: () => {
+            const selectEl = document.getElementById('voucher-bulk-select') as HTMLSelectElement;
+            const voucherId = selectEl?.value || selectedVoucherId;
+            return this.executeBulkGift(voucherId);
+          }
+        });
+      },
+      error: () => {
+        this.message.error(this.i18n.fanyi('customer.msg.load-vouchers-error-msg'));
+      }
+    });
+  }
+
+  private executeBulkGift(voucherId: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (!this.branchId) {
+        resolve(false);
+        return;
+      }
+      this.customerService.giveVoucherBulk(this.selectedCustomerIds, this.branchId, voucherId).subscribe({
+        next: () => {
+          this.message.success(this.i18n.fanyi('customer.msg.bulk-give-success'));
+          this.selectedCustomerIds = [];
+          this.isBulkGivingActive = false;
+          this.memberCustomerColumns = [...this.originalMemberCustomerColumns];
+          this.loadMemberCustomers();
+          this.cdr.markForCheck();
+          resolve(true);
+        },
+        error: err => {
+          const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('customer.msg.bulk-give-error');
+          this.message.error(msg);
+          resolve(false);
+        }
+      });
+    });
   }
 
   selectCustomerFromList(customerPoint: CustomerPointResponse): void {
@@ -263,6 +378,19 @@ export class CustomerComponent implements OnInit {
       this.loadMemberCustomers();
     } else if (e.type === 'ps') {
       this.memberCustomerSize = e.ps!;
+      this.memberCustomerPage = 1;
+      this.loadMemberCustomers();
+    } else if (e.type === 'checkbox') {
+      this.selectedCustomerIds = e.checkbox!.map(item => item.customerId);
+      this.cdr.markForCheck();
+    } else if (e.type === 'sort' && e.sort && e.sort.column) {
+      const col = e.sort.column;
+      const indexStr = (Array.isArray(col.index) ? col.index[0] : (col.index as string)) || '';
+      const sortField = (col.sort as any)?.key || indexStr || 'updatedAt';
+      const sortDir = e.sort.map ? e.sort.map[indexStr] : undefined;
+      
+      this.sortBy = sortDir ? sortField : 'updatedAt';
+      this.sortDirection = sortDir === 'ascend' ? 'ASC' : sortDir === 'descend' ? 'DESC' : 'DESC';
       this.memberCustomerPage = 1;
       this.loadMemberCustomers();
     }
@@ -299,8 +427,26 @@ export class CustomerComponent implements OnInit {
     });
   }
 
+  toggleCustomerFilter(): void {
+    this.showCustomerFilter = !this.showCustomerFilter;
+  }
+
+  get hasActiveCustomerFilter(): boolean {
+    return this.searchPhone.trim() !== '' ||
+      this.filterMinPoints !== null ||
+      this.filterMaxPoints !== null ||
+      this.filterMinLifetimePoints !== null ||
+      this.filterMaxLifetimePoints !== null;
+  }
+
   resetCustomerSearch(): void {
     this.searchPhone = '';
+    this.sortBy = 'updatedAt';
+    this.sortDirection = 'DESC';
+    this.filterMinPoints = null;
+    this.filterMaxPoints = null;
+    this.filterMinLifetimePoints = null;
+    this.filterMaxLifetimePoints = null;
     this.currentCustomer = null;
     this.walletBalance = null;
     this.pointHistory = [];
@@ -434,6 +580,19 @@ export class CustomerComponent implements OnInit {
       filtered = filtered.filter(v => v.title.toLowerCase().includes(q));
     }
 
+    if (this.filterMinDiscount !== null) {
+      filtered = filtered.filter(v => v.discountPercent >= this.filterMinDiscount!);
+    }
+    if (this.filterMaxDiscount !== null) {
+      filtered = filtered.filter(v => v.discountPercent <= this.filterMaxDiscount!);
+    }
+    if (this.filterVoucherMinPoints !== null) {
+      filtered = filtered.filter(v => v.pointsRequired >= this.filterVoucherMinPoints!);
+    }
+    if (this.filterVoucherMaxPoints !== null) {
+      filtered = filtered.filter(v => v.pointsRequired <= this.filterVoucherMaxPoints!);
+    }
+
     this.displaySystemVouchers = filtered;
     this.sysVoucherTotal = filtered.length;
     this.cdr.markForCheck();
@@ -443,10 +602,27 @@ export class CustomerComponent implements OnInit {
     this.filterSystemVouchers();
   }
 
+  toggleVoucherFilter(): void {
+    this.showVoucherFilter = !this.showVoucherFilter;
+  }
+
   resetVoucherFilter(): void {
     this.searchVoucherTitle = '';
     this.filterVoucherStatus = 'ALL';
+    this.filterMinDiscount = null;
+    this.filterMaxDiscount = null;
+    this.filterVoucherMinPoints = null;
+    this.filterVoucherMaxPoints = null;
     this.filterSystemVouchers();
+  }
+
+  get hasActiveVoucherFilter(): boolean {
+    return this.searchVoucherTitle.trim() !== '' ||
+      this.filterVoucherStatus !== 'ALL' ||
+      this.filterMinDiscount !== null ||
+      this.filterMaxDiscount !== null ||
+      this.filterVoucherMinPoints !== null ||
+      this.filterVoucherMaxPoints !== null;
   }
 
   onSysVoucherSTChange(e: STChange): void {
