@@ -1,0 +1,107 @@
+.qr-card-content,
+.check-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+}
+
+.qr-card-content {
+  justify-content: center;
+  text-align: center;
+}
+
+.qr-pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 960px;
+}
+
+@media (max-width: 800px) {
+  .qr-pair {
+    justify-content: center;
+  }
+}
+
+.qr-container h4 {
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.countdown-timer {
+  font-size: 16px;
+  font-weight: 500;
+  color: #f5222d;
+}
+
+.status-box {
+  width: 100%;
+  max-width: 520px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.attendance-scanner {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #e8e8e8;
+  background: #fff;
+
+  h3 {
+    margin-bottom: 8px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  > p {
+    margin-bottom: 16px;
+    color: #595959;
+  }
+}
+
+.scanner-viewport {
+  overflow: hidden;
+  width: 100%;
+  min-height: 280px;
+  border-radius: 8px;
+  background: #111;
+}
+
+:host ::ng-deep #attendance-qr-reader video {
+  object-fit: cover;
+}
+
+.scanner-error {
+  margin: 12px 0;
+  font-weight: 500;
+  color: #cf1322;
+}
+
+.scanner-upload {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed #d9d9d9;
+
+  p {
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #8c8c8c;
+  }
+}
+
+@media (max-width: 576px) {
+  .check-container {
+    padding: 16px 0;
+  }
+
+  .attendance-scanner {
+    padding: 14px;
+  }
+
+  .scanner-viewport {
+    min-height: 230px;
+  }
+}

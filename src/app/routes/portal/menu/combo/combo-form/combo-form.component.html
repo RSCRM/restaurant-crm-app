@@ -1,0 +1,147 @@
+<div class="modal-header">
+  <div class="modal-title">
+    @if (isEdit) {
+      {{ 'app.portal.menu.combo.form.editTitle' | i18n }}
+    } @else {
+      {{ 'app.portal.menu.combo.form.createTitle' | i18n }}
+    }
+  </div>
+</div>
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.combo.form.image' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-upload
+        nzListType="picture-card"
+        [(nzFileList)]="fileList"
+        [nzShowButton]="fileList.length < 1"
+        [nzBeforeUpload]="beforeUpload"
+        (nzChange)="handleUploadChange($event)"
+        (nzRemove)="removeImage()"
+      >
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+        <div>{{ 'app.portal.menu.combo.form.uploadHint' | i18n }}</div>
+      </nz-upload>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.combo.form.name' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.portal.menu.combo.form.nameError' | i18n">
+      <input nz-input formControlName="comboName" [placeholder]="'app.portal.menu.combo.form.namePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.portal.menu.combo.form.description' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <textarea nz-input formControlName="description" rows="2"></textarea>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div nz-row [nzGutter]="16">
+    <div nz-col [nzSpan]="12">
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.combo.form.price' | i18n }}</nz-form-label>
+        <nz-form-control [nzErrorTip]="'app.portal.menu.combo.form.priceError' | i18n">
+          <nz-input-number
+            formControlName="price"
+            [nzMin]="0"
+            [nzStep]="1000"
+            [nzFormatter]="formatterCurrency"
+            [nzParser]="parserCurrency"
+            class="full-width"
+          />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+    <div nz-col [nzSpan]="12">
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.combo.form.status' | i18n }}</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="status">
+            @for (opt of statusOptions; track opt.value) {
+              <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </div>
+
+  <div class="items-section">
+    <div class="items-header">
+      <span class="items-title">{{ 'app.portal.menu.combo.form.items' | i18n }}</span>
+      <button nz-button type="button" nzType="dashed" (click)="addRow()">
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+        {{ 'app.portal.menu.combo.form.addItem' | i18n }}
+      </button>
+    </div>
+
+    @for (row of rows; track $index) {
+      <div class="item-row">
+        <div nz-row [nzGutter]="16" class="item-row-main">
+          <div nz-col [nzSpan]="14">
+            <nz-select
+              [(ngModel)]="row.productId"
+              [ngModelOptions]="{ standalone: true }"
+              [nzPlaceHolder]="'app.portal.menu.combo.form.selectProduct' | i18n"
+              (ngModelChange)="onProductChange(row)"
+              class="full-width"
+            >
+              @for (product of products; track product.id) {
+                <nz-option [nzValue]="product.id" [nzLabel]="product.productName" />
+              }
+            </nz-select>
+          </div>
+          <div nz-col [nzSpan]="6">
+            <nz-input-number
+              [(ngModel)]="row.quantity"
+              [ngModelOptions]="{ standalone: true }"
+              [nzMin]="1"
+              [nzPlaceHolder]="'app.portal.menu.combo.form.quantity' | i18n"
+              class="full-width"
+            />
+          </div>
+          <div nz-col [nzSpan]="4" class="item-row-remove">
+            <button nz-button type="button" nzType="text" nzDanger (click)="removeRow($index)">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
+          </div>
+        </div>
+
+        @if (groupsOf(row.productId).length > 0) {
+          <div class="item-row-modifiers">
+            @for (group of groupsOf(row.productId); track group.id) {
+              <div class="modifier-select">
+                <span class="modifier-label">{{ group.groupName }}</span>
+                <nz-select
+                  [(ngModel)]="row.selections[group.id]"
+                  [ngModelOptions]="{ standalone: true }"
+                  [nzPlaceHolder]="'app.portal.menu.combo.form.selectOption' | i18n"
+                  class="full-width"
+                >
+                  @for (option of optionsOf(group.id); track option.id) {
+                    <nz-option [nzValue]="option.id" [nzLabel]="option.optionName" />
+                  }
+                </nz-select>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid || loadingReference">
+      @if (isEdit) {
+        {{ 'app.form.update' | i18n }}
+      } @else {
+        {{ 'app.form.create' | i18n }}
+      }
+    </button>
+  </div>
+</form>

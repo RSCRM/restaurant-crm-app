@@ -6,7 +6,7 @@ export const environment = {
   api: {
     baseUrl: '',
     apiPrefix: '/api/v1',
-    refreshTokenEnabled: true,
+    refreshTokenEnabled: false,
     refreshTokenType: 're-request'
   }
 } as Environment;

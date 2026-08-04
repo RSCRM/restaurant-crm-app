@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
+import { Html5Qrcode } from 'html5-qrcode';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -59,39 +60,7 @@ import { selectContextToken, selectHasPermission } from '../../auth/store/auth.s
     I18nPipe
   ],
   templateUrl: './attendance.component.html',
-  styles: [
-    `
-      .qr-card-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-        text-align: center;
-      }
-      .countdown-timer {
-        font-size: 16px;
-        font-weight: 500;
-        color: #f5222d;
-      }
-      .check-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 24px;
-      }
-      .status-box {
-        width: 100%;
-        max-width: 480px;
-        margin-bottom: 24px;
-        text-align: center;
-      }
-      .action-box {
-        width: 100%;
-        max-width: 480px;
-      }
-    `
-  ]
+  styleUrl: './attendance.component.less'
 })
 export class AttendanceComponent implements OnInit, OnDestroy {
   private readonly attendanceService = inject(AttendanceService);
@@ -101,6 +70,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly i18n = inject(ALAIN_I18N_TOKEN);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly ngZone = inject(NgZone);
 
   // Permissions
   hasQrDisplay = false;
@@ -110,9 +80,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   // Active check-in state
   currentAttendance: AttendanceResponse | null = null;
+  checkoutCompleted = false;
   loadingStatus = false;
   submittingCheck = false;
   qrTokenInput = '';
+  scannerStarting = false;
+  scannerError = '';
+  private attendanceQrScanner?: Html5Qrcode;
 
   // History Tab state
   historyList: AttendanceResponse[] = [];
@@ -120,10 +94,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   currentPage = 1;
   pageSize = 10;
   loadingHistory = false;
-  dateRange: Date[] = [];
+  historyDate: Date | null = null;
 
   branchList: EmployeeAttendanceResponse[] = [];
-  branchDate = new Date();
   loadingBranch = false;
   ownerContext = false;
   branches: AttendanceBranchResponse[] = [];
@@ -134,19 +107,25 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   employeeHistoryPage = 1;
   employeeHistorySize = 10;
   employeeHistoryLoading = false;
-  employeeDateRange: Date[] = [];
+  employeeHistoryDate: Date | null = null;
 
   // Manager QR Tab state
   qrData: AttendanceQrResponse | null = null;
+  checkInQrUrl = '';
+  checkOutQrUrl = '';
   loadingQr = false;
   qrSecondsRemaining = 0;
   private qrTimerId?: ReturnType<typeof setInterval>;
+  private dailyRefreshTimerId?: ReturnType<typeof setTimeout>;
   private attendanceEventsSubscription?: Subscription;
 
   columns: STColumn[] = [];
   branchColumns: STColumn[] = [];
+  branchHistoryColumns: STColumn[] = [];
 
   ngOnInit(): void {
+    this.scheduleDailyRefresh();
+
     // Translate column headers and listen to language switches
     this.updateColumns();
     this.i18n.change.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -162,9 +141,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         const payload = this.authService.parseJwtPayload(token);
         this.ownerContext = payload['orgRole'] === 'OWNER';
         this.selectedBranchId = typeof payload['branchId'] === 'string' ? payload['branchId'] : null;
-        const organizationId = payload['organizationId'];
-        if (this.ownerContext && typeof organizationId === 'string') {
-          this.loadBranches(organizationId);
+        if (this.ownerContext) {
+          this.loadBranches();
         }
       });
 
@@ -183,7 +161,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       .subscribe(has => {
         this.hasSelfWrite = has;
         if (has) {
-          this.loadCurrentStatus();
+          if (!this.handlePendingAttendance()) this.loadCurrentStatus();
         }
         this.cdr.markForCheck();
       });
@@ -206,6 +184,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.hasBranchRead = has;
         if (has) {
           this.loadBranchAttendance();
+          this.loadEmployeeHistory();
           this.startAttendanceRealtime();
         }
         this.cdr.markForCheck();
@@ -214,27 +193,57 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearQrTimer();
+    clearTimeout(this.dailyRefreshTimerId);
     this.attendanceEventsSubscription?.unsubscribe();
+    void this.stopAttendanceScanner();
   }
 
   updateColumns(): void {
     this.columns = [
-      { title: this.i18n.fanyi('attendance.workDate'), index: 'workDate', type: 'date', dateFormat: 'dd/MM/yyyy' },
-      { title: this.i18n.fanyi('attendance.scheduledStart'), index: 'scheduledStart', type: 'date', dateFormat: 'HH:mm' },
-      { title: this.i18n.fanyi('attendance.scheduledEnd'), index: 'scheduledEnd', type: 'date', dateFormat: 'HH:mm' },
-      { title: this.i18n.fanyi('attendance.checkIn'), index: 'checkInAt', type: 'date', dateFormat: 'HH:mm:ss' },
-      { title: this.i18n.fanyi('attendance.checkOut'), index: 'checkOutAt', type: 'date', dateFormat: 'HH:mm:ss' },
-      { title: this.i18n.fanyi('attendance.status'), render: 'status' }
+      { title: this.i18n.fanyi('attendance.workDate'), index: 'workDate', type: 'date', dateFormat: 'dd/MM/yyyy', className: 'text-left' },
+      {
+        title: this.i18n.fanyi('attendance.scheduledStart'),
+        index: 'scheduledStart',
+        type: 'date',
+        dateFormat: 'HH:mm',
+        className: 'text-left'
+      },
+      {
+        title: this.i18n.fanyi('attendance.scheduledEnd'),
+        index: 'scheduledEnd',
+        type: 'date',
+        dateFormat: 'HH:mm',
+        className: 'text-left'
+      },
+      { title: this.i18n.fanyi('attendance.checkIn'), index: 'checkInAt', type: 'date', dateFormat: 'HH:mm:ss', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.checkOut'), index: 'checkOutAt', type: 'date', dateFormat: 'HH:mm:ss', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.status'), render: 'status', className: 'text-left' }
     ];
     this.branchColumns = [
-      { title: this.i18n.fanyi('attendance.employee'), index: 'employeeName' },
-      { title: this.i18n.fanyi('attendance.workDate'), index: 'workDate', type: 'date', dateFormat: 'dd/MM/yyyy' },
-      { title: this.i18n.fanyi('attendance.scheduledStart'), index: 'scheduledStart', type: 'date', dateFormat: 'HH:mm' },
-      { title: this.i18n.fanyi('attendance.scheduledEnd'), index: 'scheduledEnd', type: 'date', dateFormat: 'HH:mm' },
-      { title: this.i18n.fanyi('attendance.checkIn'), index: 'checkInAt', type: 'date', dateFormat: 'HH:mm:ss' },
-      { title: this.i18n.fanyi('attendance.checkOut'), index: 'checkOutAt', type: 'date', dateFormat: 'HH:mm:ss' },
-      { title: this.i18n.fanyi('attendance.working'), render: 'working' },
-      { title: this.i18n.fanyi('attendance.status'), render: 'branchStatus' }
+      { title: this.i18n.fanyi('attendance.employee'), index: 'employeeName', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.workDate'), index: 'workDate', type: 'date', dateFormat: 'dd/MM/yyyy', className: 'text-left' },
+      {
+        title: this.i18n.fanyi('attendance.scheduledStart'),
+        index: 'scheduledStart',
+        type: 'date',
+        dateFormat: 'HH:mm',
+        className: 'text-left'
+      },
+      {
+        title: this.i18n.fanyi('attendance.scheduledEnd'),
+        index: 'scheduledEnd',
+        type: 'date',
+        dateFormat: 'HH:mm',
+        className: 'text-left'
+      },
+      { title: this.i18n.fanyi('attendance.checkIn'), index: 'checkInAt', type: 'date', dateFormat: 'HH:mm:ss', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.checkOut'), index: 'checkOutAt', type: 'date', dateFormat: 'HH:mm:ss', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.working'), render: 'working', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.status'), render: 'branchStatus', className: 'text-left' }
+    ];
+    this.branchHistoryColumns = [
+      { title: this.i18n.fanyi('attendance.employee'), index: 'employeeName', className: 'text-left' },
+      ...this.columns
     ];
   }
 
@@ -242,7 +251,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     if (this.ownerContext && !this.selectedBranchId) return;
     this.loadingBranch = true;
     this.attendanceService
-      .getBranchAttendance(this.formatDate(this.branchDate), this.selectedBranchId ?? undefined)
+      .getBranchAttendance(this.formatDate(new Date()), this.selectedBranchId ?? undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: data => {
@@ -258,14 +267,17 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       });
   }
 
-  loadBranches(organizationId: string): void {
+  loadBranches(): void {
     this.attendanceService
-      .getOrganizationBranches(organizationId)
+      .getOrganizationBranches()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(branches => {
         this.branches = branches;
-        this.selectedBranchId = branches[0]?.id ?? null;
+        if (!branches.some(branch => branch.id === this.selectedBranchId)) {
+          this.selectedBranchId = branches[0]?.id ?? null;
+        }
         this.loadBranchAttendance();
+        this.loadEmployeeHistory();
         this.startAttendanceRealtime();
         this.cdr.markForCheck();
       });
@@ -274,23 +286,21 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   onBranchChange(): void {
     this.qrData = null;
     this.selectedEmployeeId = null;
+    this.employeeHistoryDate = null;
     this.employeeHistory = [];
     this.employeeHistoryTotal = 0;
     this.clearQrTimer();
     this.loadBranchAttendance();
+    this.loadEmployeeHistory();
     this.startAttendanceRealtime();
   }
 
   loadEmployeeHistory(): void {
-    if (!this.selectedEmployeeId) return;
     this.employeeHistoryLoading = true;
-    const from = this.employeeDateRange[0] ? this.formatDate(this.employeeDateRange[0]) : null;
-    const to = this.employeeDateRange[1] ? this.formatDate(this.employeeDateRange[1]) : null;
     this.attendanceService
-      .getEmployeeHistory(
+      .getBranchHistory(
         this.selectedEmployeeId,
-        from,
-        to,
+        this.employeeHistoryDate ? this.formatDate(this.employeeHistoryDate) : null,
         this.employeeHistoryPage,
         this.employeeHistorySize,
         this.selectedBranchId ?? undefined
@@ -327,6 +337,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.loadEmployeeHistory();
   }
 
+  resetEmployeeHistory(): void {
+    this.employeeHistoryDate = null;
+    this.employeeHistoryPage = 1;
+    this.selectedEmployeeId = null;
+    this.loadEmployeeHistory();
+  }
+
   // Load active checked-in status from history
   loadCurrentStatus(): void {
     this.loadingStatus = true;
@@ -338,8 +355,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       .subscribe({
         next: res => {
           this.loadingStatus = false;
+          this.checkoutCompleted = false;
           if (res.data && res.data.length > 0) {
             const latest = res.data[0];
+            this.checkoutCompleted = latest.workDate === this.formatDate(new Date()) && !!latest.checkOutAt;
             if (latest.checkInAt && !latest.checkOutAt) {
               this.currentAttendance = latest;
             } else {
@@ -347,6 +366,11 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             }
           } else {
             this.currentAttendance = null;
+          }
+          if (this.checkoutCompleted) {
+            void this.stopAttendanceScanner();
+          } else {
+            setTimeout(() => this.startAttendanceScanner());
           }
           this.cdr.markForCheck();
         },
@@ -367,35 +391,41 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       next: res => {
         this.submittingCheck = false;
         this.currentAttendance = res;
+        this.checkoutCompleted = false;
         this.qrTokenInput = '';
         this.message.success(this.i18n.fanyi('attendance.checkin-success'));
         this.loadHistory();
+        setTimeout(() => this.startAttendanceScanner());
         this.cdr.markForCheck();
       },
       error: () => {
         this.submittingCheck = false;
         this.message.error(this.i18n.fanyi('attendance.checkin-failed'));
+        setTimeout(() => this.startAttendanceScanner());
         this.cdr.markForCheck();
       }
     });
   }
 
   // Check-out action
-  checkOut(): void {
+  checkOut(qrToken: string): void {
     this.submittingCheck = true;
     this.cdr.markForCheck();
 
-    this.attendanceService.checkOut().subscribe({
+    this.attendanceService.checkOutWithQr(qrToken).subscribe({
       next: () => {
         this.submittingCheck = false;
         this.currentAttendance = null;
+        this.checkoutCompleted = true;
         this.message.success(this.i18n.fanyi('attendance.checkout-success'));
         this.loadHistory();
+        void this.stopAttendanceScanner();
         this.cdr.markForCheck();
       },
       error: () => {
         this.submittingCheck = false;
         this.message.error(this.i18n.fanyi('attendance.checkout-failed'));
+        setTimeout(() => this.startAttendanceScanner());
         this.cdr.markForCheck();
       }
     });
@@ -406,11 +436,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.loadingHistory = true;
     this.cdr.markForCheck();
 
-    const fromStr = this.dateRange[0] ? this.formatDate(this.dateRange[0]) : null;
-    const toStr = this.dateRange[1] ? this.formatDate(this.dateRange[1]) : null;
+    const date = this.historyDate ? this.formatDate(this.historyDate) : null;
 
     this.attendanceService
-      .getMyHistory(fromStr, toStr, this.currentPage, this.pageSize)
+      .getMyHistory(date, date, this.currentPage, this.pageSize)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: res => {
@@ -444,7 +473,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   reset(): void {
-    this.dateRange = [];
+    this.historyDate = null;
     this.currentPage = 1;
     this.loadHistory();
   }
@@ -459,6 +488,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.attendanceService.getCurrentQr(this.selectedBranchId ?? undefined, force).subscribe({
       next: res => {
         this.qrData = res;
+        const loginUrl = `${window.location.origin}/#/auth/login`;
+        this.checkInQrUrl = `${loginUrl}?attendanceAction=check-in&qrToken=${encodeURIComponent(res.qrToken)}`;
+        this.checkOutQrUrl = `${loginUrl}?attendanceAction=check-out&qrToken=${encodeURIComponent(res.qrToken)}`;
         this.loadingQr = false;
 
         // Calculate countdown from expiresAt
@@ -514,6 +546,109 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   onSelectOtherTab(): void {
     this.clearQrTimer();
+    void this.stopAttendanceScanner();
+  }
+
+  onCheckInTabSelected(): void {
+    this.loadCurrentStatus();
+  }
+
+  startAttendanceScanner(): void {
+    if (this.scannerStarting || this.attendanceQrScanner?.isScanning) return;
+    if (!document.getElementById('attendance-qr-reader')) return;
+
+    this.scannerStarting = true;
+    this.scannerError = '';
+    this.cdr.markForCheck();
+    this.attendanceQrScanner ??= new Html5Qrcode('attendance-qr-reader', {
+      verbose: false,
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+    });
+
+    this.attendanceQrScanner
+      .start(
+        { facingMode: 'environment' },
+        {
+          fps: 15,
+          qrbox: (width, height) => {
+            const size = Math.floor(Math.min(width, height) * 0.8);
+            return { width: size, height: size };
+          }
+        },
+        decodedText => {
+          this.ngZone.run(() => {
+            void this.stopAttendanceScanner();
+            this.handleScannedAttendance(decodedText);
+          });
+        },
+        () => {}
+      )
+      .then(() => {
+        this.scannerStarting = false;
+        this.cdr.markForCheck();
+      })
+      .catch(() => {
+        this.scannerStarting = false;
+        this.scannerError = this.i18n.fanyi('attendance.scanner-camera-error');
+        this.cdr.markForCheck();
+      });
+  }
+
+  async onAttendanceQrFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    await this.stopAttendanceScanner();
+    const fileScanner = new Html5Qrcode('attendance-qr-file', {
+      verbose: false,
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+    });
+    try {
+      let value: string;
+      try {
+        value = await fileScanner.scanFile(file, false);
+      } catch {
+        value = await fileScanner.scanFile(await this.enlargeQrFile(file), false);
+      }
+      this.handleScannedAttendance(value);
+    } catch {
+      this.message.error(this.i18n.fanyi('attendance.scanner-file-error'));
+      setTimeout(() => this.startAttendanceScanner());
+    } finally {
+      input.value = '';
+      fileScanner.clear();
+    }
+  }
+
+  private async enlargeQrFile(file: File): Promise<File> {
+    const image = await createImageBitmap(file);
+    try {
+      const scale = Math.max(1, Math.ceil(900 / Math.min(image.width, image.height)));
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width * scale;
+      canvas.height = image.height * scale;
+      const context = canvas.getContext('2d')!;
+      context.imageSmoothingEnabled = false;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(value => (value ? resolve(value) : reject(new Error('Cannot resize QR image'))), 'image/png')
+      );
+      return new File([blob], file.name, { type: 'image/png' });
+    } finally {
+      image.close();
+    }
+  }
+
+  private async stopAttendanceScanner(): Promise<void> {
+    this.scannerStarting = false;
+    if (this.attendanceQrScanner?.isScanning) {
+      try {
+        await this.attendanceQrScanner.stop();
+      } catch {
+        // Scanner may already be stopped.
+      }
+    }
   }
 
   private startAttendanceRealtime(): void {
@@ -521,7 +656,42 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     if (!this.hasBranchRead || !this.selectedBranchId) return;
     this.attendanceEventsSubscription = this.attendanceService.watchBranchAttendance(this.selectedBranchId).subscribe(() => {
       this.loadBranchAttendance();
-      if (this.selectedEmployeeId) this.loadEmployeeHistory();
+      this.loadEmployeeHistory();
     });
+  }
+
+  private scheduleDailyRefresh(): void {
+    const now = new Date();
+    const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    this.dailyRefreshTimerId = setTimeout(
+      () => {
+        if (this.hasBranchRead) this.loadBranchAttendance();
+        this.scheduleDailyRefresh();
+      },
+      nextDay.getTime() - now.getTime() + 1000
+    );
+  }
+
+  private handlePendingAttendance(): boolean {
+    const pending = this.authService.consumePendingAttendance();
+    if (!pending) return false;
+    if (pending.action === 'check-out') {
+      this.checkOut(pending.qrToken);
+    } else {
+      this.qrTokenInput = pending.qrToken;
+      this.checkIn();
+    }
+    return true;
+  }
+
+  private handleScannedAttendance(value: string): void {
+    const params = new URLSearchParams(value.includes('?') ? value.slice(value.indexOf('?') + 1) : '');
+    const qrToken = params.get('qrToken') ?? value;
+    if (params.get('attendanceAction') === 'check-out') {
+      this.checkOut(qrToken);
+    } else {
+      this.qrTokenInput = qrToken;
+      this.checkIn();
+    }
   }
 }

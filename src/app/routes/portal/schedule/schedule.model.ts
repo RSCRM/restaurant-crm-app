@@ -9,3 +9,18 @@ export interface PersonalScheduleResponse {
   endTime: string;
   note: string | null;
 }
+
+export interface ScheduleEmployeeResponse {
+  id: string;
+  name: string;
+  branchName: string;
+}
+
+export interface ScheduleRangeCreationRequest {
+  employeeId: string;
+  from: string;
+  to: string;
+  startTime: string;
+  endTime: string;
+  note?: string;
+}

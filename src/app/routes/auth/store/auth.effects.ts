@@ -80,6 +80,7 @@ export class AuthEffects {
           this.authService.setSystemRoles(systemRoles);
           this.authService.setContexts(contexts);
           if (systemRoles.includes('ADMIN')) {
+            this.authService.clearPendingAttendance();
             // ADMIN: use accessToken as the main API token
             this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
             window.location.href = '/#/admin/dashboard';
@@ -98,7 +99,7 @@ export class AuthEffects {
       ofType(AuthActions.selectContext),
       switchMap(({ organizationId, organizationName, employeeId, branchId, branchName, role }) => {
         const accessToken = this.authService.getAccessToken();
-        return this.authService.selectContext({ organizationId, employeeId, role }, accessToken || '').pipe(
+        return this.authService.selectContext({ organizationId, employeeId, branchId, role }, accessToken || '').pipe(
           map(response => {
             // contextToken is the main API token for business calls
             this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);
@@ -136,7 +137,7 @@ export class AuthEffects {
         ofType(AuthActions.selectContextSuccess),
         tap(() => {
           // Reload to ensure portal layout picks up the new context state
-          window.location.href = '/#/portal/dashboard';
+          window.location.href = this.authService.hasPendingAttendance() ? '/#/portal/attendance' : '/#/portal/dashboard';
         })
       ),
     { dispatch: false }

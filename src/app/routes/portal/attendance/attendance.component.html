@@ -1,196 +1,206 @@
 <page-header [title]="'menu.attendance' | i18n" />
 
 <nz-card>
-    <nz-tabs>
-      @if (hasBranchRead) {
-        <nz-tab [nzTitle]="'attendance.tab.branch' | i18n">
+  <nz-tabs>
+    @if (hasBranchRead) {
+      <nz-tab [nzTitle]="'attendance.tab.branch' | i18n">
+        @if (ownerContext) {
           <div style="margin-bottom: 16px">
-            @if (ownerContext) {
-              <nz-select
-                [(ngModel)]="selectedBranchId"
-                (ngModelChange)="onBranchChange()"
-                style="width: 260px; margin-right: 8px"
-                [nzPlaceHolder]="'attendance.select-branch' | i18n"
-              >
-                @for (branch of branches; track branch.id) {
-                  <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
-                }
-              </nz-select>
-            }
-            <nz-date-picker [(ngModel)]="branchDate" />
-            <button nz-button nzType="primary" (click)="loadBranchAttendance()" style="margin-left: 8px">
-              <span nz-icon nzType="search"></span> {{ 'attendance.history-filter-search' | i18n }}
-            </button>
-          </div>
-
-          <st [columns]="branchColumns" [data]="branchList" [loading]="loadingBranch" [page]="{ show: false }">
-            <ng-template st-row="working" let-item>
-              <span nz-icon nzType="check-circle" nzTheme="fill" [style.color]="item.working ? '#52c41a' : '#bfbfbf'"></span>
-            </ng-template>
-            <ng-template st-row="branchStatus" let-item>
-              @if (item.status) {
-                <nz-tag [nzColor]="getStatusColor(item.status)">{{ getStatusText(item.status) }}</nz-tag>
-              } @else {
-                <span>-</span>
-              }
-            </ng-template>
-          </st>
-        </nz-tab>
-
-        <nz-tab [nzTitle]="'attendance.tab.employee-history' | i18n">
-          <div style="margin-bottom: 16px; display: flex; gap: 8px">
             <nz-select
-              [(ngModel)]="selectedEmployeeId"
-              (ngModelChange)="onEmployeeSelected()"
+              [(ngModel)]="selectedBranchId"
+              (ngModelChange)="onBranchChange()"
               style="width: 260px"
-              [nzPlaceHolder]="'attendance.select-employee' | i18n"
+              [nzPlaceHolder]="'attendance.select-branch' | i18n"
             >
-              @for (employee of branchList; track employee.employeeId) {
-                <nz-option [nzValue]="employee.employeeId" [nzLabel]="employee.employeeName" />
+              @for (branch of branches; track branch.id) {
+                <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
               }
             </nz-select>
-            <nz-range-picker [(ngModel)]="employeeDateRange" />
-            <button nz-button nzType="primary" (click)="onEmployeeSelected()">
-              <span nz-icon nzType="search"></span>
-              {{ 'attendance.history-filter-search' | i18n }}
+          </div>
+        }
+
+        <st [columns]="branchColumns" [data]="branchList" [loading]="loadingBranch" [page]="{ show: false }">
+          <ng-template st-row="working" let-item>
+            <span nz-icon nzType="check-circle" nzTheme="fill" [style.color]="item.working ? '#52c41a' : '#bfbfbf'"></span>
+          </ng-template>
+          <ng-template st-row="branchStatus" let-item>
+            @if (item.status) {
+              <nz-tag [nzColor]="getStatusColor(item.status)">{{ getStatusText(item.status) }}</nz-tag>
+            } @else {
+              <span>-</span>
+            }
+          </ng-template>
+        </st>
+      </nz-tab>
+
+      <nz-tab [nzTitle]="'attendance.tab.employee-history' | i18n">
+        <div style="margin-bottom: 16px; display: flex; gap: 8px">
+          <nz-select
+            [(ngModel)]="selectedEmployeeId"
+            (ngModelChange)="onEmployeeSelected()"
+            style="width: 260px"
+            [nzAllowClear]="true"
+            [nzPlaceHolder]="'attendance.all-employees' | i18n"
+          >
+            @for (employee of branchList; track employee.employeeId) {
+              <nz-option [nzValue]="employee.employeeId" [nzLabel]="employee.employeeName" />
+            }
+          </nz-select>
+          <nz-date-picker [(ngModel)]="employeeHistoryDate" [nzPlaceHolder]="'attendance.select-date' | i18n" />
+          <button nz-button nzType="primary" (click)="onEmployeeSelected()">
+            <span nz-icon nzType="search"></span>
+            {{ 'attendance.history-filter-search' | i18n }}
+          </button>
+          <button nz-button (click)="resetEmployeeHistory()">
+            <span nz-icon nzType="reload"></span>
+            {{ 'action.reload' | i18n }}
+          </button>
+        </div>
+
+        <st
+          [columns]="branchHistoryColumns"
+          [data]="employeeHistory"
+          [total]="employeeHistoryTotal"
+          [pi]="employeeHistoryPage"
+          [ps]="employeeHistorySize"
+          [loading]="employeeHistoryLoading"
+          [page]="{ show: true, showSize: true }"
+          (change)="onEmployeeHistoryChange($event)"
+        >
+          <ng-template st-row="status" let-item>
+            <nz-tag [nzColor]="getStatusColor(item.status)">
+              {{ getStatusText(item.status) }}
+            </nz-tag>
+          </ng-template>
+        </st>
+      </nz-tab>
+    }
+
+    <!-- Tab 1: Check-in / Check-out -->
+    @if (hasSelfWrite && !hasBranchRead) {
+      <nz-tab [nzTitle]="'attendance.tab.checkin-checkout' | i18n" (nzSelect)="onCheckInTabSelected()">
+        <nz-spin [nzSpinning]="loadingStatus || submittingCheck">
+          <div class="check-container">
+            <div class="status-box">
+              @if (checkoutCompleted) {
+                <nz-alert nzType="success" [nzMessage]="'attendance.checkout-thank-you' | i18n" nzShowIcon />
+              } @else if (!currentAttendance) {
+                <nz-alert nzType="info" [nzMessage]="'attendance.not-checked-in' | i18n" nzShowIcon />
+              } @else {
+                <nz-alert
+                  nzType="success"
+                  [nzMessage]="'attendance.checked-in-msg' | i18n: { time: (currentAttendance.checkInAt | date: 'HH:mm:ss dd/MM/yyyy') }"
+                  nzShowIcon
+                />
+
+                <div style="margin-top: 16px">
+                  <nz-tag [nzColor]="getStatusColor(currentAttendance.status)">{{ getStatusText(currentAttendance.status) }}</nz-tag>
+                </div>
+              }
+
+              @if (!checkoutCompleted) {
+                <section class="attendance-scanner" aria-labelledby="attendance-scanner-title">
+                  <h3 id="attendance-scanner-title">
+                    <span nz-icon nzType="scan"></span>
+                    {{ 'attendance.scanner-title' | i18n }}
+                  </h3>
+                  <p>{{ 'attendance.scanner-instruction' | i18n }}</p>
+
+                  <div id="attendance-qr-reader" class="scanner-viewport"></div>
+                  <div id="attendance-qr-file" hidden></div>
+
+                  @if (scannerError) {
+                    <div class="scanner-error" role="alert">{{ scannerError }}</div>
+                    <button nz-button nzType="primary" (click)="startAttendanceScanner()">
+                      {{ 'attendance.scanner-retry' | i18n }}
+                    </button>
+                  }
+
+                  <div class="scanner-upload">
+                    <p>{{ 'attendance.scanner-upload-hint' | i18n }}</p>
+                    <button nz-button (click)="attendanceQrFile.click()">
+                      <span nz-icon nzType="download"></span>
+                      {{ 'attendance.scanner-upload-action' | i18n }}
+                    </button>
+                    <input
+                      #attendanceQrFile
+                      type="file"
+                      accept="image/*"
+                      (change)="onAttendanceQrFileSelected($event)"
+                      [attr.aria-label]="'attendance.scanner-upload-action' | i18n"
+                      hidden
+                    />
+                  </div>
+                </section>
+              }
+            </div>
+          </div>
+        </nz-spin>
+      </nz-tab>
+    }
+
+    <!-- Tab 2: History -->
+    @if (hasSelfRead && !hasBranchRead) {
+      <nz-tab [nzTitle]="'attendance.tab.history' | i18n" (nzSelect)="loadHistory(); onSelectOtherTab()">
+        <div style="margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+          <nz-date-picker [(ngModel)]="historyDate" [nzPlaceHolder]="'attendance.select-date' | i18n" style="width: 260px" />
+          <button nz-button nzType="primary" (click)="search()">
+            <span nz-icon nzType="search"></span> {{ 'attendance.history-filter-search' | i18n }}
+          </button>
+          <button nz-button nzType="default" (click)="reset()">
+            <span nz-icon nzType="reload"></span> {{ 'attendance.history-filter-reset' | i18n }}
+          </button>
+        </div>
+
+        <st
+          [columns]="columns"
+          [data]="historyList"
+          [total]="total"
+          [pi]="currentPage"
+          [ps]="pageSize"
+          [loading]="loadingHistory"
+          [page]="{ show: true, showSize: true }"
+          (change)="onSTChange($event)"
+        >
+          <ng-template st-row="status" let-item>
+            <nz-tag [nzColor]="getStatusColor(item.status)">{{ getStatusText(item.status) }}</nz-tag>
+          </ng-template>
+        </st>
+      </nz-tab>
+    }
+
+    <!-- Tab 3: Branch QR Generator (Manager Only) -->
+    @if (hasQrDisplay) {
+      <nz-tab [nzTitle]="'attendance.tab.qr-generator' | i18n" (nzSelect)="loadQr()">
+        <nz-spin [nzSpinning]="loadingQr">
+          <div class="qr-card-content">
+            <h3>{{ 'attendance.tab.qr-generator' | i18n }}</h3>
+            <p>{{ 'attendance.qr-generator-refresh-info' | i18n }}</p>
+
+            @if (qrData) {
+              <div class="qr-pair">
+                <div class="qr-container">
+                  <h4>{{ 'attendance.qr-checkin' | i18n }}</h4>
+                  <nz-qrcode [nzValue]="checkInQrUrl" [nzSize]="400" [nzPadding]="16" nzType="svg" nzLevel="L" />
+                </div>
+                <div class="qr-container">
+                  <h4>{{ 'attendance.qr-checkout' | i18n }}</h4>
+                  <nz-qrcode [nzValue]="checkOutQrUrl" [nzSize]="400" [nzPadding]="16" nzType="svg" nzLevel="L" />
+                </div>
+              </div>
+
+              <div class="countdown-timer" style="margin-top: 16px">
+                <span nz-icon nzType="clock-circle" nzTheme="outline"></span>
+                {{ 'attendance.qr-generator-expires-in' | i18n: { time: qrSecondsRemaining } }}
+              </div>
+            }
+
+            <button nz-button nzType="default" (click)="loadQr(true)" style="margin-top: 24px">
+              <span nz-icon nzType="reload"></span> {{ 'action.reload' | i18n }}
             </button>
           </div>
-
-          <st
-            [columns]="columns"
-            [data]="employeeHistory"
-            [total]="employeeHistoryTotal"
-            [pi]="employeeHistoryPage"
-            [ps]="employeeHistorySize"
-            [loading]="employeeHistoryLoading"
-            [page]="{ show: true, showSize: true }"
-            (change)="onEmployeeHistoryChange($event)"
-          >
-            <ng-template st-row="status" let-item>
-              <nz-tag [nzColor]="getStatusColor(item.status)">
-                {{ getStatusText(item.status) }}
-              </nz-tag>
-            </ng-template>
-          </st>
-        </nz-tab>
-      }
-
-      <!-- Tab 1: Check-in / Check-out -->
-      @if (hasSelfWrite && !hasBranchRead) {
-        <nz-tab [nzTitle]="'attendance.tab.checkin-checkout' | i18n" (nzSelect)="loadCurrentStatus(); onSelectOtherTab()">
-          <nz-spin [nzSpinning]="loadingStatus || submittingCheck">
-            <div class="check-container">
-              <!-- NOT CHECKED IN YET -->
-              @if (!currentAttendance) {
-                <div class="status-box">
-                  <nz-alert nzType="info" [nzMessage]="'attendance.not-checked-in' | i18n" nzShowIcon />
-
-                  <div class="action-box" style="margin-top: 24px; text-align: left">
-                    <nz-form-item>
-                      <nz-form-label>{{ 'attendance.paste-qr-label' | i18n }}</nz-form-label>
-                      <nz-form-control>
-                        <textarea
-                          nz-input
-                          [(ngModel)]="qrTokenInput"
-                          [placeholder]="'attendance.paste-qr-placeholder' | i18n"
-                          rows="4"
-                        ></textarea>
-                      </nz-form-control>
-                    </nz-form-item>
-
-                    <button nz-button nzType="primary" nzBlock (click)="checkIn()" [disabled]="!qrTokenInput.trim()">
-                      <span nz-icon nzType="login"></span> {{ 'attendance.checkin-action' | i18n }}
-                    </button>
-                  </div>
-                </div>
-              }
-
-              <!-- CHECKED IN -->
-              @if (currentAttendance) {
-                <div class="status-box">
-                  <nz-alert
-                    nzType="success"
-                    [nzMessage]="'attendance.checked-in-msg' | i18n: { time: (currentAttendance.checkInAt | date: 'HH:mm:ss dd/MM/yyyy') }"
-                    nzShowIcon
-                  />
-
-                  <div style="margin-top: 16px">
-                    <nz-tag [nzColor]="getStatusColor(currentAttendance.status)">{{ getStatusText(currentAttendance.status) }}</nz-tag>
-                  </div>
-
-                  <div class="action-box" style="margin-top: 24px">
-                    <button nz-button nzType="primary" nzDanger nzBlock (click)="checkOut()">
-                      <span nz-icon nzType="logout"></span> {{ 'attendance.checkout-action' | i18n }}
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          </nz-spin>
-        </nz-tab>
-      }
-
-      <!-- Tab 2: History -->
-      @if (hasSelfRead && !hasBranchRead) {
-        <nz-tab [nzTitle]="'attendance.tab.history' | i18n" (nzSelect)="loadHistory(); onSelectOtherTab()">
-          <div style="margin-bottom: 16px">
-            <div nz-row [nzGutter]="16" align="middle">
-              <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
-                <nz-range-picker [(ngModel)]="dateRange" style="width: 100%" />
-              </div>
-              <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
-                <button nz-button nzType="primary" (click)="search()">
-                  <span nz-icon nzType="search"></span> {{ 'attendance.history-filter-search' | i18n }}
-                </button>
-                <button nz-button nzType="default" (click)="reset()" style="margin-left: 8px">
-                  {{ 'attendance.history-filter-reset' | i18n }}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <st
-            [columns]="columns"
-            [data]="historyList"
-            [total]="total"
-            [pi]="currentPage"
-            [ps]="pageSize"
-            [loading]="loadingHistory"
-            [page]="{ show: true, showSize: true }"
-            (change)="onSTChange($event)"
-          >
-            <ng-template st-row="status" let-item>
-              <nz-tag [nzColor]="getStatusColor(item.status)">{{ getStatusText(item.status) }}</nz-tag>
-            </ng-template>
-          </st>
-        </nz-tab>
-      }
-
-      <!-- Tab 3: Branch QR Generator (Manager Only) -->
-      @if (hasQrDisplay) {
-        <nz-tab [nzTitle]="'attendance.tab.qr-generator' | i18n" (nzSelect)="loadQr()">
-          <nz-spin [nzSpinning]="loadingQr">
-            <div class="qr-card-content">
-              <h3>{{ 'attendance.tab.qr-generator' | i18n }}</h3>
-              <p>{{ 'attendance.qr-generator-refresh-info' | i18n }}</p>
-
-              @if (qrData) {
-                <div class="qr-container">
-                  <nz-qrcode [nzValue]="qrData.qrToken" [nzSize]="360" [nzPadding]="16" nzType="svg" nzLevel="L" />
-
-                  <div class="countdown-timer" style="margin-top: 16px">
-                    <span nz-icon nzType="clock-circle" nzTheme="outline"></span>
-                    {{ 'attendance.qr-generator-expires-in' | i18n: { time: qrSecondsRemaining } }}
-                  </div>
-                </div>
-              }
-
-              <button nz-button nzType="default" (click)="loadQr(true)" style="margin-top: 24px">
-                <span nz-icon nzType="reload"></span> {{ 'action.reload' | i18n }}
-              </button>
-            </div>
-          </nz-spin>
-        </nz-tab>
-      }
-    </nz-tabs>
+        </nz-spin>
+      </nz-tab>
+    }
+  </nz-tabs>
 </nz-card>

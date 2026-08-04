@@ -101,15 +101,15 @@
 <!-- Modal Chọn & Đổi Voucher -->
 <nz-modal
   [(nzVisible)]="voucherModalVisible"
-  nzTitle="🎁 Ví Voucher & Đổi Điểm Thưởng"
+  [nzTitle]="'voucher.modal.title' | i18n"
   (nzOnCancel)="voucherModalVisible = false"
   [nzFooter]="null"
   [nzWidth]="460">
   <ng-container *nzModalContent>
     <!-- Điểm tích lũy header -->
     <div style="background: #e6f7ff; border: 1px solid #91d5ff; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-      <span>⭐ Điểm tích lũy của bạn:</span>
-      <strong style="color: #1890ff; font-size: 16px;">{{ myPoints }} điểm</strong>
+      <span>⭐ {{ 'voucher.my-points' | i18n }}</span>
+      <strong style="color: #1890ff; font-size: 16px;">{{ myPoints }} {{ 'voucher.points' | i18n }}</strong>
     </div>
 
     <!-- Segmented Tab Header -->
@@ -122,7 +122,7 @@
         [style.color]="selectedTabIndex === 0 ? '#1890ff' : '#595959'"
         [style.box-shadow]="selectedTabIndex === 0 ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'"
         style="flex: 1; border: none; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 13px;">
-        🎫 Voucher của tôi
+        🎫 {{ 'voucher.my-vouchers' | i18n }}
       </button>
       <button
         type="button"
@@ -132,7 +132,7 @@
         [style.color]="selectedTabIndex === 1 ? '#1890ff' : '#595959'"
         [style.box-shadow]="selectedTabIndex === 1 ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'"
         style="flex: 1; border: none; padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 13px;">
-        🏪 Kho Voucher (Đổi điểm)
+        🏪 {{ 'voucher.catalog' | i18n }}
       </button>
     </div>
 
@@ -155,7 +155,7 @@
         </div>
 
         @if (displayedVouchers.length === 0) {
-          <nz-empty nzNotFoundImage="simple" [nzNotFoundContent]="showAllVouchers ? 'Ví của bạn chưa có Voucher nào.' : 'Không có Voucher nào đủ điều kiện cho đơn hàng này.'"></nz-empty>
+          <nz-empty nzNotFoundImage="simple" [nzNotFoundContent]="'voucher.my-vouchers.empty' | i18n"></nz-empty>
         }
 
         @if (displayedVouchers.length > 0) {
@@ -167,7 +167,7 @@
                 <div>
                   <div style="font-weight: bold; font-size: 14px;" [style.color]="cv.isApplicable ? '#389e0d' : '#8c8c8c'">🏷️ {{ cv.title }}</div>
                   <div style="font-size: 12px; color: #8c8c8c; margin-top: 2px;">
-                    Giảm {{ cv.discountPercent }}%
+                    {{ 'voucher.discount' | i18n }} {{ cv.discountPercent }}%
                     @if (cv.voucherSn) {
                       | Mã: <code>{{ cv.voucherSn }}</code>
                     }
@@ -178,7 +178,7 @@
                 </div>
                 @if (cv.isApplicable) {
                   <button nz-button nzType="primary" nzSize="small" (click)="applyVoucher(cv)">
-                    Dùng ngay
+                    {{ 'voucher.use-now' | i18n }}
                   </button>
                 } @else {
                   <nz-tag nzColor="default">Không đủ ĐK</nz-tag>
@@ -193,7 +193,7 @@
     <!-- TAB 2: Kho Voucher nhà hàng (Đổi điểm) -->
     @if (selectedTabIndex === 1) {
       @if (catalogVouchers.length === 0) {
-        <nz-empty nzNotFoundImage="simple" nzNotFoundContent="Nhà hàng chưa có Voucher nào."></nz-empty>
+        <nz-empty nzNotFoundImage="simple" [nzNotFoundContent]="'voucher.catalog.empty' | i18n"></nz-empty>
       }
 
       @if (catalogVouchers.length > 0) {
@@ -203,17 +203,17 @@
               <div>
                 <div style="font-weight: bold; font-size: 14px; color: #d46b08;">🎁 {{ v.title }}</div>
                 <div style="font-size: 12px; color: #595959; margin-top: 2px;">
-                  Giảm {{ v.discountPercent }}% | Đơn từ {{ v.minBillAmount | number:'1.0-0' }}đ
+                  {{ 'voucher.discount' | i18n }} {{ v.discountPercent }}% | {{ 'voucher.min-order' | i18n }} {{ v.minBillAmount | number:'1.0-0' }}đ
                 </div>
                 @if (!v.isApplicable && v.reason) {
                   <div style="font-size: 11px; color: #ff4d4f; margin-top: 2px;">⚠️ {{ v.reason }}</div>
                 }
               </div>
               @if (v.status === 'OWNED') {
-                <nz-tag nzColor="green">✓ Đã có trong Ví</nz-tag>
+                <nz-tag nzColor="green">✓ {{ 'voucher.status.owned' | i18n }}</nz-tag>
               } @else {
                 <button nz-button nzType="primary" nzSize="small" [disabled]="!v.isApplicable" [nzLoading]="voucherLoading" (click)="redeemVoucher(v)">
-                  {{ (v.pointsRequired || 0) === 0 ? 'Nhận 0đ' : ('Đổi (' + v.pointsRequired + ' điểm)') }}
+                  {{ (v.pointsRequired || 0) === 0 ? ('voucher.claim-free' | i18n) : (('voucher.redeem-points' | i18n) + ' (' + v.pointsRequired + ' ' + ('voucher.points' | i18n) + ')') }}
                 </button>
               }
             </div>

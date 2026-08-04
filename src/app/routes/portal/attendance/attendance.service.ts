@@ -42,6 +42,10 @@ export class AttendanceService {
     return this.http.post<ApiResponse<AttendanceResponse>>(`${this.api}/check-out`, {}).pipe(map(response => response.data));
   }
 
+  checkOutWithQr(qrToken: string): Observable<AttendanceResponse> {
+    return this.http.post<ApiResponse<AttendanceResponse>>(`${this.api}/check-out/qr`, { qrToken }).pipe(map(response => response.data));
+  }
+
   getMyHistory(from: string | null, to: string | null, page = 1, size = 10): Observable<PagingResponse<AttendanceResponse>> {
     const params: Record<string, string | number> = { page, size };
     if (from) params['from'] = from;
@@ -59,12 +63,11 @@ export class AttendanceService {
       .pipe(map(response => response.data));
   }
 
-  getOrganizationBranches(organizationId: string): Observable<AttendanceBranchResponse[]> {
+  getOrganizationBranches(): Observable<AttendanceBranchResponse[]> {
     return this.http
-      .get<ApiResponse<PagingResponse<AttendanceBranchResponse>>>(
-        `${this.apiRoot}/erp/organization-branches/organization/${organizationId}`,
-        { params: { page: 1, size: 100 } }
-      )
+      .get<ApiResponse<PagingResponse<AttendanceBranchResponse>>>(`${this.apiRoot}/erp/organization-branches`, {
+        params: { page: 1, size: 100 }
+      })
       .pipe(map(response => response.data.data));
   }
 
@@ -82,6 +85,22 @@ export class AttendanceService {
     if (branchId) params['branchId'] = branchId;
     return this.http
       .get<ApiResponse<PagingResponse<AttendanceResponse>>>(`${this.api}/branch/employees/${employeeId}/history`, { params })
+      .pipe(map(response => response.data));
+  }
+
+  getBranchHistory(
+    employeeId: string | null,
+    date: string | null,
+    page = 1,
+    size = 10,
+    branchId?: string
+  ): Observable<PagingResponse<AttendanceResponse>> {
+    const params: Record<string, string | number> = { page, size };
+    if (employeeId) params['employeeId'] = employeeId;
+    if (date) params['date'] = date;
+    if (branchId) params['branchId'] = branchId;
+    return this.http
+      .get<ApiResponse<PagingResponse<AttendanceResponse>>>(`${this.api}/branch/history`, { params })
       .pipe(map(response => response.data));
   }
 

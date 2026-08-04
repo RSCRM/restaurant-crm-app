@@ -8,27 +8,35 @@ import { ApiResponse, ContextSelectionRequest, ContextSelectionResponse, LoginRe
 import type { ContextInfo, SelectedContext } from '../store/auth.state';
 
 const API = environment.api['apiPrefix'];
+export interface PendingAttendanceAction {
+  action: 'check-in' | 'check-out';
+  qrToken: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
   private tokenService = inject(DA_SERVICE_TOKEN);
+  private readonly pendingAttendanceKey = 'pending_attendance_action';
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${API}/auth/login`, request, {
-      context: new HttpContext().set(ALLOW_ANONYMOUS, true)
-    }).pipe(map(res => res.data));
+    return this.http
+      .post<ApiResponse<LoginResponse>>(`${API}/auth/login`, request, {
+        context: new HttpContext().set(ALLOW_ANONYMOUS, true)
+      })
+      .pipe(map(res => res.data));
   }
 
   selectContext(request: ContextSelectionRequest, accessToken: string): Observable<ContextSelectionResponse> {
-    return this.http.post<ApiResponse<ContextSelectionResponse>>(`${API}/auth/context`, request, {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    }).pipe(map(res => res.data));
+    return this.http
+      .post<ApiResponse<ContextSelectionResponse>>(`${API}/auth/context`, request, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+      .pipe(map(res => res.data));
   }
 
   logout(): Observable<void> {
-    return this.http.post<ApiResponse<void>>(`${API}/auth/logout`, {})
-      .pipe(map(() => undefined));
+    return this.http.post<ApiResponse<void>>(`${API}/auth/logout`, {}).pipe(map(() => undefined));
   }
 
   setToken(token: string, expiresInMs: number): void {
@@ -110,6 +118,35 @@ export class AuthService {
     } catch {
       return null;
     }
+  }
+
+  capturePendingAttendance(): void {
+    const params = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
+    const action = params.get('attendanceAction');
+    const qrToken = params.get('qrToken');
+    if ((action === 'check-in' || action === 'check-out') && qrToken) {
+      sessionStorage.setItem(this.pendingAttendanceKey, JSON.stringify({ action, qrToken }));
+    }
+  }
+
+  hasPendingAttendance(): boolean {
+    return sessionStorage.getItem(this.pendingAttendanceKey) !== null;
+  }
+
+  consumePendingAttendance(): PendingAttendanceAction | null {
+    const raw = sessionStorage.getItem(this.pendingAttendanceKey);
+    sessionStorage.removeItem(this.pendingAttendanceKey);
+    if (!raw) return null;
+    try {
+      const pending = JSON.parse(raw) as PendingAttendanceAction;
+      return (pending.action === 'check-in' || pending.action === 'check-out') && pending.qrToken ? pending : null;
+    } catch {
+      return null;
+    }
+  }
+
+  clearPendingAttendance(): void {
+    sessionStorage.removeItem(this.pendingAttendanceKey);
   }
 
   parseJwtPayload(token: string): Record<string, unknown> {
