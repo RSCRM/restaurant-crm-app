@@ -1,0 +1,52 @@
+@if (loading) {
+  <div class="loading-container">
+    <nz-spin nzSimple [nzSize]="'large'" />
+  </div>
+} @else if (product) {
+  <page-header [title]="product.productName" [action]="actionTpl" />
+  <ng-template #actionTpl>
+    <button nz-button (click)="goBack()">
+      <span nz-icon nzType="arrow-left" nzTheme="outline"></span>
+      {{ 'app.portal.menu.product.detail.back' | i18n }}
+    </button>
+  </ng-template>
+
+  <nz-card [nzTitle]="'app.portal.menu.product.detail.info' | i18n" class="mb-16">
+    <div class="product-image">
+      @if (product.imageUrl) {
+        <nz-avatar [nzSrc]="product.imageUrl" [nzSize]="80" [nzShape]="'square'" />
+      } @else {
+        <nz-avatar [nzText]="product.productName.charAt(0)" [nzSize]="80" [nzShape]="'square'" />
+      }
+    </div>
+
+    <nz-descriptions nzBordered [nzColumn]="2">
+      <nz-descriptions-item [nzTitle]="'app.portal.menu.product.form.name' | i18n">{{ product.productName }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.portal.menu.product.category' | i18n">{{ categoryName }}</nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.portal.menu.product.price' | i18n">
+        {{ product.price.toLocaleString('vi-VN') }} đ
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.portal.menu.product.status' | i18n">
+        <nz-tag [nzColor]="product.status === 'AVAILABLE' ? 'success' : 'default'">
+          {{
+            product.status === 'AVAILABLE'
+              ? ('app.portal.menu.product.status.available' | i18n)
+              : ('app.portal.menu.product.status.unavailable' | i18n)
+          }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.portal.menu.product.requiresPreparation' | i18n">
+        <nz-tag [nzColor]="product.requiresPreparation ? 'warning' : 'default'">
+          {{ product.requiresPreparation ? ('app.portal.menu.product.prep.yes' | i18n) : ('app.portal.menu.product.prep.no' | i18n) }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item [nzTitle]="'app.portal.menu.product.form.description' | i18n" [nzSpan]="2">
+        {{ product.description || '-' }}
+      </nz-descriptions-item>
+    </nz-descriptions>
+  </nz-card>
+
+  <nz-card [nzTitle]="'app.portal.menu.product.modifiers' | i18n">
+    <app-modifier-manager [product]="product" />
+  </nz-card>
+}

@@ -1,8 +1,3 @@
-<div class="modal-header">
-  <div class="modal-title">{{ 'app.portal.menu.modifier.title' | i18n }}</div>
-  <div class="modal-subtitle">{{ product?.productName }}</div>
-</div>
-
 <div class="toolbar">
   @if (canManageModifier) {
     <button nz-button nzType="primary" (click)="openCreateGroup()">
@@ -34,24 +29,6 @@
           <textarea nz-input formControlName="description" rows="2"></textarea>
         </nz-form-control>
       </nz-form-item>
-      <div nz-row [nzGutter]="16">
-        <div nz-col [nzSpan]="12">
-          <nz-form-item>
-            <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.minSelection' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-input-number formControlName="minSelection" [nzMin]="0" class="full-width" />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-        <div nz-col [nzSpan]="12">
-          <nz-form-item>
-            <nz-form-label [nzRequired]="true">{{ 'app.portal.menu.modifier.maxSelection' | i18n }}</nz-form-label>
-            <nz-form-control [nzErrorTip]="'app.portal.menu.modifier.maxSelectionError' | i18n">
-              <nz-input-number formControlName="maxSelection" [nzMin]="0" class="full-width" />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </div>
       <div class="form-panel-actions">
         <button nz-button type="button" (click)="cancelGroupForm()">{{ 'app.form.cancel' | i18n }}</button>
         <button nz-button type="submit" nzType="primary" [nzLoading]="savingGroup" [disabled]="groupForm.invalid">
@@ -193,7 +170,3 @@
     </nz-collapse-panel>
   }
 </nz-collapse>
-
-<div class="modal-footer">
-  <button nz-button type="button" (click)="close()">{{ 'app.form.close' | i18n }}</button>
-</div>

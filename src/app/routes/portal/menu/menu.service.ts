@@ -69,6 +69,10 @@ export class MenuService {
     return this.http.get<ApiResponse<ProductResponse[]>>(this.PRODUCT_API, { params: { branchId } }).pipe(map(res => res.data));
   }
 
+  getProduct(productId: string): Observable<ProductResponse> {
+    return this.http.get<ApiResponse<ProductResponse>>(`${this.PRODUCT_API}/${productId}`).pipe(map(res => res.data));
+  }
+
   searchProducts(
     request: ProductSearchRequest,
     page = 1,

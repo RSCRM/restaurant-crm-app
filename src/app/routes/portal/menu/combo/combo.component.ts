@@ -87,7 +87,7 @@ export class ComboComponent implements OnInit {
 
   columns: STColumn[] = [
     { title: { i18n: 'app.portal.menu.combo.image' }, width: 70, render: 'image' },
-    { title: { i18n: 'app.portal.menu.combo.name' }, index: 'comboName' },
+    { title: { i18n: 'app.portal.menu.combo.name' }, width: 220, index: 'comboName' },
     { title: { i18n: 'app.portal.menu.combo.price' }, width: 120, render: 'price' },
     { title: { i18n: 'app.portal.menu.combo.itemCount' }, width: 110, render: 'itemCount' },
     { title: { i18n: 'app.portal.menu.combo.status' }, width: 110, render: 'status' },
@@ -221,6 +221,7 @@ export class ComboComponent implements OnInit {
       nzTitle: undefined,
       nzContent: ComboFormComponent,
       nzWidth: 800,
+      nzFooter: null,
       nzData: { branchId: this.branchId }
     });
     modalRef.afterClose.subscribe(result => {
@@ -234,6 +235,7 @@ export class ComboComponent implements OnInit {
       nzTitle: undefined,
       nzContent: ComboFormComponent,
       nzWidth: 800,
+      nzFooter: null,
       nzData: { branchId: this.branchId, combo }
     });
     modalRef.afterClose.subscribe(result => {

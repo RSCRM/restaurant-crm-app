@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { I18nPipe } from '@delon/theme';
@@ -11,7 +11,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -28,10 +27,6 @@ import {
   ProductResponse
 } from '../../menu.model';
 import { MenuService } from '../../menu.service';
-
-interface ModifierManagerModalData {
-  product: ProductResponse;
-}
 
 function maxSelectionValidator(control: AbstractControl): ValidationErrors | null {
   const min = control.get('minSelection')?.value;
@@ -61,17 +56,16 @@ function maxSelectionValidator(control: AbstractControl): ValidationErrors | nul
   templateUrl: './modifier-manager.component.html',
   styleUrl: './modifier-manager.component.less'
 })
-export class ModifierManagerComponent implements OnInit {
+export class ModifierManagerComponent implements OnChanges {
   private fb = inject(NonNullableFormBuilder);
-  private modalRef = inject(NzModalRef);
   private menuService = inject(MenuService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
-  private modalData = inject<ModifierManagerModalData | null>(NZ_MODAL_DATA, { optional: true });
   private store = inject(Store);
 
-  product: ProductResponse | null = null;
+  @Input() product: ProductResponse | null = null;
+
   loading = false;
   savingGroup = false;
   savingOption = false;
@@ -96,7 +90,7 @@ export class ModifierManagerComponent implements OnInit {
     {
       groupName: this.fb.control('', [Validators.required, Validators.maxLength(100)]),
       description: this.fb.control(''),
-      minSelection: this.fb.control(0, [Validators.required, Validators.min(0)]),
+      minSelection: this.fb.control(1, [Validators.required, Validators.min(0)]),
       maxSelection: this.fb.control(1, [Validators.required, Validators.min(0)])
     },
     { validators: maxSelectionValidator }
@@ -108,16 +102,22 @@ export class ModifierManagerComponent implements OnInit {
     status: this.fb.control(MENU_STATUS_AVAILABLE, [Validators.required, Validators.maxLength(20)])
   });
 
-  ngOnInit(): void {
-    this.product = this.modalData?.product ?? null;
-    this.loadGroups();
+  private permissionsLoaded = false;
 
-    combineLatest([this.store.select(selectIsOwnerContext), this.store.select(selectHasPermission('PRODUCT_UPDATE'))])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([isOwner, canUpdate]) => {
-        this.canManageModifier = isOwner || canUpdate;
-        this.cdr.markForCheck();
-      });
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['product'] && this.product) {
+      this.loadGroups();
+    }
+
+    if (!this.permissionsLoaded) {
+      this.permissionsLoaded = true;
+      combineLatest([this.store.select(selectIsOwnerContext), this.store.select(selectHasPermission('PRODUCT_UPDATE'))])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(([isOwner, canUpdate]) => {
+          this.canManageModifier = isOwner || canUpdate;
+          this.cdr.markForCheck();
+        });
+    }
   }
 
   private loadGroups(): void {
@@ -156,7 +156,7 @@ export class ModifierManagerComponent implements OnInit {
 
   openCreateGroup(): void {
     this.editingGroup = null;
-    this.groupForm.reset({ groupName: '', description: '', minSelection: 0, maxSelection: 1 });
+    this.groupForm.reset({ groupName: '', description: '', minSelection: 1, maxSelection: 1 });
     this.groupFormVisible = true;
   }
 
@@ -313,9 +313,5 @@ export class ModifierManagerComponent implements OnInit {
         };
         this.cdr.markForCheck();
       });
-  }
-
-  close(): void {
-    this.modalRef.destroy();
   }
 }

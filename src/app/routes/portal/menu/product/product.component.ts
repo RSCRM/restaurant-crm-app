@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
@@ -21,7 +22,6 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, combineLatest, EMPTY, finalize } from 'rxjs';
 
 import { CategoryManagerComponent } from './category-manager/category-manager.component';
-import { ModifierManagerComponent } from './modifier-manager/modifier-manager.component';
 import { ProductFormComponent } from './product-form/product-form.component';
 import { selectBranchId, selectHasPermission, selectIsOwnerContext } from '../../../auth/store/auth.selectors';
 import { menuErrorMessage } from '../menu-error';
@@ -65,6 +65,7 @@ export class ProductComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private store = inject(Store);
+  private router = inject(Router);
 
   branchId: string | null = null;
 
@@ -91,11 +92,11 @@ export class ProductComponent implements OnInit {
 
   columns: STColumn[] = [
     { title: { i18n: 'app.portal.menu.product.image' }, width: 70, render: 'image' },
-    { title: { i18n: 'app.portal.menu.product.name' }, index: 'productName' },
+    { title: { i18n: 'app.portal.menu.product.name' }, width: 200, index: 'productName' },
     { title: { i18n: 'app.portal.menu.product.category' }, width: 150, render: 'category' },
     { title: { i18n: 'app.portal.menu.product.price' }, width: 120, render: 'price' },
     { title: { i18n: 'app.portal.menu.product.status' }, width: 110, render: 'status' },
-    { title: { i18n: 'app.portal.menu.product.requiresPreparation' }, width: 130, render: 'prep' },
+    { title: { i18n: 'app.portal.menu.product.requiresPreparation' }, width: 170, render: 'prep' },
     {
       title: { i18n: 'app.portal.menu.product.actions' },
       width: 220,
@@ -108,10 +109,9 @@ export class ProductComponent implements OnInit {
           click: item => this.openEdit(item)
         },
         {
-          i18n: 'app.portal.menu.product.modifiers',
-          icon: 'setting',
-          iif: () => this.canUpdateProduct,
-          click: item => this.openModifierManager(item)
+          i18n: 'app.portal.menu.product.detail',
+          icon: 'eye',
+          click: item => this.goToDetail(item)
         },
         {
           i18n: 'app.portal.menu.product.delete',
@@ -254,6 +254,7 @@ export class ProductComponent implements OnInit {
       nzTitle: undefined,
       nzContent: ProductFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { branchId: this.branchId, categories: this.categories }
     });
     modalRef.afterClose.subscribe(result => {
@@ -267,6 +268,7 @@ export class ProductComponent implements OnInit {
       nzTitle: undefined,
       nzContent: ProductFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { branchId: this.branchId, categories: this.categories, product }
     });
     modalRef.afterClose.subscribe(result => {
@@ -274,14 +276,8 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  openModifierManager(product: ProductResponse): void {
-    const modalRef = this.modal.create({
-      nzTitle: undefined,
-      nzContent: ModifierManagerComponent,
-      nzWidth: 700,
-      nzData: { product }
-    });
-    modalRef.afterClose.subscribe(() => this.loadData());
+  goToDetail(product: ProductResponse): void {
+    this.router.navigate(['/portal/menu/product', product.id, 'detail']);
   }
 
   openCategoryManager(): void {
