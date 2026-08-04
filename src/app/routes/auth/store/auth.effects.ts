@@ -3,8 +3,8 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { catchError, exhaustMap, map, of, switchMap, tap } from 'rxjs';
 
-import { AuthService } from '../services/auth.service';
 import { AuthActions } from './auth.actions';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthEffects {
@@ -62,9 +62,11 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap(({ accessToken, systemRoles }) => {
+          this.authService.capturePendingAttendance();
           this.authService.setAccessToken(accessToken);
           this.authService.setSystemRoles(systemRoles);
           if (systemRoles.includes('ADMIN')) {
+            this.authService.clearPendingAttendance();
             // ADMIN: use accessToken as the main API token
             this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
             window.location.href = '/#/admin/dashboard';
@@ -106,7 +108,7 @@ export class AuthEffects {
         ofType(AuthActions.selectContextSuccess),
         tap(() => {
           // Reload to ensure portal layout picks up the new context state
-          window.location.href = '/#/portal/dashboard';
+          window.location.href = this.authService.hasPendingAttendance() ? '/#/portal/attendance' : '/#/portal/dashboard';
         })
       ),
     { dispatch: false }
