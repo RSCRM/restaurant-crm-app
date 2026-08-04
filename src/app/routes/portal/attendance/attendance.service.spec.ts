@@ -33,6 +33,11 @@ describe('AttendanceService', () => {
     service.checkOut().subscribe();
     expect(http.expectOne('/api/v1/erp/attendances/check-out').request.method).toBe('POST');
 
+    service.checkOutWithQr('token').subscribe();
+    const checkOutWithQr = http.expectOne('/api/v1/erp/attendances/check-out/qr');
+    expect(checkOutWithQr.request.method).toBe('POST');
+    expect(checkOutWithQr.request.body).toEqual({ qrToken: 'token' });
+
     service.getMyHistory('2026-07-01', '2026-07-31', 2, 20).subscribe();
     const history = http.expectOne(request => request.url === '/api/v1/erp/attendances/me');
     expect(history.request.method).toBe('GET');
@@ -56,6 +61,13 @@ describe('AttendanceService', () => {
     const employeeHistory = http.expectOne(request => request.url === '/api/v1/erp/attendances/branch/employees/employee-1/history');
     expect(employeeHistory.request.method).toBe('GET');
     expect(employeeHistory.request.params.get('branchId')).toBe('branch-1');
+
+    service.getBranchHistory(null, '2026-07-31', 1, 10, 'branch-1').subscribe();
+    const branchHistory = http.expectOne(request => request.url === '/api/v1/erp/attendances/branch/history');
+    expect(branchHistory.request.method).toBe('GET');
+    expect(branchHistory.request.params.has('employeeId')).toBe(false);
+    expect(branchHistory.request.params.get('date')).toBe('2026-07-31');
+    expect(branchHistory.request.params.get('branchId')).toBe('branch-1');
   });
 
   it('reuses an unexpired QR unless reload is forced', () => {

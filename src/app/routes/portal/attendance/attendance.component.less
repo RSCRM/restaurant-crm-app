@@ -11,19 +11,35 @@
   text-align: center;
 }
 
-.countdown-timer {
-  color: #f5222d;
-  font-size: 16px;
-  font-weight: 500;
+.qr-pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 960px;
 }
 
-.status-box,
-.action-box {
-  width: 100%;
-  max-width: 520px;
+@media (max-width: 800px) {
+  .qr-pair {
+    justify-content: center;
+  }
+}
+
+.qr-container h4 {
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.countdown-timer {
+  font-size: 16px;
+  font-weight: 500;
+  color: #f5222d;
 }
 
 .status-box {
+  width: 100%;
+  max-width: 520px;
   margin-bottom: 24px;
   text-align: center;
 }
@@ -47,9 +63,9 @@
 }
 
 .scanner-viewport {
+  overflow: hidden;
   width: 100%;
   min-height: 280px;
-  overflow: hidden;
   border-radius: 8px;
   background: #111;
 }
@@ -60,8 +76,8 @@
 
 .scanner-error {
   margin: 12px 0;
-  color: #cf1322;
   font-weight: 500;
+  color: #cf1322;
 }
 
 .scanner-upload {
@@ -71,8 +87,8 @@
 
   p {
     margin-bottom: 10px;
-    color: #8c8c8c;
     font-size: 13px;
+    color: #8c8c8c;
   }
 }
 
