@@ -33,7 +33,7 @@
             <nz-form-control nzErrorTip="Vui lòng chọn thời gian đặt bàn">
               <nz-date-picker
                 formControlName="bookingTime"
-                nzShowTime
+                [nzShowTime]="{ nzFormat: 'HH:mm' }"
                 nzFormat="yyyy-MM-dd HH:mm"
                 [nzDisabledDate]="disabledDate"
                 style="width: 100%"
@@ -43,21 +43,11 @@
         </div>
 
         <!-- Duration -->
-        <div nz-col nzSpan="6">
+        <div nz-col nzSpan="12">
           <nz-form-item>
             <nz-form-label nzRequired [nzSpan]="24">Thời Lượng (Giờ)</nz-form-label>
             <nz-form-control nzErrorTip="Vui lòng nhập thời lượng (> 0)">
               <nz-input-number formControlName="duration" [nzMin]="0.1" [nzStep]="0.5" style="width: 100%" />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <!-- Guest count -->
-        <div nz-col nzSpan="6">
-          <nz-form-item>
-            <nz-form-label nzRequired [nzSpan]="24">Số Khách</nz-form-label>
-            <nz-form-control nzErrorTip="Tối thiểu 1 khách">
-              <nz-input-number formControlName="guestCount" [nzMin]="1" [nzStep]="1" style="width: 100%" />
             </nz-form-control>
           </nz-form-item>
         </div>

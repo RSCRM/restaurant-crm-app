@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -11,6 +11,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 
 import { CustomerService } from '../customer.service';
 import { QrResolveResponse } from '../customer.model';
+import { GlassShatter, ShatterOptions } from './glass-shatter';
 
 @Component({
   selector: 'app-customer-entry',
@@ -20,7 +21,12 @@ import { QrResolveResponse } from '../customer.model';
   templateUrl: './customer-entry.component.html',
   styleUrls: ['./customer-entry.component.less']
 })
-export class CustomerEntryComponent implements OnInit {
+export class CustomerEntryComponent implements OnInit, OnDestroy {
+  // ★ TOGGLE: Set to false to completely disable the shatter effect
+  private readonly ENABLE_SHATTER = true;
+
+  private el = inject(ElementRef);
+  private glassShatter: GlassShatter | null = null;
   private customerService = inject(CustomerService);
   private message = inject(NzMessageService);
   private router = inject(Router);
@@ -90,12 +96,16 @@ export class CustomerEntryComponent implements OnInit {
     const rawPhone = this.phone.trim();
     if (!rawPhone || !this.VN_PHONE_REGEX.test(rawPhone)) {
       this.message.warning('Vui lòng nhập SĐT Việt Nam hợp lệ (vd: 0901234567)');
+      this.triggerShatter();
       return;
     }
 
     this.loading = true;
     this.customerService.requestOtp({ qrToken: this.qrToken, customerPhone: rawPhone }).subscribe({
       next: res => {
+        // Valid phone — clean up shatter if active, restore elements
+        this.glassShatter?.destroy();
+        this.glassShatter = null;
         this.maskedPhone = res.maskedPhone;
         this.currentStep = 2;
         this.loading = false;
@@ -148,7 +158,7 @@ export class CustomerEntryComponent implements OnInit {
       error: err => {
         this.loading = false;
         if (err?.status === 409 || err?.error?.errorCode === 'TQR_TABLE_SESSION_EXISTS') {
-          this.message.error('Bàn 101 đang có phiên gọi món chưa đóng. Vui lòng chạy `node task/FE/flush-redis.js` để reset bàn!');
+          this.message.error('Bàn 101 đang có phiên gọi món chưa đóng. Vui lòng chạy `sdocker exec -it redis-crm redis-cli flushall` để reset bàn!');
         } else {
           this.message.error(err?.error?.errorMessage || 'Không thể tạo phiên. Vui lòng thử lại!');
         }
@@ -161,5 +171,24 @@ export class CustomerEntryComponent implements OnInit {
     this.currentStep = 1;
     this.otp = '';
     this.cdr.markForCheck();
+  }
+
+  // ─── Glass Shatter Animation ────────────────────────────
+
+  private triggerShatter(): void {
+    if (!this.ENABLE_SHATTER) return;
+    // Only shatter once — if already shattered, skip
+    if (this.glassShatter) return;
+
+    const container = this.el.nativeElement.querySelector('.customer-entry-container');
+    if (!container) return;
+
+    this.glassShatter = new GlassShatter(container, { excludeSelector: '.shatter-keep' });
+    this.glassShatter.shatter();
+    // No auto-reset — pieces stay fallen until valid phone is entered
+  }
+
+  ngOnDestroy(): void {
+    this.glassShatter?.destroy();
   }
 }

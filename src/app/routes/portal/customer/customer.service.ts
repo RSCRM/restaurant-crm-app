@@ -126,17 +126,56 @@ export class CustomerService {
   }
 
   // 12. Get Organization Member Customers
-  getOrganizationCustomers(restaurantId: string, searchPhone?: string, paging?: PagingParams): Observable<PagingResponse<CustomerPointResponse>> {
+  getOrganizationCustomers(
+    restaurantId: string,
+    searchPhone?: string,
+    paging?: PagingParams,
+    sortBy = 'updatedAt',
+    sortDirection = 'DESC',
+    minPoints?: number | null,
+    maxPoints?: number | null,
+    minLifetimePoints?: number | null,
+    maxLifetimePoints?: number | null
+  ): Observable<PagingResponse<CustomerPointResponse>> {
     let params = new HttpParams()
       .set('page', (paging?.page || 1).toString())
-      .set('size', (paging?.size || 10).toString());
+      .set('size', (paging?.size || 10).toString())
+      .set('sortBy', sortBy)
+      .set('sortDirection', sortDirection);
 
     if (searchPhone && searchPhone.trim()) {
       params = params.set('searchPhone', searchPhone.trim());
+    }
+    if (minPoints !== undefined && minPoints !== null) {
+      params = params.set('minPoints', minPoints.toString());
+    }
+    if (maxPoints !== undefined && maxPoints !== null) {
+      params = params.set('maxPoints', maxPoints.toString());
+    }
+    if (minLifetimePoints !== undefined && minLifetimePoints !== null) {
+      params = params.set('minLifetimePoints', minLifetimePoints.toString());
+    }
+    if (maxLifetimePoints !== undefined && maxLifetimePoints !== null) {
+      params = params.set('maxLifetimePoints', maxLifetimePoints.toString());
     }
 
     return this.http
       .get<ApiResponse<PagingResponse<CustomerPointResponse>>>(`${this.CRM_API}/wallets/organization/${restaurantId}/list`, { params })
       .pipe(map(res => res.data));
+  }
+
+  // 13. Give Voucher Bulk
+  giveVoucherBulk(customerIds: string[], branchId: string, voucherId: string): Observable<void> {
+    let params = new HttpParams()
+      .set('branchId', branchId)
+      .set('voucherId', voucherId);
+
+    customerIds.forEach(id => {
+      params = params.append('customerIds', id);
+    });
+
+    return this.http
+      .post<ApiResponse<void>>(`${this.CRM_API}/customer-vouchers/bulk-give`, null, { params })
+      .pipe(map(() => undefined));
   }
 }

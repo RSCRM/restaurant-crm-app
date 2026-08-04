@@ -20,6 +20,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { combineLatest } from 'rxjs';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
 import {
   CustomerResponse,
@@ -53,7 +54,9 @@ import { selectHasPermission, selectSelectedContext } from '../../auth/store/aut
     NzStatisticModule,
     NzSpinModule,
     NzSwitchModule,
-    STModule
+    NzInputNumberModule,
+    STModule,
+    I18nPipe
   ],
   templateUrl: './customer.component.html',
   styleUrls: ['./customer.component.less']
@@ -100,10 +103,15 @@ export class CustomerComponent implements OnInit {
   sysVoucherPage = 1;
   sysVoucherSize = 10;
   sysVoucherLoading = false;
+  showVoucherFilter = false;
 
   // Filters for System Vouchers
   searchVoucherTitle = '';
   filterVoucherStatus = 'ALL';
+  filterMinDiscount: number | null = null;
+  filterMaxDiscount: number | null = null;
+  filterVoucherMinPoints: number | null = null;
+  filterVoucherMaxPoints: number | null = null;
 
   // Delon ST Columns for Point History
   pointColumns: STColumn[] = [
@@ -116,34 +124,313 @@ export class CustomerComponent implements OnInit {
   ];
 
   // Delon ST Columns for System Vouchers
-  sysVoucherColumns: STColumn[] = [
-    { title: 'Tiêu đề Voucher', index: 'title', width: 220 },
-    { title: '% Giảm', index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%` },
-    {
-      title: 'Đơn tối thiểu',
-      index: 'minOrderAmount',
-      width: 140,
-      format: item => `${item.minOrderAmount?.toLocaleString('vi-VN')} ₫`
-    },
-    { title: 'Điểm đổi', index: 'pointCost', width: 110, format: item => `${item.pointCost} điểm` },
-    { title: 'Hạn dùng', index: 'validDays', width: 110, format: item => `${item.validDays} ngày` },
-    { title: 'Cho phép đổi', width: 130, render: 'isActive' },
-    { title: 'Thao tác', width: 120, fixed: 'right', render: 'actions' }
-  ];
+  
+  /// ======chưa biết có vấn đề gì nên chưa xóa ===========
+//   sysVoucherColumns: STColumn[] = [
+//     { title: 'Tiêu đề Voucher', index: 'title', width: 220 },
+//     { title: '% Giảm', index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%` },
+//     {
+//       title: 'Đơn tối thiểu',
+//       index: 'minOrderAmount',
+//       width: 140,
+//       format: item => `${item.minOrderAmount?.toLocaleString('vi-VN')} ₫`
+//     },
+//     { title: 'Điểm đổi', index: 'pointCost', width: 110, format: item => `${item.pointCost} điểm` },
+//     { title: 'Hạn dùng', index: 'validDays', width: 110, format: item => `${item.validDays} ngày` },
+//     { title: 'Cho phép đổi', width: 130, render: 'isActive' },
+//     { title: 'Thao tác', width: 120, fixed: 'right', render: 'actions' }
+//   ];
+
+//   ngOnInit(): void {
+//     combineLatest([
+//       this.store.select(selectSelectedContext),
+//       this.store.select(selectHasPermission('VOUCHER_CREATE')),
+//       this.store.select(selectHasPermission('CUSTOMER_VOUCHER_REDEEM'))
+//     ])
+//       .pipe(takeUntilDestroyed(this.destroyRef))
+//       .subscribe(([context, canCreateVoucher, canRedeem]) => {
+//         this.restaurantId = context?.organizationId ?? context?.branchId ?? null;
+//         this.hasVoucherCreatePermission = canCreateVoucher;
+//         this.hasRedeemPermission = canRedeem;
+//         this.cdr.markForCheck();
+//       });
+//   }
+///======================================================
+  sysVoucherColumns: STColumn[] = [];
+
+  private parseTokenPayload(token: string | null): Record<string, unknown> | null {
+    if (!token) return null;
+    try {
+      const base64Url = token.split('.')[1];
+      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) base64 += '=';
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }
+
+  // Member Customers List State
+  memberCustomersList: CustomerPointResponse[] = [];
+  memberCustomerTotal = 0;
+  memberCustomerPage = 1;
+  memberCustomerSize = 10;
+  memberCustomerLoading = false;
+
+  memberCustomerColumns: STColumn[] = [];
+  originalMemberCustomerColumns: STColumn[] = [];
+  sortBy = 'updatedAt';
+  sortDirection = 'DESC';
+  isBulkGivingActive = false;
+  selectedCustomerIds: string[] = [];
+  showCustomerFilter = false;
+  filterMinPoints: number | null = null;
+  filterMaxPoints: number | null = null;
+  filterMinLifetimePoints: number | null = null;
+  filterMaxLifetimePoints: number | null = null;
+
+  private initColumns(): void {
+    this.pointColumns = [
+      { title: this.i18n.fanyi('customer.history.col.type'), render: 'type', width: 130 },
+      { title: this.i18n.fanyi('customer.history.col.amount'), render: 'amount', width: 120 },
+      { title: this.i18n.fanyi('customer.history.col.balanceAfter'), index: 'balanceAfter', width: 120, type: 'number' },
+      { title: this.i18n.fanyi('customer.history.col.source'), index: 'source' },
+      { title: this.i18n.fanyi('customer.history.col.referenceId'), index: 'referenceId' },
+      { title: this.i18n.fanyi('customer.history.col.createdAt'), index: 'createdAt', width: 160, type: 'date' }
+    ];
+
+    this.sysVoucherColumns = [
+      { title: this.i18n.fanyi('customer.sys-voucher.col.title'), index: 'title', width: 220, sort: true },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.type'), width: 180, render: 'voucherType' },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.discountPercent'), index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%`, sort: true },
+      {
+        title: this.i18n.fanyi('customer.sys-voucher.col.minBillAmount'),
+        index: 'minBillAmount',
+        width: 140,
+        format: item => `${item.minBillAmount?.toLocaleString('vi-VN')} ₫`,
+        sort: true
+      },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.pointsRequired'), index: 'pointsRequired', width: 110, format: item => `${item.pointsRequired} ${this.i18n.fanyi('voucher.points')}`, sort: true },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.isActive'), width: 130, render: 'isActive' },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.actions'), width: 120, fixed: 'right', render: 'actions' }
+    ];
+
+    this.memberCustomerColumns = [
+      { title: this.i18n.fanyi('customer.column.phone'), index: 'customerPhone', width: 160, sort: { key: 'customer.phone', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.points'), index: 'currentPoints', width: 140, type: 'number', sort: { key: 'currentPoints', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.lifetime-points'), index: 'lifetimePoints', width: 160, type: 'number', sort: { key: 'lifetimePoints', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.updated-at'), index: 'updatedAt', width: 160, type: 'date', sort: { key: 'updatedAt', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      {
+        title: this.i18n.fanyi('customer.column.actions'),
+        width: 140,
+        buttons: [
+          {
+            text: this.i18n.fanyi('customer.action.view-wallet'),
+            type: 'link',
+            click: (record: CustomerPointResponse) => this.selectCustomerFromList(record)
+          }
+        ]
+      }
+    ];
+    this.originalMemberCustomerColumns = [...this.memberCustomerColumns];
+  }
 
   ngOnInit(): void {
-    combineLatest([
-      this.store.select(selectSelectedContext),
-      this.store.select(selectHasPermission('VOUCHER_CREATE')),
-      this.store.select(selectHasPermission('CUSTOMER_VOUCHER_REDEEM'))
-    ])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([context, canCreateVoucher, canRedeem]) => {
-        this.restaurantId = context?.organizationId ?? context?.branchId ?? null;
-        this.hasVoucherCreatePermission = canCreateVoucher;
-        this.hasRedeemPermission = canRedeem;
-        this.cdr.markForCheck();
+    this.initColumns();
+
+    this.store.select(selectContextToken).subscribe(token => {
+      const payload = this.parseTokenPayload(token);
+      if (payload) {
+        this.organizationId = (payload['organizationId'] as string) || null;
+        this.branchId = (payload['branchId'] as string) || null;
+        const permissions: string[] = (payload['permission'] as string[]) || [];
+        this.hasVoucherCreatePermission = permissions.includes('VOUCHER_CREATE') || permissions.includes('ADMIN');
+        this.hasRedeemPermission = permissions.includes('CUSTOMER_VOUCHER_REDEEM') || permissions.includes('ADMIN');
+
+        // Load member customers list for this organization
+        this.loadMemberCustomers();
+
+        // Dynamically resolve branchId if not present in context token (e.g. Owner)
+        if (this.organizationId) {
+          if (!this.branchId) {
+            this.customerService.getOrganizationBranches(this.organizationId).subscribe({
+              next: branches => {
+                if (branches && branches.length > 0) {
+                  this.branchId = branches[0].id;
+                }
+                this.loadSystemVouchers();
+              },
+              error: () => {
+                this.loadSystemVouchers();
+              }
+            });
+          } else {
+            this.loadSystemVouchers();
+          }
+        }
+      }
+    });
+  }
+
+  loadMemberCustomers(): void {
+    if (!this.organizationId) return;
+
+    this.memberCustomerLoading = true;
+    this.cdr.markForCheck();
+
+    this.customerService
+      .getOrganizationCustomers(
+        this.organizationId,
+        this.searchPhone,
+        {
+          page: this.memberCustomerPage,
+          size: this.memberCustomerSize
+        },
+        this.sortBy,
+        this.sortDirection,
+        this.filterMinPoints,
+        this.filterMaxPoints,
+        this.filterMinLifetimePoints,
+        this.filterMaxLifetimePoints
+      )
+      .subscribe({
+        next: res => {
+          this.memberCustomersList = res.data;
+          this.memberCustomerTotal = res.totalElement;
+          this.memberCustomerLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.memberCustomerLoading = false;
+          this.cdr.markForCheck();
+        }
       });
+  }
+
+  toggleBulkGiving(): void {
+    this.isBulkGivingActive = !this.isBulkGivingActive;
+    this.selectedCustomerIds = [];
+    if (this.isBulkGivingActive) {
+      this.memberCustomerColumns = [
+        { title: '', index: 'customerId', type: 'checkbox', width: 50 },
+        ...this.originalMemberCustomerColumns
+      ];
+    } else {
+      this.memberCustomerColumns = [...this.originalMemberCustomerColumns];
+    }
+    this.cdr.markForCheck();
+  }
+
+  openBulkGiftVoucherModal(): void {
+    if (this.selectedCustomerIds.length === 0 || !this.branchId) return;
+
+    this.customerService.getVouchers(this.branchId, { page: 1, size: 100 }).subscribe({
+      next: res => {
+        const activeVouchers = res.data.filter(v => v.isActive === 1 && !v.voucherCode);
+        if (activeVouchers.length === 0) {
+          this.message.warning(this.i18n.fanyi('customer.msg.no-active-vouchers'));
+          return;
+        }
+
+        let selectedVoucherId = activeVouchers[0].id;
+
+        const titleText = this.i18n.fanyi('customer.bulk-give-modal.title');
+        const descText = this.i18n.fanyi('customer.bulk-give-modal.desc', { count: this.selectedCustomerIds.length });
+        const okText = this.i18n.fanyi('customer.bulk-give-modal.ok');
+        const cancelText = this.i18n.fanyi('customer.bulk-give-modal.cancel');
+
+        const modalRef = this.modal.create({
+          nzTitle: titleText,
+          nzContent: `
+            <div style="padding: 16px 0">
+              <p style="margin-bottom: 8px">${descText}</p>
+              <select class="ant-select-selector" style="width: 100%; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 4px 11px;" id="voucher-bulk-select">
+                ${activeVouchers.map(v => {
+                  const typeText = v.voucherCode ? ` [Code: ${v.voucherCode}]` : '';
+                  return `<option value="${v.id}">${v.title}${typeText} (Off ${v.discountPercent}%)</option>`;
+                }).join('')}
+              </select>
+            </div>
+          `,
+          nzOkText: okText,
+          nzCancelText: cancelText,
+          nzOnOk: () => {
+            const selectEl = document.getElementById('voucher-bulk-select') as HTMLSelectElement;
+            const voucherId = selectEl?.value || selectedVoucherId;
+            return this.executeBulkGift(voucherId);
+          }
+        });
+      },
+      error: () => {
+        this.message.error(this.i18n.fanyi('customer.msg.load-vouchers-error-msg'));
+      }
+    });
+  }
+
+  private executeBulkGift(voucherId: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (!this.branchId) {
+        resolve(false);
+        return;
+      }
+      this.customerService.giveVoucherBulk(this.selectedCustomerIds, this.branchId, voucherId).subscribe({
+        next: () => {
+          this.message.success(this.i18n.fanyi('customer.msg.bulk-give-success'));
+          this.selectedCustomerIds = [];
+          this.isBulkGivingActive = false;
+          this.memberCustomerColumns = [...this.originalMemberCustomerColumns];
+          this.loadMemberCustomers();
+          this.cdr.markForCheck();
+          resolve(true);
+        },
+        error: err => {
+          const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('customer.msg.bulk-give-error');
+          this.message.error(msg);
+          resolve(false);
+        }
+      });
+    });
+  }
+
+  selectCustomerFromList(customerPoint: CustomerPointResponse): void {
+    this.searchPhone = customerPoint.customerPhone || '';
+    this.currentCustomer = {
+      id: customerPoint.customerId,
+      phone: customerPoint.customerPhone,
+      createdAt: '',
+      updatedAt: customerPoint.updatedAt
+    };
+    this.loadCustomerWalletAndHistory();
+  }
+
+  onMemberCustomerSTChange(e: STChange): void {
+    if (e.type === 'pi') {
+      this.memberCustomerPage = e.pi!;
+      this.loadMemberCustomers();
+    } else if (e.type === 'ps') {
+      this.memberCustomerSize = e.ps!;
+      this.memberCustomerPage = 1;
+      this.loadMemberCustomers();
+    } else if (e.type === 'checkbox') {
+      this.selectedCustomerIds = e.checkbox!.map(item => item.customerId);
+      this.cdr.markForCheck();
+    } else if (e.type === 'sort' && e.sort && e.sort.column) {
+      const col = e.sort.column;
+      const indexStr = (Array.isArray(col.index) ? col.index[0] : (col.index as string)) || '';
+      const sortField = (col.sort as any)?.key || indexStr || 'updatedAt';
+      const sortDir = e.sort.map ? e.sort.map[indexStr] : undefined;
+      
+      this.sortBy = sortDir ? sortField : 'updatedAt';
+      this.sortDirection = sortDir === 'ascend' ? 'ASC' : sortDir === 'descend' ? 'DESC' : 'DESC';
+      this.memberCustomerPage = 1;
+      this.loadMemberCustomers();
+    }
   }
 
   searchCustomer(): void {
@@ -177,8 +464,26 @@ export class CustomerComponent implements OnInit {
     });
   }
 
+  toggleCustomerFilter(): void {
+    this.showCustomerFilter = !this.showCustomerFilter;
+  }
+
+  get hasActiveCustomerFilter(): boolean {
+    return this.searchPhone.trim() !== '' ||
+      this.filterMinPoints !== null ||
+      this.filterMaxPoints !== null ||
+      this.filterMinLifetimePoints !== null ||
+      this.filterMaxLifetimePoints !== null;
+  }
+
   resetCustomerSearch(): void {
     this.searchPhone = '';
+    this.sortBy = 'updatedAt';
+    this.sortDirection = 'DESC';
+    this.filterMinPoints = null;
+    this.filterMaxPoints = null;
+    this.filterMinLifetimePoints = null;
+    this.filterMaxLifetimePoints = null;
     this.currentCustomer = null;
     this.walletBalance = null;
     this.pointHistory = [];
@@ -311,6 +616,19 @@ export class CustomerComponent implements OnInit {
       filtered = filtered.filter(v => v.title.toLowerCase().includes(q));
     }
 
+    if (this.filterMinDiscount !== null) {
+      filtered = filtered.filter(v => v.discountPercent >= this.filterMinDiscount!);
+    }
+    if (this.filterMaxDiscount !== null) {
+      filtered = filtered.filter(v => v.discountPercent <= this.filterMaxDiscount!);
+    }
+    if (this.filterVoucherMinPoints !== null) {
+      filtered = filtered.filter(v => v.pointsRequired >= this.filterVoucherMinPoints!);
+    }
+    if (this.filterVoucherMaxPoints !== null) {
+      filtered = filtered.filter(v => v.pointsRequired <= this.filterVoucherMaxPoints!);
+    }
+
     this.displaySystemVouchers = filtered;
     this.sysVoucherTotal = filtered.length;
     this.cdr.markForCheck();
@@ -320,10 +638,27 @@ export class CustomerComponent implements OnInit {
     this.filterSystemVouchers();
   }
 
+  toggleVoucherFilter(): void {
+    this.showVoucherFilter = !this.showVoucherFilter;
+  }
+
   resetVoucherFilter(): void {
     this.searchVoucherTitle = '';
     this.filterVoucherStatus = 'ALL';
+    this.filterMinDiscount = null;
+    this.filterMaxDiscount = null;
+    this.filterVoucherMinPoints = null;
+    this.filterVoucherMaxPoints = null;
     this.filterSystemVouchers();
+  }
+
+  get hasActiveVoucherFilter(): boolean {
+    return this.searchVoucherTitle.trim() !== '' ||
+      this.filterVoucherStatus !== 'ALL' ||
+      this.filterMinDiscount !== null ||
+      this.filterMaxDiscount !== null ||
+      this.filterVoucherMinPoints !== null ||
+      this.filterVoucherMaxPoints !== null;
   }
 
   onSysVoucherSTChange(e: STChange): void {

@@ -120,12 +120,9 @@
                   [(ngModel)]="row.selections[group.id]"
                   [ngModelOptions]="{ standalone: true }"
                   [nzPlaceHolder]="'app.portal.menu.combo.form.selectOption' | i18n"
+                  [nzNotFoundContent]="'app.portal.menu.combo.form.noOptionAvailable' | i18n"
                   class="full-width"
-                >
-                  @for (option of optionsOf(group.id); track option.id) {
-                    <nz-option [nzValue]="option.id" [nzLabel]="option.optionName" />
-                  }
-                </nz-select>
+                />
               </div>
             }
           </div>

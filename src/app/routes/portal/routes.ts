@@ -38,6 +38,10 @@ export const routes: Routes = [
         loadComponent: () => import('./menu/product/product.component').then(m => m.ProductComponent)
       },
       {
+        path: 'product/:id/detail',
+        loadComponent: () => import('./menu/product/product-detail/product-detail.component').then(m => m.ProductDetailComponent)
+      },
+      {
         path: 'combo',
         loadComponent: () => import('./menu/combo/combo.component').then(m => m.ComboComponent)
       }

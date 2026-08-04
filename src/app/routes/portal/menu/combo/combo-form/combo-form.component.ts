@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,14 +15,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { catchError, EMPTY, finalize, forkJoin, of, switchMap } from 'rxjs';
 
-import {
-  ComboResponse,
-  MENU_STATUS_AVAILABLE,
-  MENU_STATUS_UNAVAILABLE,
-  ModifierGroupResponse,
-  ModifierOptionResponse,
-  ProductResponse
-} from '../../menu.model';
+import { menuErrorMessage } from '../../menu-error';
+import { ComboResponse, MENU_STATUS_AVAILABLE, MENU_STATUS_UNAVAILABLE, ModifierGroupResponse, ProductResponse } from '../../menu.model';
 import { MenuService } from '../../menu.service';
 
 interface ComboFormModalData {
@@ -30,9 +25,16 @@ interface ComboFormModalData {
 }
 
 interface ComboItemRow {
+  itemId: string | null;
   productId: string | null;
   quantity: number;
   selections: Record<string, string | null>;
+}
+
+interface ItemOperationOutcome {
+  success: boolean;
+  productName: string;
+  operation: 'add' | 'update' | 'delete';
 }
 
 @Component({
@@ -71,10 +73,9 @@ export class ComboFormComponent implements OnInit {
 
   products: ProductResponse[] = [];
   groupsByProduct: Record<string, ModifierGroupResponse[]> = {};
-  optionsByGroup: Record<string, ModifierOptionResponse[]> = {};
-  optionToGroup: Record<string, string> = {};
 
   rows: ComboItemRow[] = [this.createRow()];
+  private originalItemIds: string[] = [];
 
   statusOptions = [
     { label: 'Đang bán', value: MENU_STATUS_AVAILABLE },
@@ -92,7 +93,7 @@ export class ComboFormComponent implements OnInit {
   });
 
   private createRow(): ComboItemRow {
-    return { productId: null, quantity: 1, selections: {} };
+    return { itemId: null, productId: null, quantity: 1, selections: {} };
   }
 
   ngOnInit(): void {
@@ -110,6 +111,11 @@ export class ComboFormComponent implements OnInit {
       if (combo.imageUrl) {
         this.fileList = [{ uid: '-1', name: combo.comboName, status: 'done', url: combo.imageUrl }];
       }
+      this.originalItemIds = combo.items.map(item => item.id);
+      this.rows =
+        combo.items.length > 0
+          ? combo.items.map(item => ({ itemId: item.id, productId: item.productId, quantity: item.quantity, selections: {} }))
+          : [this.createRow()];
     }
 
     this.menuService
@@ -121,41 +127,15 @@ export class ComboFormComponent implements OnInit {
           if (products.length === 0) return of([] as ModifierGroupResponse[][]);
           return forkJoin(products.map(product => this.menuService.listModifierGroups(product.id)));
         }),
-        switchMap(groupLists => {
-          this.products.forEach((product, index) => {
-            this.groupsByProduct[product.id] = groupLists[index] ?? [];
-          });
-          const allGroups = groupLists.flat();
-          if (allGroups.length === 0) return of([] as ModifierOptionResponse[][]);
-          return forkJoin(allGroups.map(group => this.menuService.listModifierOptions(group.id))).pipe(
-            switchMap(optionLists => {
-              allGroups.forEach((group, index) => {
-                const options = optionLists[index] ?? [];
-                this.optionsByGroup[group.id] = options;
-                options.forEach(option => {
-                  this.optionToGroup[option.id] = group.id;
-                });
-              });
-              return of(optionLists);
-            })
-          );
-        }),
         finalize(() => {
           this.loadingReference = false;
           this.cdr.markForCheck();
         })
       )
-      .subscribe(() => {
-        if (combo && combo.items.length > 0) {
-          this.rows = combo.items.map(item => {
-            const selections: Record<string, string | null> = {};
-            item.modifierOptionIds.forEach(optionId => {
-              const groupId = this.optionToGroup[optionId];
-              if (groupId) selections[groupId] = optionId;
-            });
-            return { productId: item.productId, quantity: item.quantity, selections };
-          });
-        }
+      .subscribe(groupLists => {
+        this.products.forEach((product, index) => {
+          this.groupsByProduct[product.id] = groupLists[index] ?? [];
+        });
         this.cdr.markForCheck();
       });
   }
@@ -182,20 +162,12 @@ export class ComboFormComponent implements OnInit {
     return true;
   };
 
-  private get selectedImageFile(): File | null {
-    return this.fileList[0]?.originFileObj ?? null;
-  }
-
   productName(productId: string | null): string {
     return this.products.find(p => p.id === productId)?.productName ?? '';
   }
 
   groupsOf(productId: string | null): ModifierGroupResponse[] {
     return productId ? (this.groupsByProduct[productId] ?? []) : [];
-  }
-
-  optionsOf(groupId: string): ModifierOptionResponse[] {
-    return this.optionsByGroup[groupId] ?? [];
   }
 
   addRow(): void {
@@ -235,9 +207,7 @@ export class ComboFormComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
     const raw = this.form.getRawValue();
-    const branchId = this.modalData?.branchId ?? '';
-    const comboRequest = {
-      branchId,
+    const comboFields = {
       comboName: raw.comboName,
       description: raw.description || undefined,
       price: raw.price,
@@ -246,40 +216,72 @@ export class ComboFormComponent implements OnInit {
 
     const combo$ =
       this.isEdit && this.modalData?.combo
-        ? this.menuService.updateCombo(this.modalData.combo.id, comboRequest, this.selectedImageFile)
-        : this.menuService.createCombo(comboRequest, this.selectedImageFile);
+        ? this.menuService.updateCombo(this.modalData.combo.id, comboFields)
+        : this.menuService.createCombo({ branchId: this.modalData?.branchId ?? '', ...comboFields });
 
     combo$
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        switchMap(combo => {
-          const existingItemIds = this.modalData?.combo?.items.map(item => item.id) ?? [];
-          const deletions = existingItemIds.map(itemId => this.menuService.deleteComboItem(itemId));
-          const creations = activeRows.map(row => {
-            if (row.productId === null) throw new Error('productId is required');
-            return this.menuService.addComboItem(combo.id, {
-              productId: row.productId,
-              quantity: row.quantity,
-              modifierOptionIds: Object.values(row.selections).filter((id): id is string => id !== null)
-            });
-          });
-          const pending = [...deletions, ...creations];
-          if (pending.length === 0) return of([]);
-          return forkJoin(pending);
-        }),
-        catchError(() => {
-          this.message.error(this.isEdit ? 'Cập nhật combo thất bại' : 'Tạo combo thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         }),
+        switchMap(combo => this.syncComboItems(combo.id, activeRows)),
         finalize(() => {
           this.loading = false;
           this.cdr.markForCheck();
         })
       )
-      .subscribe(() => {
-        this.message.success(this.isEdit ? 'Cập nhật combo thành công' : 'Tạo combo thành công');
+      .subscribe(outcomes => {
+        if (!outcomes) return;
+        const failed = outcomes.filter(o => !o.success);
+        if (failed.length > 0) {
+          this.message.error(`Một số món xử lý thất bại: ${failed.map(f => f.productName).join(', ')}`);
+        } else {
+          this.message.success(this.isEdit ? 'Cập nhật combo thành công' : 'Tạo combo thành công');
+        }
         this.modalRef.destroy(true);
       });
+  }
+
+  private syncComboItems(comboId: string, activeRows: ComboItemRow[]) {
+    const activeItemIds = activeRows.map(row => row.itemId).filter((id): id is string => id !== null);
+    const removedItemIds = this.originalItemIds.filter(id => !activeItemIds.includes(id));
+
+    const operations = [
+      ...activeRows.map(row => this.buildUpsertOperation(comboId, row)),
+      ...removedItemIds.map(itemId => this.buildDeleteOperation(itemId))
+    ];
+
+    if (operations.length === 0) return of([] as ItemOperationOutcome[]);
+    return forkJoin(operations);
+  }
+
+  private buildUpsertOperation(comboId: string, row: ComboItemRow) {
+    if (row.productId === null) throw new Error('productId is required');
+    const request = {
+      productId: row.productId,
+      quantity: row.quantity,
+      modifierOptionIds: Object.values(row.selections).filter((id): id is string => id !== null)
+    };
+    const productName = this.productName(row.productId);
+
+    const request$ = row.itemId ? this.menuService.updateComboItem(row.itemId, request) : this.menuService.addComboItem(comboId, request);
+
+    return request$.pipe(
+      switchMap(() => of<ItemOperationOutcome>({ success: true, productName, operation: row.itemId ? 'update' : 'add' })),
+      catchError(() => of<ItemOperationOutcome>({ success: false, productName, operation: row.itemId ? 'update' : 'add' }))
+    );
+  }
+
+  private buildDeleteOperation(itemId: string) {
+    const originalRow = this.rows.find(row => row.itemId === itemId);
+    const productName = originalRow ? this.productName(originalRow.productId) : itemId;
+
+    return this.menuService.deleteComboItem(itemId).pipe(
+      switchMap(() => of<ItemOperationOutcome>({ success: true, productName, operation: 'delete' })),
+      catchError(() => of<ItemOperationOutcome>({ success: false, productName, operation: 'delete' }))
+    );
   }
 
   close(): void {
