@@ -53,27 +53,41 @@ export class EmployeeFormComponent implements OnInit {
   errorMessageKey: string | null = null;
 
   form = this.fb.group({
+    firstName: this.fb.control('', [Validators.required, Validators.maxLength(120)]),
+    lastName: this.fb.control('', [Validators.required, Validators.maxLength(120)]),
     username: this.fb.control('', [Validators.required, Validators.maxLength(100)]),
+    password: this.fb.control('', [Validators.minLength(8), Validators.maxLength(100)]),
     email: this.fb.control('', [Validators.required, Validators.email, Validators.maxLength(255)]),
     phone: this.fb.control('', [Validators.required, Validators.maxLength(20)]),
     branchId: this.fb.control('', [Validators.required]),
     role: this.fb.control('', [Validators.required]),
     status: this.fb.control<EmployeeStatus>(EmployeeStatus.ACTIVE, [Validators.required]),
     startDate: this.fb.control<Date | null>(null, [Validators.required]),
-    endDate: this.fb.control<Date | null>(null)
+    endDate: this.fb.control<Date | null>(null),
+    salary: this.fb.control<number | null>(null, [Validators.min(0)])
   });
 
   ngOnInit(): void {
+    if (!this.isEdit) {
+      this.form.controls.password.addValidators([Validators.required]);
+      this.form.controls.password.updateValueAndValidity();
+    }
+
     if (this.employee) {
+      const name = this.splitFullName(this.employee);
       this.form.patchValue({
+        firstName: name.firstName,
+        lastName: name.lastName,
         username: this.employee.username ?? '',
+        password: '',
         email: this.employee.email ?? '',
         phone: this.employee.phone ?? '',
         branchId: this.employee.branchId ?? this.modalData.selectedBranchId ?? '',
         role: this.employee.orgRoleId ?? this.employee.orgRoleName ?? this.employee.role ?? '',
         status: (this.employee.status as EmployeeStatus) ?? EmployeeStatus.ACTIVE,
         startDate: this.toDate(this.employee.startDate),
-        endDate: this.toDate(this.employee.endDate)
+        endDate: this.toDate(this.employee.endDate),
+        salary: this.employee.salary ?? null
       });
     } else {
       this.form.patchValue({
@@ -127,16 +141,41 @@ export class EmployeeFormComponent implements OnInit {
   private buildRequest(): EmployeeMutationRequest {
     const raw = this.form.getRawValue();
     const role = raw.role ?? '';
+    const password = raw.password?.trim();
 
     return {
+      firstName: raw.firstName?.trim() ?? '',
+      lastName: raw.lastName?.trim() ?? '',
       username: raw.username?.trim() ?? '',
+      password: password || null,
       email: raw.email?.trim() ?? '',
       phone: raw.phone?.trim() ?? '',
       branchId: raw.branchId ?? '',
       orgRoleId: role,
       status: raw.status ?? EmployeeStatus.ACTIVE,
       startDate: this.toDateString(raw.startDate) ?? '',
-      endDate: this.toDateString(raw.endDate)
+      endDate: this.toDateString(raw.endDate),
+      salary: this.toSalary(raw.salary)
+    };
+  }
+
+  private toSalary(value: number | string | null | undefined): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const salary = Number(value);
+    return Number.isFinite(salary) ? salary : null;
+  }
+
+  private splitFullName(employee: EmployeeResponse): { firstName: string; lastName: string } {
+    if (employee.firstName || employee.lastName) {
+      return {
+        firstName: employee.firstName ?? '',
+        lastName: employee.lastName ?? ''
+      };
+    }
+    const parts = (employee.fullName ?? '').trim().split(/\s+/);
+    return {
+      firstName: parts.shift() ?? '',
+      lastName: parts.join(' ')
     };
   }
 

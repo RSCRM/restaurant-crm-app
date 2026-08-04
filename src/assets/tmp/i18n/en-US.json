@@ -656,6 +656,7 @@
   "employee.fields.userStatus": "User status",
   "employee.fields.startDate": "Start date",
   "employee.fields.endDate": "End date",
+  "employee.fields.salary": "Salary",
   "employee.fields.createdAt": "Created date",
   "employee.fields.updatedAt": "Updated date",
   "employee.fields.actions": "Actions",
@@ -694,6 +695,7 @@
   "employee.placeholders.role": "Select role",
   "employee.placeholders.password": "Enter password",
   "employee.placeholders.passwordUpdate": "Leave blank to keep current password",
+  "employee.placeholders.salary": "Enter salary",
   "employee.validation.firstNameRequired": "Please enter the first name",
   "employee.validation.lastNameRequired": "Please enter the last name",
   "employee.validation.usernameRequired": "Please enter the username",
@@ -701,5 +703,5 @@
   "employee.validation.branchRequired": "Please select a branch",
   "employee.validation.roleRequired": "Please select an organization role",
   "employee.validation.startDateRequired": "Please select the start date",
-  "employee.validation.passwordRequired": "Please enter a password with at least 6 characters"
+  "employee.validation.passwordRequired": "Please enter a password with at least 8 characters"
 }

@@ -11,6 +11,7 @@ type EmployeeApiResponse = Partial<EmployeeResponse> & {
   branch?: { id?: string | null; branchName?: string | null; name?: string | null } | null;
   orgRole?: { id?: string | null; roleName?: string | null; name?: string | null } | null;
   user?: { id?: string | null; username?: string | null; email?: string | null; enabled?: boolean | null; status?: string | null } | null;
+  salary?: number | null;
 };
 
 type PagingApiResponse<T> =
@@ -150,6 +151,7 @@ export class EmployeeService {
       userStatus: employee.userStatus ?? employee.user?.status ?? ((employee.enabled ?? employee.user?.enabled) ? 'ENABLED' : 'DISABLED'),
       startDate: employee.startDate ?? null,
       endDate: employee.endDate ?? null,
+      salary: employee.salary ?? null,
       createdAt: employee.createdAt ?? null,
       updatedAt: employee.updatedAt ?? null
     };

@@ -31,6 +31,7 @@ export interface EmployeeResponse {
   userStatus?: EmployeeUserStatus | string | null;
   startDate: string | null;
   endDate: string | null;
+  salary?: number | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -48,7 +49,10 @@ export interface EmployeeListParams {
 }
 
 export interface EmployeeMutationRequest {
+  firstName: string;
+  lastName: string;
   username: string;
+  password?: string | null;
   email: string;
   phone: string;
   branchId: string;
@@ -56,6 +60,7 @@ export interface EmployeeMutationRequest {
   status: EmployeeStatus | string;
   startDate: string;
   endDate?: string | null;
+  salary?: number | null;
 }
 
 export interface EmployeeRoleOption {

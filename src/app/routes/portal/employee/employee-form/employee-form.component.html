@@ -9,9 +9,36 @@
 <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
   <div class="employee-form-grid">
     <nz-form-item>
+      <nz-form-label nzRequired>{{ 'employee.fields.firstName' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'employee.validation.firstNameRequired' | i18n">
+        <input nz-input formControlName="firstName" [placeholder]="'employee.placeholders.firstName' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label nzRequired>{{ 'employee.fields.lastName' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'employee.validation.lastNameRequired' | i18n">
+        <input nz-input formControlName="lastName" [placeholder]="'employee.placeholders.lastName' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
       <nz-form-label nzRequired>{{ 'employee.fields.username' | i18n }}</nz-form-label>
       <nz-form-control [nzErrorTip]="'employee.validation.usernameRequired' | i18n">
         <input nz-input formControlName="username" [placeholder]="'employee.placeholders.username' | i18n" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzRequired]="!isEdit">{{ 'employee.fields.password' | i18n }}</nz-form-label>
+      <nz-form-control [nzErrorTip]="'employee.validation.passwordRequired' | i18n">
+        <input
+          nz-input
+          type="password"
+          formControlName="password"
+          [placeholder]="(isEdit ? 'employee.placeholders.passwordUpdate' : 'employee.placeholders.password') | i18n"
+          autocomplete="new-password"
+        />
       </nz-form-control>
     </nz-form-item>
 
@@ -75,6 +102,13 @@
       <nz-form-label>{{ 'employee.fields.endDate' | i18n }}</nz-form-label>
       <nz-form-control>
         <nz-date-picker formControlName="endDate" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label>{{ 'employee.fields.salary' | i18n }}</nz-form-label>
+      <nz-form-control>
+        <input nz-input type="number" min="0" formControlName="salary" [placeholder]="'employee.placeholders.salary' | i18n" />
       </nz-form-control>
     </nz-form-item>
   </div>

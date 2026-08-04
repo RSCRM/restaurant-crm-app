@@ -549,6 +549,7 @@
   "employee.fields.userStatus": "Trạng thái tài khoản",
   "employee.fields.startDate": "Ngày bắt đầu",
   "employee.fields.endDate": "Ngày kết thúc",
+  "employee.fields.salary": "Lương",
   "employee.fields.createdAt": "Ngày tạo",
   "employee.fields.updatedAt": "Ngày cập nhật",
   "employee.fields.actions": "Thao tác",
@@ -587,6 +588,7 @@
   "employee.placeholders.role": "Chọn vai trò",
   "employee.placeholders.password": "Nhập mật khẩu",
   "employee.placeholders.passwordUpdate": "Để trống nếu giữ mật khẩu hiện tại",
+  "employee.placeholders.salary": "Nhập lương",
   "employee.validation.firstNameRequired": "Vui lòng nhập tên",
   "employee.validation.lastNameRequired": "Vui lòng nhập họ",
   "employee.validation.usernameRequired": "Vui lòng nhập tên đăng nhập",
@@ -594,5 +596,5 @@
   "employee.validation.branchRequired": "Vui lòng chọn chi nhánh",
   "employee.validation.roleRequired": "Vui lòng chọn vai trò tổ chức",
   "employee.validation.startDateRequired": "Vui lòng chọn ngày bắt đầu",
-  "employee.validation.passwordRequired": "Vui lòng nhập mật khẩu tối thiểu 6 ký tự"
+  "employee.validation.passwordRequired": "Vui lòng nhập mật khẩu tối thiểu 8 ký tự"
 }
