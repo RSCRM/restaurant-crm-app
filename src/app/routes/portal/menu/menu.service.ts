@@ -1,276 +1,192 @@
-import { Injectable } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { environment } from '@env/environment';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import { MOCK_CATEGORIES, MOCK_COMBOS, MOCK_MODIFIER_GROUPS, MOCK_MODIFIER_OPTIONS, MOCK_PRODUCTS } from './menu.mock';
 import {
   CategoryResponse,
   ComboItemRequest,
   ComboItemResponse,
   ComboResponse,
+  ComboSearchRequest,
   CreateCategoryRequest,
   CreateComboRequest,
   CreateModifierGroupRequest,
   CreateModifierOptionRequest,
   CreateProductRequest,
-  MENU_STATUS_AVAILABLE,
   ModifierGroupResponse,
   ModifierOptionResponse,
-  ProductResponse
+  PagingResponse,
+  ProductResponse,
+  ProductSearchRequest,
+  UpdateCategoryRequest,
+  UpdateComboRequest,
+  UpdateModifierGroupRequest,
+  UpdateModifierOptionRequest,
+  UpdateProductRequest
 } from './menu.model';
+import { ApiResponse } from '../../auth/models/auth.model';
 
-const MOCK_DELAY = 300;
-
-function generateId(prefix: string): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function resolveImageUrl(imageFile: File | null | undefined, currentImageUrl: string | null): string | null {
-  if (imageFile) return URL.createObjectURL(imageFile);
-  return currentImageUrl;
+function appendProductFormFields(form: FormData, request: CreateProductRequest | UpdateProductRequest): void {
+  form.append('productName', request.productName);
+  form.append('price', String(request.price));
+  if (request.categoryId) form.append('categoryId', request.categoryId);
+  if (request.description) form.append('description', request.description);
+  if (request.status) form.append('status', request.status);
+  if (request.requiresPreparation !== undefined) form.append('requiresPreparation', String(request.requiresPreparation));
 }
 
 @Injectable({ providedIn: 'root' })
 export class MenuService {
-  private categories: CategoryResponse[] = JSON.parse(JSON.stringify(MOCK_CATEGORIES));
-  private products: ProductResponse[] = JSON.parse(JSON.stringify(MOCK_PRODUCTS));
-  private modifierGroups: ModifierGroupResponse[] = JSON.parse(JSON.stringify(MOCK_MODIFIER_GROUPS));
-  private modifierOptions: ModifierOptionResponse[] = JSON.parse(JSON.stringify(MOCK_MODIFIER_OPTIONS));
-  private combos: ComboResponse[] = JSON.parse(JSON.stringify(MOCK_COMBOS));
+  private http = inject(HttpClient);
+
+  private readonly API = environment.api['apiPrefix'];
+  private readonly CATEGORY_API = `${this.API}/erp/categories`;
+  private readonly PRODUCT_API = `${this.API}/erp/products`;
+  private readonly MODIFIER_GROUP_API = `${this.API}/erp/modifier-groups`;
+  private readonly MODIFIER_OPTION_API = `${this.API}/erp/modifier-options`;
+  private readonly COMBO_API = `${this.API}/erp/combos`;
+  private readonly COMBO_ITEM_API = `${this.API}/erp/combo-items`;
 
   listCategories(branchId: string): Observable<CategoryResponse[]> {
-    return of(this.categories.filter(c => c.branchId === branchId)).pipe(delay(MOCK_DELAY));
+    return this.http.get<ApiResponse<CategoryResponse[]>>(this.CATEGORY_API, { params: { branchId } }).pipe(map(res => res.data));
   }
 
   createCategory(request: CreateCategoryRequest): Observable<CategoryResponse> {
-    const category: CategoryResponse = {
-      id: generateId('cat'),
-      branchId: request.branchId,
-      categoryName: request.categoryName,
-      description: request.description ?? null,
-      displayOrder: request.displayOrder ?? null
-    };
-    this.categories = [...this.categories, category];
-    return of(category).pipe(delay(MOCK_DELAY));
+    return this.http.post<ApiResponse<CategoryResponse>>(this.CATEGORY_API, request).pipe(map(res => res.data));
   }
 
-  updateCategory(categoryId: string, request: CreateCategoryRequest): Observable<CategoryResponse> {
-    const index = this.categories.findIndex(c => c.id === categoryId);
-    if (index === -1) return throwError(() => new Error('Không tìm thấy danh mục'));
-
-    const updated: CategoryResponse = {
-      ...this.categories[index],
-      categoryName: request.categoryName,
-      description: request.description ?? null,
-      displayOrder: request.displayOrder ?? null
-    };
-    this.categories = this.categories.map(c => (c.id === categoryId ? updated : c));
-    return of(updated).pipe(delay(MOCK_DELAY));
+  updateCategory(categoryId: string, request: UpdateCategoryRequest): Observable<CategoryResponse> {
+    return this.http.put<ApiResponse<CategoryResponse>>(`${this.CATEGORY_API}/${categoryId}`, request).pipe(map(res => res.data));
   }
 
   deleteCategory(categoryId: string): Observable<void> {
-    const productCount = this.products.filter(p => p.categoryId === categoryId).length;
-    if (productCount > 0) {
-      return throwError(() => new Error(`Danh mục đang có ${productCount} món, vui lòng chuyển món sang danh mục khác trước.`)).pipe(
-        delay(MOCK_DELAY)
-      );
-    }
-    this.categories = this.categories.filter(c => c.id !== categoryId);
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.delete<ApiResponse<null>>(`${this.CATEGORY_API}/${categoryId}`).pipe(map(() => undefined));
   }
 
   listProducts(branchId: string): Observable<ProductResponse[]> {
-    return of(this.products.filter(p => p.branchId === branchId)).pipe(delay(MOCK_DELAY));
+    return this.http.get<ApiResponse<ProductResponse[]>>(this.PRODUCT_API, { params: { branchId } }).pipe(map(res => res.data));
+  }
+
+  getProduct(productId: string): Observable<ProductResponse> {
+    return this.http.get<ApiResponse<ProductResponse>>(`${this.PRODUCT_API}/${productId}`).pipe(map(res => res.data));
+  }
+
+  searchProducts(
+    request: ProductSearchRequest,
+    page = 1,
+    size = 10,
+    direction = 'DESC',
+    field = 'createdAt'
+  ): Observable<PagingResponse<ProductResponse>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('direction', direction)
+      .set('field', field);
+    return this.http
+      .post<ApiResponse<PagingResponse<ProductResponse>>>(`${this.PRODUCT_API}/search`, request, { params })
+      .pipe(map(res => res.data));
   }
 
   createProduct(request: CreateProductRequest, imageFile?: File | null): Observable<ProductResponse> {
-    const product: ProductResponse = {
-      id: generateId('prod'),
-      branchId: request.branchId,
-      categoryId: request.categoryId ?? null,
-      productName: request.productName,
-      description: request.description ?? null,
-      price: request.price,
-      imageUrl: resolveImageUrl(imageFile, null),
-      status: request.status ?? MENU_STATUS_AVAILABLE,
-      requiresPreparation: request.requiresPreparation ?? false
-    };
-    this.products = [...this.products, product];
-    return of(product).pipe(delay(MOCK_DELAY));
+    const form = new FormData();
+    form.append('branchId', request.branchId);
+    appendProductFormFields(form, request);
+    if (imageFile) form.append('image', imageFile);
+    return this.http.post<ApiResponse<ProductResponse>>(this.PRODUCT_API, form).pipe(map(res => res.data));
   }
 
-  updateProduct(productId: string, request: CreateProductRequest, imageFile?: File | null): Observable<ProductResponse> {
-    const index = this.products.findIndex(p => p.id === productId);
-    if (index === -1) return throwError(() => new Error('Không tìm thấy món'));
-
-    const current = this.products[index];
-    const updated: ProductResponse = {
-      ...current,
-      categoryId: request.categoryId ?? null,
-      productName: request.productName,
-      description: request.description ?? null,
-      price: request.price,
-      imageUrl: resolveImageUrl(imageFile, current.imageUrl),
-      status: request.status ?? MENU_STATUS_AVAILABLE,
-      requiresPreparation: request.requiresPreparation ?? false
-    };
-    this.products = this.products.map(p => (p.id === productId ? updated : p));
-    return of(updated).pipe(delay(MOCK_DELAY));
+  updateProduct(productId: string, request: UpdateProductRequest, imageFile?: File | null): Observable<ProductResponse> {
+    const form = new FormData();
+    appendProductFormFields(form, request);
+    if (imageFile) form.append('image', imageFile);
+    return this.http.put<ApiResponse<ProductResponse>>(`${this.PRODUCT_API}/${productId}`, form).pipe(map(res => res.data));
   }
 
   deleteProduct(productId: string): Observable<void> {
-    this.products = this.products.filter(p => p.id !== productId);
-    this.modifierGroups = this.modifierGroups.filter(g => g.productId !== productId);
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.delete<ApiResponse<null>>(`${this.PRODUCT_API}/${productId}`).pipe(map(() => undefined));
   }
 
   listModifierGroups(productId: string): Observable<ModifierGroupResponse[]> {
-    return of(this.modifierGroups.filter(g => g.productId === productId)).pipe(delay(MOCK_DELAY));
+    return this.http
+      .get<ApiResponse<ModifierGroupResponse[]>>(`${this.PRODUCT_API}/${productId}/modifier-groups`)
+      .pipe(map(res => res.data));
   }
 
   createModifierGroup(productId: string, request: CreateModifierGroupRequest): Observable<ModifierGroupResponse> {
-    const group: ModifierGroupResponse = {
-      id: generateId('group'),
-      productId,
-      groupName: request.groupName,
-      description: request.description ?? null,
-      minSelection: request.minSelection,
-      maxSelection: request.maxSelection
-    };
-    this.modifierGroups = [...this.modifierGroups, group];
-    return of(group).pipe(delay(MOCK_DELAY));
+    return this.http
+      .post<ApiResponse<ModifierGroupResponse>>(`${this.PRODUCT_API}/${productId}/modifier-groups`, request)
+      .pipe(map(res => res.data));
   }
 
-  updateModifierGroup(groupId: string, request: CreateModifierGroupRequest): Observable<ModifierGroupResponse> {
-    const index = this.modifierGroups.findIndex(g => g.id === groupId);
-    if (index === -1) return throwError(() => new Error('Không tìm thấy nhóm tuỳ chọn'));
-
-    const updated: ModifierGroupResponse = {
-      ...this.modifierGroups[index],
-      groupName: request.groupName,
-      description: request.description ?? null,
-      minSelection: request.minSelection,
-      maxSelection: request.maxSelection
-    };
-    this.modifierGroups = this.modifierGroups.map(g => (g.id === groupId ? updated : g));
-    return of(updated).pipe(delay(MOCK_DELAY));
+  updateModifierGroup(groupId: string, request: UpdateModifierGroupRequest): Observable<ModifierGroupResponse> {
+    return this.http.put<ApiResponse<ModifierGroupResponse>>(`${this.MODIFIER_GROUP_API}/${groupId}`, request).pipe(map(res => res.data));
   }
 
   deleteModifierGroup(groupId: string): Observable<void> {
-    this.modifierGroups = this.modifierGroups.filter(g => g.id !== groupId);
-    this.modifierOptions = this.modifierOptions.filter(o => o.groupId !== groupId);
-    return of(undefined).pipe(delay(MOCK_DELAY));
-  }
-
-  listModifierOptions(groupId: string): Observable<ModifierOptionResponse[]> {
-    return of(this.modifierOptions.filter(o => o.groupId === groupId)).pipe(delay(MOCK_DELAY));
+    return this.http.delete<ApiResponse<null>>(`${this.MODIFIER_GROUP_API}/${groupId}`).pipe(map(() => undefined));
   }
 
   createModifierOption(groupId: string, request: CreateModifierOptionRequest): Observable<ModifierOptionResponse> {
-    const option: ModifierOptionResponse = {
-      id: generateId('option'),
-      groupId,
-      optionName: request.optionName,
-      additionalPrice: request.additionalPrice,
-      status: request.status ?? MENU_STATUS_AVAILABLE
-    };
-    this.modifierOptions = [...this.modifierOptions, option];
-    return of(option).pipe(delay(MOCK_DELAY));
+    return this.http
+      .post<ApiResponse<ModifierOptionResponse>>(`${this.MODIFIER_GROUP_API}/${groupId}/options`, request)
+      .pipe(map(res => res.data));
   }
 
-  updateModifierOption(optionId: string, request: CreateModifierOptionRequest): Observable<ModifierOptionResponse> {
-    const index = this.modifierOptions.findIndex(o => o.id === optionId);
-    if (index === -1) return throwError(() => new Error('Không tìm thấy tuỳ chọn'));
-
-    const updated: ModifierOptionResponse = {
-      ...this.modifierOptions[index],
-      optionName: request.optionName,
-      additionalPrice: request.additionalPrice,
-      status: request.status ?? MENU_STATUS_AVAILABLE
-    };
-    this.modifierOptions = this.modifierOptions.map(o => (o.id === optionId ? updated : o));
-    return of(updated).pipe(delay(MOCK_DELAY));
+  updateModifierOption(optionId: string, request: UpdateModifierOptionRequest): Observable<ModifierOptionResponse> {
+    return this.http
+      .put<ApiResponse<ModifierOptionResponse>>(`${this.MODIFIER_OPTION_API}/${optionId}`, request)
+      .pipe(map(res => res.data));
   }
 
   deleteModifierOption(optionId: string): Observable<void> {
-    this.modifierOptions = this.modifierOptions.filter(o => o.id !== optionId);
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.delete<ApiResponse<null>>(`${this.MODIFIER_OPTION_API}/${optionId}`).pipe(map(() => undefined));
   }
 
   listCombos(branchId: string): Observable<ComboResponse[]> {
-    return of(this.combos.filter(c => c.branchId === branchId)).pipe(delay(MOCK_DELAY));
+    return this.http.get<ApiResponse<ComboResponse[]>>(this.COMBO_API, { params: { branchId } }).pipe(map(res => res.data));
   }
 
-  createCombo(request: CreateComboRequest, imageFile?: File | null): Observable<ComboResponse> {
-    const combo: ComboResponse = {
-      id: generateId('combo'),
-      branchId: request.branchId,
-      comboName: request.comboName,
-      description: request.description ?? null,
-      price: request.price,
-      imageUrl: resolveImageUrl(imageFile, null),
-      status: request.status ?? MENU_STATUS_AVAILABLE,
-      items: []
-    };
-    this.combos = [...this.combos, combo];
-    return of(combo).pipe(delay(MOCK_DELAY));
+  searchCombos(
+    request: ComboSearchRequest,
+    page = 1,
+    size = 10,
+    direction = 'DESC',
+    field = 'createdAt'
+  ): Observable<PagingResponse<ComboResponse>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('direction', direction)
+      .set('field', field);
+    return this.http
+      .post<ApiResponse<PagingResponse<ComboResponse>>>(`${this.COMBO_API}/search`, request, { params })
+      .pipe(map(res => res.data));
   }
 
-  updateCombo(comboId: string, request: CreateComboRequest, imageFile?: File | null): Observable<ComboResponse> {
-    const index = this.combos.findIndex(c => c.id === comboId);
-    if (index === -1) return throwError(() => new Error('Không tìm thấy combo'));
+  createCombo(request: CreateComboRequest): Observable<ComboResponse> {
+    return this.http.post<ApiResponse<ComboResponse>>(this.COMBO_API, request).pipe(map(res => res.data));
+  }
 
-    const current = this.combos[index];
-    const updated: ComboResponse = {
-      ...current,
-      comboName: request.comboName,
-      description: request.description ?? null,
-      price: request.price,
-      imageUrl: resolveImageUrl(imageFile, current.imageUrl),
-      status: request.status ?? MENU_STATUS_AVAILABLE
-    };
-    this.combos = this.combos.map(c => (c.id === comboId ? updated : c));
-    return of(updated).pipe(delay(MOCK_DELAY));
+  updateCombo(comboId: string, request: UpdateComboRequest): Observable<ComboResponse> {
+    return this.http.put<ApiResponse<ComboResponse>>(`${this.COMBO_API}/${comboId}`, request).pipe(map(res => res.data));
   }
 
   deleteCombo(comboId: string): Observable<void> {
-    this.combos = this.combos.filter(c => c.id !== comboId);
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.delete<ApiResponse<null>>(`${this.COMBO_API}/${comboId}`).pipe(map(() => undefined));
   }
 
   addComboItem(comboId: string, request: ComboItemRequest): Observable<ComboItemResponse> {
-    const item: ComboItemResponse = {
-      id: generateId('combo-item'),
-      comboId,
-      productId: request.productId,
-      quantity: request.quantity,
-      modifierOptionIds: request.modifierOptionIds
-    };
-    this.combos = this.combos.map(c => (c.id === comboId ? { ...c, items: [...c.items, item] } : c));
-    return of(item).pipe(delay(MOCK_DELAY));
+    return this.http.post<ApiResponse<ComboItemResponse>>(`${this.COMBO_API}/${comboId}/items`, request).pipe(map(res => res.data));
   }
 
   updateComboItem(itemId: string, request: ComboItemRequest): Observable<ComboItemResponse> {
-    const combo = this.combos.find(c => c.items.some(item => item.id === itemId));
-    if (!combo) return throwError(() => new Error('Không tìm thấy món trong combo'));
-
-    const existingItem = combo.items.find(item => item.id === itemId);
-    if (!existingItem) return throwError(() => new Error('Không tìm thấy món trong combo'));
-
-    const updatedItem: ComboItemResponse = {
-      ...existingItem,
-      productId: request.productId,
-      quantity: request.quantity,
-      modifierOptionIds: request.modifierOptionIds
-    };
-    this.combos = this.combos.map(c =>
-      c.id === combo.id ? { ...c, items: c.items.map(item => (item.id === itemId ? updatedItem : item)) } : c
-    );
-    return of(updatedItem).pipe(delay(MOCK_DELAY));
+    return this.http.put<ApiResponse<ComboItemResponse>>(`${this.COMBO_ITEM_API}/${itemId}`, request).pipe(map(res => res.data));
   }
 
   deleteComboItem(itemId: string): Observable<void> {
-    this.combos = this.combos.map(combo => ({ ...combo, items: combo.items.filter(item => item.id !== itemId) }));
-    return of(undefined).pipe(delay(MOCK_DELAY));
+    return this.http.delete<ApiResponse<null>>(`${this.COMBO_ITEM_API}/${itemId}`).pipe(map(() => undefined));
   }
 }

@@ -1,9 +1,11 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
+import { Store } from '@ngrx/store';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -16,12 +18,13 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { catchError, EMPTY, finalize } from 'rxjs';
+import { catchError, combineLatest, EMPTY, finalize } from 'rxjs';
 
-import { MOCK_BRANCH_ID } from '../menu.mock';
+import { ComboFormComponent } from './combo-form/combo-form.component';
+import { selectBranchId, selectHasPermission, selectIsOwnerContext } from '../../../auth/store/auth.selectors';
+import { menuErrorMessage } from '../menu-error';
 import { ComboResponse } from '../menu.model';
 import { MenuService } from '../menu.service';
-import { ComboFormComponent } from './combo-form/combo-form.component';
 
 interface ComboFilter {
   status: string | null;
@@ -58,14 +61,14 @@ export class ComboComponent implements OnInit {
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private store = inject(Store);
 
-  branchId = MOCK_BRANCH_ID;
+  branchId: string | null = null;
 
   canAddCombo = true;
   canUpdateCombo = true;
   canDeleteCombo = true;
 
-  allCombos: ComboResponse[] = [];
   data: ComboResponse[] = [];
 
   total = 0;
@@ -84,7 +87,7 @@ export class ComboComponent implements OnInit {
 
   columns: STColumn[] = [
     { title: { i18n: 'app.portal.menu.combo.image' }, width: 70, render: 'image' },
-    { title: { i18n: 'app.portal.menu.combo.name' }, index: 'comboName' },
+    { title: { i18n: 'app.portal.menu.combo.name' }, width: 220, index: 'comboName' },
     { title: { i18n: 'app.portal.menu.combo.price' }, width: 120, render: 'price' },
     { title: { i18n: 'app.portal.menu.combo.itemCount' }, width: 110, render: 'itemCount' },
     { title: { i18n: 'app.portal.menu.combo.status' }, width: 110, render: 'status' },
@@ -111,63 +114,87 @@ export class ComboComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadData();
+    this.store
+      .select(selectBranchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(branchId => {
+        this.branchId = branchId;
+        if (!branchId) {
+          this.data = [];
+          this.total = 0;
+          this.cdr.markForCheck();
+          return;
+        }
+        this.loadData();
+      });
+
+    combineLatest([
+      this.store.select(selectIsOwnerContext),
+      this.store.select(selectHasPermission('COMBO_ADD')),
+      this.store.select(selectHasPermission('COMBO_UPDATE')),
+      this.store.select(selectHasPermission('COMBO_DELETE'))
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([isOwner, canAdd, canUpdate, canDelete]) => {
+        this.canAddCombo = isOwner || canAdd;
+        this.canUpdateCombo = isOwner || canUpdate;
+        this.canDeleteCombo = isOwner || canDelete;
+        this.cdr.markForCheck();
+      });
   }
 
   loadData(): void {
+    if (!this.branchId) {
+      this.message.warning('Vui lòng chọn chi nhánh');
+      return;
+    }
+
     this.loading = true;
     this.cdr.markForCheck();
 
     this.menuService
-      .listCombos(this.branchId)
+      .searchCombos(
+        {
+          comboName: this.searchValue.trim() || undefined,
+          priceFrom: this.filter.minPrice ?? undefined,
+          priceTo: this.filter.maxPrice ?? undefined
+        },
+        this.currentPage,
+        this.pageSize
+      )
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.allCombos = [];
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
+          this.data = [];
+          this.total = 0;
           return EMPTY;
         }),
         finalize(() => {
           this.loading = false;
-          this.applyFilter();
           this.cdr.markForCheck();
         })
       )
-      .subscribe(combos => {
-        this.allCombos = combos;
+      .subscribe(res => {
+        this.total = res.totalElement;
+        this.data = this.filter.status ? res.data.filter(c => c.status === this.filter.status) : res.data;
       });
-  }
-
-  private applyFilter(): void {
-    const keyword = this.searchValue.trim().toLowerCase();
-    const filtered = this.allCombos.filter(combo => {
-      if (keyword && !combo.comboName.toLowerCase().includes(keyword)) return false;
-      if (this.filter.status && combo.status !== this.filter.status) return false;
-      if (this.filter.minPrice != null && combo.price < this.filter.minPrice) return false;
-      if (this.filter.maxPrice != null && combo.price > this.filter.maxPrice) return false;
-      return true;
-    });
-    this.total = filtered.length;
-    const start = (this.currentPage - 1) * this.pageSize;
-    this.data = filtered.slice(start, start + this.pageSize);
   }
 
   onSTChange(e: STChange): void {
     if (e.type === 'pi') {
       this.currentPage = e.pi ?? 1;
-      this.applyFilter();
-      this.cdr.markForCheck();
+      this.loadData();
     } else if (e.type === 'ps') {
       this.pageSize = e.ps ?? 10;
       this.currentPage = 1;
-      this.applyFilter();
-      this.cdr.markForCheck();
+      this.loadData();
     }
   }
 
   search(): void {
     this.currentPage = 1;
-    this.applyFilter();
-    this.cdr.markForCheck();
+    this.loadData();
   }
 
   toggleFilter(): void {
@@ -178,8 +205,7 @@ export class ComboComponent implements OnInit {
     this.filter = { status: null, minPrice: null, maxPrice: null };
     this.searchValue = '';
     this.currentPage = 1;
-    this.applyFilter();
-    this.cdr.markForCheck();
+    this.loadData();
   }
 
   get hasActiveFilter(): boolean {
@@ -187,10 +213,15 @@ export class ComboComponent implements OnInit {
   }
 
   openCreate(): void {
+    if (!this.branchId) {
+      this.message.warning('Vui lòng chọn chi nhánh');
+      return;
+    }
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: ComboFormComponent,
       nzWidth: 800,
+      nzFooter: null,
       nzData: { branchId: this.branchId }
     });
     modalRef.afterClose.subscribe(result => {
@@ -199,10 +230,12 @@ export class ComboComponent implements OnInit {
   }
 
   openEdit(combo: ComboResponse): void {
+    if (!this.branchId) return;
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: ComboFormComponent,
       nzWidth: 800,
+      nzFooter: null,
       nzData: { branchId: this.branchId, combo }
     });
     modalRef.afterClose.subscribe(result => {
@@ -215,8 +248,8 @@ export class ComboComponent implements OnInit {
       .deleteCombo(combo.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Xoá combo thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         })
       )

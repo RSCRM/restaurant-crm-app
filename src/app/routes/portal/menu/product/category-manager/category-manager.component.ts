@@ -1,7 +1,9 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nPipe } from '@delon/theme';
+import { Store } from '@ngrx/store';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -11,8 +13,10 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { catchError, EMPTY, finalize, forkJoin } from 'rxjs';
+import { catchError, combineLatest, EMPTY, finalize, forkJoin } from 'rxjs';
 
+import { selectHasPermission, selectIsOwnerContext } from '../../../../auth/store/auth.selectors';
+import { menuErrorMessage } from '../../menu-error';
 import { CategoryResponse } from '../../menu.model';
 import { MenuService } from '../../menu.service';
 
@@ -46,12 +50,17 @@ export class CategoryManagerComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private modalData = inject<CategoryManagerModalData | null>(NZ_MODAL_DATA, { optional: true });
+  private store = inject(Store);
 
   branchId = '';
   loading = false;
   saving = false;
   formVisible = false;
   editingCategory: CategoryResponse | null = null;
+
+  canAddCategory = true;
+  canUpdateCategory = true;
+  canDeleteCategory = true;
 
   categories: CategoryResponse[] = [];
   productCountByCategory: Record<string, number> = {};
@@ -65,6 +74,20 @@ export class CategoryManagerComponent implements OnInit {
   ngOnInit(): void {
     this.branchId = this.modalData?.branchId ?? '';
     this.loadData();
+
+    combineLatest([
+      this.store.select(selectIsOwnerContext),
+      this.store.select(selectHasPermission('CATEGORY_ADD')),
+      this.store.select(selectHasPermission('CATEGORY_UPDATE')),
+      this.store.select(selectHasPermission('CATEGORY_DELETE'))
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([isOwner, canAdd, canUpdate, canDelete]) => {
+        this.canAddCategory = isOwner || canAdd;
+        this.canUpdateCategory = isOwner || canUpdate;
+        this.canDeleteCategory = isOwner || canDelete;
+        this.cdr.markForCheck();
+      });
   }
 
   loadData(): void {
@@ -122,22 +145,25 @@ export class CategoryManagerComponent implements OnInit {
     this.saving = true;
     this.cdr.markForCheck();
     const raw = this.form.getRawValue();
-    const request = {
-      branchId: this.branchId,
-      categoryName: raw.categoryName,
-      description: raw.description || undefined,
-      displayOrder: raw.displayOrder ?? undefined
-    };
 
     const request$ = this.editingCategory
-      ? this.menuService.updateCategory(this.editingCategory.id, request)
-      : this.menuService.createCategory(request);
+      ? this.menuService.updateCategory(this.editingCategory.id, {
+          categoryName: raw.categoryName,
+          description: raw.description || undefined,
+          displayOrder: raw.displayOrder ?? undefined
+        })
+      : this.menuService.createCategory({
+          branchId: this.branchId,
+          categoryName: raw.categoryName,
+          description: raw.description || undefined,
+          displayOrder: raw.displayOrder ?? undefined
+        });
 
     request$
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error(this.editingCategory ? 'Cập nhật danh mục thất bại' : 'Tạo danh mục thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         }),
         finalize(() => {
@@ -158,8 +184,8 @@ export class CategoryManagerComponent implements OnInit {
       .deleteCategory(category.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError((err: Error) => {
-          this.message.error(err.message || 'Xoá danh mục thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         })
       )

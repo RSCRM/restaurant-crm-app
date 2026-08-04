@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,6 +15,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
+import { menuErrorMessage } from '../../menu-error';
 import { CategoryResponse, MENU_STATUS_AVAILABLE, MENU_STATUS_UNAVAILABLE, ProductResponse } from '../../menu.model';
 import { MenuService } from '../../menu.service';
 
@@ -125,27 +127,39 @@ export class ProductFormComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
     const raw = this.form.getRawValue();
-    const branchId = this.modalData?.branchId ?? '';
-    const request = {
-      branchId,
-      categoryId: raw.categoryId ?? undefined,
-      productName: raw.productName,
-      description: raw.description || undefined,
-      price: raw.price,
-      status: raw.status,
-      requiresPreparation: raw.requiresPreparation
-    };
 
     const request$ =
       this.isEdit && this.modalData?.product
-        ? this.menuService.updateProduct(this.modalData.product.id, request, this.selectedImageFile)
-        : this.menuService.createProduct(request, this.selectedImageFile);
+        ? this.menuService.updateProduct(
+            this.modalData.product.id,
+            {
+              categoryId: raw.categoryId ?? undefined,
+              productName: raw.productName,
+              description: raw.description || undefined,
+              price: raw.price,
+              status: raw.status,
+              requiresPreparation: raw.requiresPreparation
+            },
+            this.selectedImageFile
+          )
+        : this.menuService.createProduct(
+            {
+              branchId: this.modalData?.branchId ?? '',
+              categoryId: raw.categoryId ?? undefined,
+              productName: raw.productName,
+              description: raw.description || undefined,
+              price: raw.price,
+              status: raw.status,
+              requiresPreparation: raw.requiresPreparation
+            },
+            this.selectedImageFile
+          );
 
     request$
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error(this.isEdit ? 'Cập nhật món thất bại' : 'Tạo món thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         }),
         finalize(() => {
