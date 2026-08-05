@@ -1,0 +1,79 @@
+.full-width {
+  width: 100%;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.license-listbox {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  margin-top: 8px;
+  height: 560px;
+  overflow-y: auto;
+
+  .license-listbox-loading,
+  .license-listbox-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #999;
+  }
+
+  .license-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    &.selected {
+      background: #e6f7ff;
+    }
+
+    .license-item-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+
+      .radio-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid #d9d9d9;
+        flex-shrink: 0;
+        transition: all 0.2s;
+
+        &.checked {
+          border-color: #1890ff;
+          background: #1890ff;
+          box-shadow: inset 0 0 0 3px #fff;
+        }
+      }
+
+      .license-name {
+        font-weight: 500;
+      }
+    }
+
+    .license-item-details {
+      padding-left: 24px;
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+    }
+  }
+}

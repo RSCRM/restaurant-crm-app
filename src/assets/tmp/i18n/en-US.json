@@ -183,6 +183,7 @@
   "app.error.billingCycle.required": "Please select billing cycle",
   "app.error.maxBranch.hint": "Enter -1 for unlimited",
   "app.error.orgId.required": "Please enter organization ID",
+  "app.error.licenseId.required": "Please select a license",
   "app.portal.dashboard.title": "Dashboard",
   "app.portal.order.title": "Order Management",
   "app.portal.order.desc": "Order list and management",
