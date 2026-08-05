@@ -182,6 +182,7 @@ export class OrganizationComponent implements OnInit {
       nzTitle: undefined,
       nzContent: OrganizationFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { mode: 'create' }
     });
     modalRef.afterClose.subscribe(result => {
@@ -194,6 +195,7 @@ export class OrganizationComponent implements OnInit {
       nzTitle: undefined,
       nzContent: OrganizationFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { mode: 'edit', organization: org }
     });
     modalRef.afterClose.subscribe(result => {

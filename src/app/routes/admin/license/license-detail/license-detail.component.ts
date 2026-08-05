@@ -64,13 +64,13 @@ export class LicenseDetailComponent implements OnInit {
 
   subColumns: STColumn[] = [
     { title: { i18n: 'app.common.orgName' }, index: 'organization.name', width: 180 },
-    { title: { i18n: 'app.license.createdAt' }, index: 'subscription.startDate', width: 120, type: 'date' },
-    { title: { i18n: 'app.license.updatedAt' }, index: 'subscription.endDate', width: 120, type: 'date' },
-    { title: { i18n: 'app.license.status' }, render: 'status', width: 110 },
-    { title: { i18n: 'app.license.billingCycle' }, render: 'billingCycle', width: 100 },
+    { title: { i18n: 'app.license.subscription.startDate' }, index: 'subscription.startDate', width: 140, type: 'date' },
+    { title: { i18n: 'app.license.subscription.endDate' }, index: 'subscription.endDate', width: 140, type: 'date' },
+    { title: { i18n: 'app.license.status' }, render: 'status', width: 120 },
+    { title: { i18n: 'app.license.billingCycle' }, render: 'billingCycle', width: 150 },
     { title: { i18n: 'app.license.price' }, render: 'price', width: 130 },
-    { title: { i18n: 'app.license.maxBranch' }, render: 'maxBranch', width: 100 },
-    { title: { i18n: 'app.license.maxEmployee' }, render: 'maxEmployee', width: 100 },
+    { title: { i18n: 'app.license.maxBranch' }, render: 'maxBranch', width: 150 },
+    { title: { i18n: 'app.license.maxEmployee' }, render: 'maxEmployee', width: 150 },
     {
       title: { i18n: 'app.license.detail' },
       width: 180,
@@ -136,7 +136,8 @@ export class LicenseDetailComponent implements OnInit {
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: SubscriptionFormComponent,
-      nzWidth: 500,
+      nzWidth: 750,
+      nzFooter: null,
       nzData: this.licenseId
     });
     modalRef.afterClose.subscribe(result => {
