@@ -16,6 +16,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { finalize, Subscription } from 'rxjs';
 
 import { PersonalScheduleResponse, ScheduleEmployeeResponse } from './schedule.model';
 import { ScheduleService } from './schedule.service';
@@ -53,7 +54,7 @@ export class ScheduleComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
-  dateRange: Date[] = [new Date(), new Date()];
+  selectedDate: Date | null = new Date();
   allSchedules: PersonalScheduleResponse[] = [];
   schedules: PersonalScheduleResponse[] = [];
   employees: Array<{ id: string; name: string }> = [];
@@ -63,9 +64,10 @@ export class ScheduleComponent implements OnInit {
   creating = false;
   createVisible = false;
   createDateRange: Date[] = [new Date(), new Date()];
-  createForm = { employeeId: '', startTime: '08:00', endTime: '16:00', note: '' };
+  createForm = { employeeId: '', startTime: '08:00', endTime: '16:00' };
   managerMode = false;
   columns: STColumn[] = [];
+  private loadSubscription?: Subscription;
 
   ngOnInit(): void {
     this.i18n.change.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateColumns());
@@ -84,8 +86,7 @@ export class ScheduleComponent implements OnInit {
   }
 
   showToday(): void {
-    const today = new Date();
-    this.dateRange = [today, today];
+    this.selectedDate = new Date();
     this.load();
   }
 
@@ -95,41 +96,43 @@ export class ScheduleComponent implements OnInit {
     monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    this.dateRange = [monday, sunday];
-    this.load();
+    this.selectedDate = null;
+    this.load(monday, sunday);
   }
 
-  load(): void {
-    const [from, to] = this.dateRange;
+  load(from = this.selectedDate, to = from): void {
     if (!from || !to) return;
-    if (Math.floor((to.getTime() - from.getTime()) / 86_400_000) >= 31) {
-      this.message.warning(this.i18n.fanyi('schedule.range-exceeded'));
-      return;
-    }
 
+    this.loadSubscription?.unsubscribe();
     this.loading = true;
+    const fromDate = this.formatDate(from);
+    const toDate = this.formatDate(to);
     const request$ = this.managerMode
-      ? this.service.getManagedSchedules(this.formatDate(from), this.formatDate(to))
-      : this.service.getPersonalSchedule(this.formatDate(from), this.formatDate(to));
-    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: schedules => {
-        this.allSchedules = schedules;
-        this.employees = Array.from(
-          new Map(schedules.map(schedule => [schedule.employeeId, { id: schedule.employeeId, name: schedule.employeeName }])).values()
-        );
-        if (this.selectedEmployeeId && !this.employees.some(employee => employee.id === this.selectedEmployeeId)) {
-          this.selectedEmployeeId = null;
+      ? this.service.getManagedSchedules(fromDate, toDate)
+      : this.service.getPersonalSchedule(fromDate, toDate);
+    this.loadSubscription = request$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: schedules => {
+          this.allSchedules = schedules;
+          this.employees = Array.from(
+            new Map(schedules.map(schedule => [schedule.employeeId, { id: schedule.employeeId, name: schedule.employeeName }])).values()
+          );
+          if (this.selectedEmployeeId && !this.employees.some(employee => employee.id === this.selectedEmployeeId)) {
+            this.selectedEmployeeId = null;
+          }
+          this.filterByEmployee();
+        },
+        error: () => {
+          this.message.error(this.i18n.fanyi('schedule.load-failed'));
         }
-        this.filterByEmployee();
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.loading = false;
-        this.message.error(this.i18n.fanyi('schedule.load-failed'));
-        this.cdr.markForCheck();
-      }
-    });
+      });
   }
 
   filterByEmployee(): void {
@@ -140,8 +143,9 @@ export class ScheduleComponent implements OnInit {
   }
 
   openCreate(): void {
-    this.createDateRange = [...this.dateRange];
-    this.createForm = { employeeId: '', startTime: '08:00', endTime: '16:00', note: '' };
+    const date = this.selectedDate ?? new Date();
+    this.createDateRange = [date, date];
+    this.createForm = { employeeId: '', startTime: '08:00', endTime: '16:00' };
     this.createVisible = true;
   }
 
@@ -161,8 +165,7 @@ export class ScheduleComponent implements OnInit {
       .createSchedules({
         ...this.createForm,
         from: this.formatDate(from),
-        to: this.formatDate(to),
-        note: this.createForm.note.trim() || undefined
+        to: this.formatDate(to)
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

@@ -24,10 +24,14 @@
         }
       </nz-select>
     }
-    <nz-range-picker [(ngModel)]="dateRange" />
+    <nz-date-picker [(ngModel)]="selectedDate" />
     <button nz-button nzType="primary" (click)="load()">
       <span nz-icon nzType="search"></span>
       {{ 'schedule.view' | i18n }}
+    </button>
+    <button nz-button (click)="showThisWeek()">
+      <span nz-icon nzType="reload"></span>
+      {{ 'action.reload' | i18n }}
     </button>
   </div>
 
@@ -86,12 +90,6 @@
           <nz-form-control><input nz-input type="time" [(ngModel)]="createForm.endTime" name="endTime" /></nz-form-control>
         </nz-form-item>
       </div>
-      <nz-form-item>
-        <nz-form-label>{{ 'schedule.note' | i18n }}</nz-form-label>
-        <nz-form-control>
-          <textarea nz-input [(ngModel)]="createForm.note" name="note" rows="3" maxlength="500"></textarea>
-        </nz-form-control>
-      </nz-form-item>
     </form>
   </ng-container>
 </nz-modal>

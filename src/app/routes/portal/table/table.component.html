@@ -1,76 +1,184 @@
-<div class="page-container">
-  <div class="page-heading">
-    <div>
-      <h2>{{ 'table.map.title' | i18n }}</h2>
-      <p>{{ 'table.map.description' | i18n }}</p>
-    </div>
-    <button nz-button nzType="primary" [nzLoading]="mapLoading || searchLoading || transferOptionsLoading" (click)="reload()">
-      {{ 'action.reload' | i18n }}
-    </button>
-  </div>
+<page-header [title]="'table.map.title' | i18n" />
 
-  <nz-select class="area-filter" [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear>
-    @for (area of areas; track area.id) {
-      <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+<nz-card>
+  <div class="card-filters">
+    @if (canAddTable) {
+      <button nz-button nzType="primary" (click)="openCreateTable()" class="btn-add">
+        <span nz-icon nzType="plus"></span>
+        Thêm bàn
+      </button>
     }
-  </nz-select>
+
+    <input nz-input [(ngModel)]="keyword" placeholder="Tìm theo số bàn" class="filter-input" />
+
+    <nz-select [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear class="filter-select">
+      @for (area of areas; track area.id) {
+        <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+      }
+    </nz-select>
+
+    <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear class="filter-select">
+      <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
+      <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
+      <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
+    </nz-select>
+
+    <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" class="filter-number" />
+
+    <button nz-button [nzLoading]="mapLoading" (click)="reset()" class="btn-reset">
+      <span nz-icon nzType="reload"></span>
+      {{ 'table.search.reset' | i18n }}
+    </button>
+
+    <div class="status-summary" aria-label="Thống kê trạng thái bàn">
+      <span><i class="status-dot available"></i>Trống: {{ availableCount }}</span>
+      <span><i class="status-dot occupied"></i>Đang phục vụ: {{ occupiedCount }}</span>
+      <span><i class="status-dot reserved"></i>Đã đặt: {{ reservedCount }}</span>
+    </div>
+  </div>
 
   <nz-spin [nzSpinning]="mapLoading">
     @if (visibleAreas.length) {
       @for (area of visibleAreas; track area.id) {
-        <nz-card class="area-card" [nzTitle]="area.areaName">
-          @if (area.description) {
-            <p class="area-description">{{ area.description }}</p>
-          }
-          <div class="table-map">
+        <div class="area-block">
+          <div class="area-header">
+            <div class="area-title-group">
+              <span nz-icon nzType="environment" class="area-icon"></span>
+              <h3 class="area-name">{{ area.areaName }}</h3>
+              <span class="area-badge">{{ area.tables.length }} bàn</span>
+            </div>
+            @if (area.description) {
+              <span class="area-description">{{ area.description }}</span>
+            }
+          </div>
+
+          <div class="table-grid">
             @for (table of area.tables; track table.id) {
-              <div class="table-item" [attr.data-status]="table.status">
-                <div class="table-info">
-                  <strong>{{ table.tableNumber }}</strong>
-                  <span class="capacity-text">{{ table.capacity }} {{ 'table.seats' | i18n }}</span>
-                </div>
-                
-                <div class="table-status-tag">
-                  <nz-tag [nzColor]="statusColor(table.status)">{{ 'table.status.' + table.status.toLowerCase() | i18n }}</nz-tag>
+              <div
+                class="table-card"
+                [class.transfer-disabled]="
+                  transferSource && (table.status !== 'AVAILABLE' || bookingLockedFor(table.id)) && table.id !== transferSource.id
+                "
+                [class.transfer-source]="transferSource?.id === table.id"
+                [class.transfer-target]="transferSource && table.status === 'AVAILABLE' && !bookingLockedFor(table.id)"
+                [class.has-booking]="!!bookingFor(table.id)"
+                [attr.data-status]="table.status"
+              >
+                <!-- Top Accent Status Indicator -->
+                <div class="card-accent"></div>
+
+                <!-- Card Header -->
+                <div class="card-header">
+                  <div class="table-name-wrapper">
+                    <span class="table-name">{{ table.tableNumber }}</span>
+                    <span class="capacity-pill" nz-tooltip [nzTooltipTitle]="table.capacity + ' chỗ ngồi'">
+                      <span nz-icon nzType="user"></span>
+                      {{ table.capacity }} chỗ
+                    </span>
+                  </div>
+
+                  @if (!transferSource) {
+                    <div class="card-tools">
+                      @if (canViewBooking) {
+                        <a
+                          nz-button
+                          nzType="text"
+                          [routerLink]="['/portal/table', table.id, 'detail']"
+                          nz-tooltip
+                          nzTooltipTitle="Xem lịch đặt"
+                        >
+                          <span nz-icon nzType="eye"></span>
+                        </a>
+                      }
+                      @if (canUpdateTable || canDeleteTable) {
+                        <button
+                          nz-button
+                          nzType="text"
+                          nz-tooltip
+                          nzTooltipTitle="Sửa hoặc xóa bàn"
+                          (click)="openEditTable(table, area.id)"
+                        >
+                          <span nz-icon nzType="edit"></span>
+                        </button>
+                      }
+                    </div>
+                  }
                 </div>
 
-                <div class="table-action">
-                  @if (table.status === 'AVAILABLE') {
-                    <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(table)">
-                      {{ 'table.register.action' | i18n }}
-                    </button>
-                  } @else if (table.status === 'OCCUPIED') {
+                <!-- Status Badge -->
+                <div class="status-wrapper">
+                  <span class="status-badge" [attr.data-status]="table.status">
+                    <span class="status-dot"></span>
+                    {{ 'table.status.' + table.status.toLowerCase() | i18n }}
+                  </span>
+                  @if (bookingFor(table.id); as booking) {
+                    <span class="booking-badge">
+                      <span nz-icon nzType="clock-circle"></span>
+                      Đã đặt {{ booking.bookingTime | date: 'HH:mm' }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Action Footer -->
+                <div class="card-actions">
+                  @if (transferSource?.id === table.id) {
+                    <button nz-button nzDanger nzBlock (click)="cancelTransfer()" class="btn-full"> Hủy chuyển </button>
+                  } @else if (table.status === 'AVAILABLE' && !bookingLockedFor(table.id)) {
                     <button
                       nz-button
                       nzType="primary"
-                      nzDanger
-                      nzSize="small"
-                      [nzLoading]="finishingTableId === table.id"
-                      (click)="confirmFinish(table)"
+                      nzBlock
+                      [nzLoading]="transferring"
+                      (click)="transferSource ? confirmTransfer(table) : openRegistration(table)"
+                      class="btn-full btn-available"
                     >
-                      {{ 'table.finish.action' | i18n }}
+                      <span nz-icon [nzType]="transferSource ? 'swap' : 'user-add'"></span>
+                      {{ transferSource ? 'Chuyển đến' : ('table.register.action' | i18n) }}
                     </button>
-                  } @else if (table.status === 'RESERVED') {
-                    <div class="reserved-actions">
+                  } @else if (table.status === 'AVAILABLE' && !bookingDueFor(table.id)) {
+                    <button nz-button nzBlock disabled class="btn-full"> <span nz-icon nzType="lock"></span> Bàn đã khóa </button>
+                  } @else if (table.status === 'OCCUPIED') {
+                    <div class="action-group">
+                      <button nz-button (click)="startTransfer(table)" class="btn-transfer">
+                        <span nz-icon nzType="swap"></span> Chuyển bàn
+                      </button>
                       <button
                         nz-button
                         nzType="primary"
-                        nzSize="small"
-                        [disabled]="!bookingFor(table.id) || bookingFor(table.id)?.status === 'CONFIRMED'"
+                        nzDanger
+                        [nzLoading]="finishingTableId === table.id"
+                        (click)="openPayment(table)"
+                        class="btn-pay"
+                      >
+                        <span nz-icon nzType="dollar"></span> Thanh toán
+                      </button>
+                    </div>
+                  }
+
+                  @if (!transferSource && bookingDueFor(table.id)) {
+                    <div class="action-group booking-actions">
+                      <button
+                        nz-button
+                        nzType="primary"
+                        [disabled]="table.status === 'OCCUPIED'"
                         [nzLoading]="bookingActionTableId === table.id"
                         (click)="confirmReservation(table)"
+                        class="btn-confirm"
+                        nz-tooltip
+                        [nzTooltipTitle]="
+                          table.status === 'OCCUPIED' ? 'Hãy chuyển khách hiện tại sang bàn khác trước' : 'Xác nhận khách đã đến'
+                        "
                       >
-                        {{ 'table.booking.confirm' | i18n }}
+                        <span nz-icon nzType="check"></span> {{ 'table.booking.confirm' | i18n }}
                       </button>
                       <button
                         nz-button
                         nzDanger
-                        nzSize="small"
-                        [disabled]="!bookingFor(table.id)"
                         [nzLoading]="bookingActionTableId === table.id"
                         (click)="cancelReservation(table)"
+                        class="btn-cancel"
                       >
-                        {{ 'table.booking.cancel' | i18n }}
+                        <span nz-icon nzType="close"></span> {{ 'table.booking.cancel' | i18n }}
                       </button>
                     </div>
                   }
@@ -78,106 +186,17 @@
               </div>
             }
           </div>
-        </nz-card>
+        </div>
       }
     } @else if (!mapLoading) {
-      <nz-empty [nzNotFoundContent]="'table.empty' | i18n" />
+      <div class="empty-state">
+        <nz-empty [nzNotFoundContent]="'table.empty' | i18n" />
+      </div>
     }
   </nz-spin>
+</nz-card>
 
-  <nz-card class="transfer-card" [nzTitle]="'table.transfer.title' | i18n">
-    <p>{{ 'table.transfer.description' | i18n }}</p>
-    <nz-spin [nzSpinning]="transferOptionsLoading">
-      <div class="transfer-form">
-        <label>
-          <span>{{ 'table.transfer.source' | i18n }}</span>
-          <nz-select [(ngModel)]="sourceTableId" [nzPlaceHolder]="'table.transfer.select-source' | i18n">
-            @for (table of occupiedTables; track table.id) {
-              <nz-option [nzValue]="table.id" [nzLabel]="table.tableNumber + ' - ' + table.areaName" />
-            }
-          </nz-select>
-        </label>
-        <div class="arrow">→</div>
-        <label>
-          <span>{{ 'table.transfer.target' | i18n }}</span>
-          <nz-select [(ngModel)]="targetTableId" [nzPlaceHolder]="'table.transfer.select-target' | i18n">
-            @for (table of availableTables; track table.id) {
-              <nz-option [nzValue]="table.id" [nzLabel]="table.tableNumber + ' - ' + table.areaName + ' (' + table.capacity + ')'" />
-            }
-          </nz-select>
-        </label>
-        <button nz-button nzType="primary" [nzLoading]="transferring" (click)="confirmTransfer()">
-          {{ 'table.transfer.action' | i18n }}
-        </button>
-      </div>
-    </nz-spin>
-  </nz-card>
-
-  <h2>{{ 'table.search.title' | i18n }}</h2>
-  <nz-card class="filter-card">
-    <div class="filters">
-      <div class="filter-field keyword-field">
-        <span>{{ 'table.search.keyword' | i18n }}</span>
-        <input nz-input [(ngModel)]="keyword" [placeholder]="'table.search.keyword' | i18n" (keyup.enter)="search(true)" />
-      </div>
-      <div class="filter-field">
-        <span>{{ 'table.status' | i18n }}</span>
-        <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear>
-          <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
-          <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
-          <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
-        </nz-select>
-      </div>
-      <div class="filter-field">
-        <span>{{ 'table.capacity' | i18n }}</span>
-        <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" />
-      </div>
-      <div class="filter-actions">
-        <button nz-button nzType="primary" [nzLoading]="searchLoading" (click)="search(true)">{{ 'table.search.action' | i18n }}</button>
-        <button nz-button [disabled]="searchLoading" (click)="reset()">{{ 'table.search.reset' | i18n }}</button>
-      </div>
-    </div>
-  </nz-card>
-
-  <nz-table
-    #table
-    [nzData]="tables"
-    [nzLoading]="searchLoading"
-    [nzFrontPagination]="false"
-    [nzTotal]="total"
-    [nzPageIndex]="page"
-    [nzPageSize]="size"
-    (nzQueryParams)="onQuery($event)"
-  >
-    <thead>
-      <tr>
-        <th>{{ 'table.number' | i18n }}</th>
-        <th>{{ 'table.area' | i18n }}</th>
-        <th>{{ 'table.capacity' | i18n }}</th>
-        <th>{{ 'table.status' | i18n }}</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (item of table.data; track item.id) {
-        <tr>
-          <td>{{ item.tableNumber }}</td>
-          <td>{{ item.areaName }}</td>
-          <td>{{ item.capacity }}</td>
-          <td><nz-tag [nzColor]="statusColor(item.status)">{{ 'table.status.' + item.status.toLowerCase() | i18n }}</nz-tag></td>
-          <td>
-            @if (item.status === 'AVAILABLE') {
-              <button nz-button nzType="primary" nzSize="small" (click)="openRegistration(item)">
-                {{ 'table.register.action' | i18n }}
-              </button>
-            }
-          </td>
-        </tr>
-      }
-    </tbody>
-  </nz-table>
-</div>
-
+<!-- Register Guest Modal -->
 <nz-modal
   [(nzVisible)]="modalVisible"
   [nzTitle]="'table.register.form-title' | i18n"
@@ -190,23 +209,80 @@
   <ng-container *nzModalContent>
     <form nz-form nzLayout="vertical">
       <nz-form-item>
-        <nz-form-label nzRequired>{{ 'table.guest-name' | i18n }}</nz-form-label>
-        <nz-form-control><input nz-input [(ngModel)]="form.guestName" name="guestName" maxlength="255" /></nz-form-control>
-      </nz-form-item>
-      <nz-form-item>
         <nz-form-label>{{ 'table.guest-phone' | i18n }}</nz-form-label>
-        <nz-form-control><input nz-input [(ngModel)]="form.guestPhone" name="guestPhone" inputmode="numeric" maxlength="15" /></nz-form-control>
+        <nz-form-control>
+          <input
+            nz-input
+            [(ngModel)]="form.guestPhone"
+            name="guestPhone"
+            inputmode="numeric"
+            maxlength="15"
+            placeholder="Nhập số điện thoại khách..."
+          />
+        </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label nzRequired>{{ 'table.party-size' | i18n }}</nz-form-label>
         <nz-form-control>
-          <nz-input-number [(ngModel)]="form.partySize" name="partySize" [nzMin]="1" [nzMax]="selectedTable?.capacity ?? 1" />
+          <nz-input-number
+            [(ngModel)]="form.partySize"
+            name="partySize"
+            [nzMin]="1"
+            [nzMax]="selectedTable?.capacity ?? 1"
+            style="width: 100%"
+          />
         </nz-form-control>
-      </nz-form-item>
-      <nz-form-item>
-        <nz-form-label>{{ 'table.note' | i18n }}</nz-form-label>
-        <nz-form-control><textarea nz-input [(ngModel)]="form.note" name="note" rows="3" maxlength="1000"></textarea></nz-form-control>
       </nz-form-item>
     </form>
   </ng-container>
 </nz-modal>
+
+<!-- Create / Edit Table Modal -->
+<nz-modal
+  [(nzVisible)]="tableFormVisible"
+  [nzTitle]="editingTable ? 'Sửa bàn' : 'Thêm bàn'"
+  [nzFooter]="tableFooter"
+  (nzOnCancel)="tableFormVisible = false"
+>
+  <ng-container *nzModalContent>
+    <form nz-form nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>Khu vực</nz-form-label>
+        <nz-form-control>
+          <nz-select [(ngModel)]="tableForm.areaId" name="areaId">
+            @for (area of areas; track area.id) {
+              <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>Số bàn</nz-form-label>
+        <nz-form-control>
+          <input nz-input [(ngModel)]="tableForm.tableNumber" name="tableNumber" maxlength="20" placeholder="VD: Bàn 01" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>Sức chứa</nz-form-label>
+        <nz-form-control>
+          <nz-input-number [(ngModel)]="tableForm.capacity" name="capacity" [nzMin]="1" style="width: 100%" />
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<ng-template #tableFooter>
+  <div class="table-modal-footer">
+    @if (editingTable?.status === 'AVAILABLE' && canDeleteTable) {
+      <button nz-button nzDanger [nzLoading]="deletingTableId === editingTable?.id" (click)="confirmDeleteTable()">
+        <span nz-icon nzType="delete"></span> Xóa bàn
+      </button>
+    }
+    <span class="footer-spacer"></span>
+    <button nz-button (click)="tableFormVisible = false">Hủy</button>
+    <button nz-button nzType="primary" [nzLoading]="tableSaving" (click)="saveTable()">
+      {{ editingTable ? 'Lưu thay đổi' : 'Thêm bàn' }}
+    </button>
+  </div>
+</ng-template>

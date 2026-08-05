@@ -14,13 +14,13 @@ export class ScheduleService {
   getPersonalSchedule(from: string, to: string): Observable<PersonalScheduleResponse[]> {
     return this.http
       .get<ApiResponse<PersonalScheduleResponse[]>>(`${this.api}/me`, { params: { from, to } })
-      .pipe(map(response => response.data));
+      .pipe(map(response => response.data ?? []));
   }
 
   getManagedSchedules(from: string, to: string): Observable<PersonalScheduleResponse[]> {
     return this.http
       .get<ApiResponse<PersonalScheduleResponse[]>>(`${this.api}/staff`, { params: { from, to } })
-      .pipe(map(response => response.data));
+      .pipe(map(response => response.data ?? []));
   }
 
   getManagedEmployees(): Observable<ScheduleEmployeeResponse[]> {
