@@ -179,6 +179,7 @@ export class UserComponent implements OnInit {
       nzTitle: undefined,
       nzContent: UserFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: null
     });
     modalRef.afterClose.subscribe(result => {
@@ -191,6 +192,7 @@ export class UserComponent implements OnInit {
       nzTitle: undefined,
       nzContent: UserFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { mode: 'roles', user }
     });
     modalRef.afterClose.subscribe(result => {

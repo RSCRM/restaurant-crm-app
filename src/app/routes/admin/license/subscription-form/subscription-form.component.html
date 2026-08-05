@@ -5,7 +5,45 @@
   <nz-form-item>
     <nz-form-label [nzRequired]="true">{{ 'app.form.orgId.label' | i18n }}</nz-form-label>
     <nz-form-control [nzErrorTip]="'app.error.orgId.required' | i18n">
-      <input nz-input formControlName="organizationId" [placeholder]="'app.form.orgId.placeholder' | i18n" />
+      <input
+        nz-input
+        [placeholder]="'app.form.orgId.placeholder' | i18n"
+        (input)="onSearch(searchInput.value)"
+        #searchInput
+      />
+      <div class="org-listbox">
+        @if (orgLoading) {
+          <div class="org-listbox-loading">
+            <nz-spin nzSimple></nz-spin>
+          </div>
+        } @else if (organizations.length === 0) {
+          <div class="org-listbox-empty">Không có tổ chức nào</div>
+        } @else {
+          @for (org of organizations; track org.id) {
+            <div
+              class="org-item"
+              [class.selected]="form.getRawValue().organizationId === org.id"
+              (click)="selectOrg(org.id)"
+            >
+              <div class="org-item-header">
+                <span class="radio-dot" [class.checked]="form.getRawValue().organizationId === org.id"></span>
+                <span class="org-name">{{ org.organizationName }}</span>
+              </div>
+              <div class="org-item-details">
+                @if (org.taxCode) {
+                  <div class="org-detail-line">Tax: {{ org.taxCode }}</div>
+                }
+                @if (org.email) {
+                  <div class="org-detail-line">Email: {{ org.email }}</div>
+                }
+                @if (org.phone) {
+                  <div class="org-detail-line">Phone: {{ org.phone }}</div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
     </nz-form-control>
   </nz-form-item>
 
