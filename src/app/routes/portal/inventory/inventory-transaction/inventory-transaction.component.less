@@ -1,3 +1,23 @@
-.page-container {
-  padding: 24px;
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left nz-input-group,
+.toolbar-left nz-select {
+  flex-shrink: 0;
+}
+
+.toolbar-left button {
+  flex-shrink: 0;
 }

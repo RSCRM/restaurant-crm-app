@@ -64,8 +64,31 @@ export const routes: Routes = [
   },
   {
     path: 'inventory',
-    canActivate: [contextGuard, permissionGuard('INGREDIENT_VIEW')],
-    loadComponent: () => import('./inventory/inventory/inventory.component').then(m => m.InventoryComponent)
+    canActivate: [contextGuard, permissionGuard('INVENTORY_VIEW')],
+    children: [
+      { path: '', redirectTo: 'inventory', pathMatch: 'full' },
+      {
+        path: 'inventory-category',
+        loadComponent: () =>
+          import('./inventory/inventory-category/inventory-category.component').then(
+            m => m.InventoryCategoryComponent
+          )
+      },
+      {
+        path: 'inventory',
+        loadComponent: () =>
+          import('./inventory/inventory/inventory.component').then(
+            m => m.InventoryComponent
+          )
+      },
+      {
+        path: 'inventory-transaction',
+        loadComponent: () =>
+          import('./inventory/inventory-transaction/inventory-transaction.component').then(
+            m => m.InventoryTransactionComponent
+          )
+      }
+    ]
   },
   {
     path: 'employee',

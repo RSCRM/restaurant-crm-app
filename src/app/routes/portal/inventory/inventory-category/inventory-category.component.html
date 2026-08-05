@@ -1,15 +1,13 @@
-<page-header [title]="'app.ingredientCategory.title' | i18n" />
+<page-header [title]="'app.inventory.category.title' | i18n" />
 
 <nz-card>
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-left">
-      <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px;">
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px">
         <input
           nz-input
-          [(ngModel)]="keyword"
-          [placeholder]="'app.ingredientCategory.searchPlaceholder' | i18n"
-          (keyup.enter)="search()"
+          [placeholder]="'app.inventory.category.searchPlaceholder' | i18n"
         />
       </nz-input-group>
 
@@ -18,28 +16,28 @@
       </ng-template>
 
       <button nz-button nzType="primary" (click)="search()">
-        {{ 'app.ingredientCategory.search' | i18n }}
+        <span nz-icon nzType="search"></span>
+        {{ 'app.inventory.category.search' | i18n }}
       </button>
 
-      @if (keyword) {
-        <button nz-button nzDanger (click)="clearSearch()">
-          <span nz-icon nzType="close-circle"></span>
-          {{ 'app.ingredientCategory.clearSearch' | i18n }}
-        </button>
-      }
+      <button nz-button (click)="reset()">
+        <span nz-icon nzType="reload"></span>
+        {{ 'app.inventory.category.reset' | i18n }}
+      </button>
     </div>
 
     <button nz-button nzType="primary" (click)="openCreate()">
       <span nz-icon nzType="plus"></span>
-      {{ 'app.ingredientCategory.create' | i18n }}
+      {{ 'app.inventory.category.create' | i18n }}
     </button>
   </div>
 
-  <!-- Table -->
+
+  <!-- Category Table -->
   <st
     #st
     [columns]="columns"
-    [data]="data"
+    [data]="categories"
     [loading]="loading"
     [total]="total"
     [ps]="pageSize"
@@ -49,7 +47,7 @@
       showSize: true,
       front: false
     }"
-    [scroll]="{ x: '1000px' }"
+    [scroll]="{ x: '900px' }"
     (change)="onSTChange($event)"
   >
   </st>

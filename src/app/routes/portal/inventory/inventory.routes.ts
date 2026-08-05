@@ -1,20 +1,13 @@
 import { Routes } from '@angular/router';
 
 export default [
-  {
-    path: 'ingredient-categories',
-    loadComponent: () =>
-      import('./ingredient-category/ingredient-category.component').then(
-        m => m.IngredientCategoryComponent
-      )
-  },
-  {
-    path: 'ingredients',
-    loadComponent: () =>
-      import('./ingredient/ingredient.component').then(
-        m => m.IngredientComponent
-      )
-  },
+  // {
+  //   path: 'inventory-categories',
+  //   loadComponent: () =>
+  //     import('./inventory-category/inventory-category.component').then(
+  //       m => m.IngredientCategoryComponent
+  //     )
+  // },
   {
     path: '',
     loadComponent: () =>

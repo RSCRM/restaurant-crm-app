@@ -11,13 +11,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { EMPTY, catchError, finalize } from 'rxjs';
 
-import { STChange, STColumn, STComponent, STModule } from '@delon/abc/st';
+import {
+  STChange,
+  STColumn,
+  STComponent,
+  STModule
+} from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { I18nPipe } from '@delon/theme';
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -29,15 +33,14 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
-// import { InventoryFormComponent } from '../inventory-form/inventory-form.component';
 import {
+  InventoryCategoryResponse,
   InventoryResponse,
   InventorySearchRequest,
-  InventoryStatus,
-  PagingResponse
+  InventoryStatus
 } from '../inventory.model';
 import { InventoryService } from '../inventory.service';
-
+import { InventoryFormComponent } from '../inventory-form/inventory-form.component';
 @Component({
   selector: 'app-inventory',
   standalone: true,
@@ -56,7 +59,6 @@ import { InventoryService } from '../inventory.service';
     NzInputModule,
     NzInputNumberModule,
     NzSelectModule,
-    NzDatePickerModule,
 
     STModule,
     I18nPipe
@@ -73,11 +75,9 @@ export class InventoryComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
-  // ==========================================================
-  // Table State
-  // ==========================================================
-
   data: InventoryResponse[] = [];
+
+  categoryOptions: InventoryCategoryResponse[] = [];
 
   total = 0;
   currentPage = 1;
@@ -85,13 +85,9 @@ export class InventoryComponent implements OnInit {
 
   loading = false;
 
-  // ==========================================================
-  // Filter
-  // ==========================================================
-
-  filter: InventorySearchRequest = {};
-
   showFilter = false;
+
+  filter: InventorySearchRequest = this.createDefaultFilter();
 
   statusOptions = [
     {
@@ -112,15 +108,21 @@ export class InventoryComponent implements OnInit {
     }
   ];
 
-  // ==========================================================
-  // Table
-  // ==========================================================
-
   columns: STColumn[] = [
     {
-      title: { i18n: 'app.inventory.ingredient' },
-      index: 'ingredientName',
+      title: { i18n: 'app.inventory.inventoryName' },
+      index: 'inventoryName',
       width: 220
+    },
+    {
+      title: { i18n: 'app.inventory.category' },
+      index: 'inventoryCategoryName',
+      width: 180
+    },
+    {
+      title: { i18n: 'app.inventory.unit' },
+      index: 'unit',
+      width: 120
     },
     {
       title: { i18n: 'app.inventory.quantity' },
@@ -132,25 +134,13 @@ export class InventoryComponent implements OnInit {
       title: { i18n: 'app.inventory.minimumQuantity' },
       index: 'minimumQuantity',
       type: 'number',
-      width: 150
+      width: 160
     },
     {
       title: { i18n: 'app.inventory.status' },
       index: 'status',
       render: 'status',
       width: 140
-    },
-    {
-      title: { i18n: 'app.inventory.createdAt' },
-      index: 'createdAt',
-      type: 'date',
-      width: 180
-    },
-    {
-      title: { i18n: 'app.inventory.updatedAt' },
-      index: 'updatedAt',
-      type: 'date',
-      width: 180
     },
     {
       title: { i18n: 'app.inventory.actions' },
@@ -160,23 +150,41 @@ export class InventoryComponent implements OnInit {
         {
           i18n: 'app.inventory.edit',
           icon: 'edit',
-          // click: item => this.openEdit(item)
+          click: item => this.openEdit(item)
         }
       ]
     }
   ];
 
-  // ==========================================================
-  // Lifecycle
-  // ==========================================================
-
   ngOnInit(): void {
+    this.loadCategories();
     this.loadData();
   }
 
-  // ==========================================================
-  // Data
-  // ==========================================================
+  private createDefaultFilter(): InventorySearchRequest {
+    return {
+      inventoryName: '',
+      inventoryCategoryId: undefined,
+      status: undefined,
+      quantityFrom: undefined,
+      quantityTo: undefined,
+      minimumQuantityFrom: undefined,
+      minimumQuantityTo: undefined
+    };
+  }
+
+  loadCategories(): void {
+    this.inventoryService
+      .getInventoryCategories({
+        page: 1,
+        size: 1000
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(res => {
+        this.categoryOptions = res.data;
+        this.cdr.markForCheck();
+      });
+  }
 
   loadData(): void {
     this.loading = true;
@@ -193,9 +201,7 @@ export class InventoryComponent implements OnInit {
         catchError(() => {
           this.data = [];
           this.total = 0;
-
           this.message.error('Load inventory failed');
-
           return EMPTY;
         }),
         finalize(() => {
@@ -203,17 +209,12 @@ export class InventoryComponent implements OnInit {
           this.cdr.markForCheck();
         })
       )
-      .subscribe((res: PagingResponse<InventoryResponse>) => {
+      .subscribe(res => {
         this.data = res.data;
         this.total = res.totalElement;
-
         this.cdr.markForCheck();
       });
   }
-
-  // ==========================================================
-  // Table Event
-  // ==========================================================
 
   onSTChange(event: STChange): void {
     if (event.type === 'pi') {
@@ -228,17 +229,13 @@ export class InventoryComponent implements OnInit {
     }
   }
 
-  // ==========================================================
-  // Search
-  // ==========================================================
-
   search(): void {
     this.currentPage = 1;
     this.loadData();
   }
 
   clearFilter(): void {
-    this.filter = {};
+    this.filter = this.createDefaultFilter();
     this.currentPage = 1;
     this.loadData();
   }
@@ -256,43 +253,37 @@ export class InventoryComponent implements OnInit {
     );
   }
 
-  // ==========================================================
-  // Modal
-  // ==========================================================
+  openCreate(): void {
+    const modalRef = this.modal.create({
+      nzTitle: undefined,
+      nzContent: InventoryFormComponent,
+      nzWidth: 650,
+      nzFooter: null, // <-- add this
+      nzData: null
+    });
 
-  // openCreate(): void {
-  //   const modalRef = this.modal.create({
-  //     nzTitle: undefined,
-  //     nzContent: InventoryFormComponent,
-  //     nzWidth: 650,
-  //     nzData: null
-  //   });
-  //
-  //   modalRef.afterClose.subscribe(result => {
-  //     if (result) {
-  //       this.loadData();
-  //     }
-  //   });
-  // }
-  //
-  // openEdit(inventory: InventoryResponse): void {
-  //   const modalRef = this.modal.create({
-  //     nzTitle: undefined,
-  //     nzContent: InventoryFormComponent,
-  //     nzWidth: 650,
-  //     nzData: inventory
-  //   });
-  //
-  //   modalRef.afterClose.subscribe(result => {
-  //     if (result) {
-  //       this.loadData();
-  //     }
-  //   });
-  // }
+    modalRef.afterClose.subscribe(result => {
+      if (result) {
+        this.loadData();
+      }
+    });
+  }
 
-  // ==========================================================
-  // Helpers
-  // ==========================================================
+  openEdit(inventory: InventoryResponse): void {
+    const modalRef = this.modal.create({
+      nzTitle: undefined,
+      nzContent: InventoryFormComponent,
+      nzWidth: 650,
+      nzFooter: null, // <-- add this
+      nzData: inventory
+    });
+
+    modalRef.afterClose.subscribe(result => {
+      if (result) {
+        this.loadData();
+      }
+    });
+  }
 
   getStatusColor(status: InventoryStatus): string {
     switch (status) {

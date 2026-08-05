@@ -1,6 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+import { EMPTY, catchError, finalize } from 'rxjs';
+
+import { I18nPipe } from '@delon/theme';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -12,12 +28,10 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 import {
-  InventoryTransactionResponse,
   CreateInventoryTransactionRequest,
-  InventoryTransactionType,
-  InventoryTransactionDirection,
   InventoryResponse,
-  PagingResponse
+  InventoryTransactionDirection,
+  InventoryTransactionType
 } from '../inventory.model';
 import { InventoryService } from '../inventory.service';
 
@@ -27,7 +41,6 @@ import { InventoryService } from '../inventory.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    FormsModule,
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,
@@ -35,121 +48,121 @@ import { InventoryService } from '../inventory.service';
     NzButtonModule,
     NzSpinModule,
     NzGridModule,
-    NzSelectModule
+    NzSelectModule,
+    I18nPipe
   ],
   templateUrl: './inventory-transaction-form.component.html',
-  styleUrls: ['./inventory-transaction-form.component.less']
+  styleUrl: './inventory-transaction-form.component.less'
 })
 export class InventoryTransactionFormComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private inventoryService = inject(InventoryService);
-  private modalRef = inject(NzModalRef);
-  private message = inject(NzMessageService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly inventoryService = inject(InventoryService);
+  private readonly modalRef = inject(NzModalRef);
+  private readonly message = inject(NzMessageService);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  form!: FormGroup;
   loading = false;
   submitting = false;
-  transaction: InventoryTransactionResponse | null = null;
+
   inventories: InventoryResponse[] = [];
 
-  transactionTypes = Object.values(InventoryTransactionType);
-  transactionDirections = Object.values(InventoryTransactionDirection);
+  readonly transactionTypes = Object.values(InventoryTransactionType);
+  readonly transactionDirections = Object.values(InventoryTransactionDirection);
+
+  form = this.fb.group({
+    inventoryId: this.fb.control('', Validators.required),
+    transactionType: this.fb.control<InventoryTransactionType>(
+      InventoryTransactionType.PURCHASE,
+      Validators.required
+    ),
+    transactionDirection: this.fb.control<InventoryTransactionDirection>(
+      InventoryTransactionDirection.IN,
+      Validators.required
+    ),
+    quantity: this.fb.control(1, [
+      Validators.required,
+      Validators.min(0.001)
+    ]),
+    note: this.fb.control('')
+  });
 
   ngOnInit(): void {
-    this.transaction = this.modalRef.getContentComponent()?.componentData || null;
     this.loadInventories();
-    this.initForm();
   }
 
   private loadInventories(): void {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.inventoryService.getInventories({ page: 1, size: 100 }).subscribe({
-      next: (res: PagingResponse<InventoryResponse>) => {
+    this.inventoryService
+      .getInventories({
+        page: 1,
+        size: 1000
+      })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('app.inventory.transaction.loadError');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(res => {
         this.inventories = res.data;
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.loading = false;
-        this.message.error('Lỗi khi tải danh sách tồn kho.');
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  private initForm(): void {
-    this.form = this.fb.group({
-      inventoryId: ['', Validators.required],
-      employeeId: ['', []],
-      transactionType: ['PURCHASE', Validators.required],
-      transactionDirection: ['IN', Validators.required],
-      quantity: [0, [Validators.required, Validators.min(0.1)]],
-      note: ['', []]
-    });
+      });
   }
 
   submit(): void {
     if (this.form.invalid) {
-      Object.values(this.form.controls).forEach(control => {
-        if (control.invalid) {
-          control.markAsDirty();
-          control.updateValueAndValidity({ onlySelf: true });
-        }
-      });
+      this.form.markAllAsTouched();
       return;
     }
 
     this.submitting = true;
     this.cdr.markForCheck();
 
-    const createRequest: CreateInventoryTransactionRequest = {
-      inventoryId: this.form.value.inventoryId,
-      employeeId: this.form.value.employeeId?.trim() || undefined,
-      transactionType: this.form.value.transactionType,
-      transactionDirection: this.form.value.transactionDirection,
-      quantity: this.form.value.quantity,
-      note: this.form.value.note?.trim() || undefined
+    const raw = this.form.getRawValue();
+
+    const request: CreateInventoryTransactionRequest = {
+      inventoryId: raw.inventoryId,
+      transactionType: raw.transactionType,
+      transactionDirection: raw.transactionDirection,
+      quantity: raw.quantity,
+      note: raw.note.trim() || undefined
     };
 
-    this.inventoryService.createTransaction(createRequest).subscribe({
-      next: () => {
-        this.submitting = false;
-        this.message.success('Tạo giao dịch tồn kho thành công!');
-        this.modalRef.close(true);
-      },
-      error: err => {
-        this.submitting = false;
-        const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi tạo giao dịch.';
-        this.message.error(msg);
-        this.cdr.markForCheck();
-      }
-    });
+    this.inventoryService
+      .createTransaction(request)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('app.inventory.transaction.createError');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.submitting = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success('app.inventory.transaction.createSuccess');
+        this.modalRef.destroy(true);
+      });
   }
 
-  cancel(): void {
-    this.modalRef.close(null);
+  close(): void {
+    this.modalRef.destroy();
   }
 
   getTransactionTypeLabel(type: InventoryTransactionType): string {
-    const labels: Record<InventoryTransactionType, string> = {
-      PURCHASE: 'Mua hàng',
-      SALE: 'Bán hàng',
-      ADJUSTMENT: 'Điều chỉnh',
-      WASTE: 'Hỏng/Lãng phí',
-      RETURN: 'Trả lại'
-    };
-    return labels[type] || type;
+    return `app.inventory.transaction.type.${type.toLowerCase()}`;
   }
 
   getDirectionLabel(direction: InventoryTransactionDirection): string {
-    const labels: Record<InventoryTransactionDirection, string> = {
-      IN: 'Nhập',
-      OUT: 'Xuất'
-    };
-    return labels[direction] || direction;
+    return `app.inventory.transaction.direction.${direction.toLowerCase()}`;
   }
 }
-

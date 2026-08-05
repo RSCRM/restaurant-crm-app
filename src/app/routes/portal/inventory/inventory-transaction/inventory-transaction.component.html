@@ -6,7 +6,7 @@
       <nz-input-group nzPrefixIcon="search">
         <input
           nz-input
-          [(ngModel)]="filter.ingredientName"
+          [(ngModel)]="filter.inventoryName"
           [placeholder]="'app.inventory.transaction.search' | i18n"
           (keyup.enter)="search()"
           style="width: 240px"
@@ -46,13 +46,18 @@
 
       <button nz-button nzType="primary" (click)="search()">
         <span nz-icon nzType="search"></span>
-        {{ 'app.common.search' | i18n }}
+        {{ 'app.inventory.transaction.search.button' | i18n }}
       </button>
 
       <button nz-button (click)="reset()">
-        {{ 'app.common.reset' | i18n }}
+        {{ 'app.inventory.transaction.reset.button' | i18n }}
       </button>
     </div>
+
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus"></span>
+      {{ 'app.inventory.transaction.create' | i18n }}
+    </button>
   </div>
 
   <st
@@ -62,7 +67,11 @@
     [total]="total"
     [pi]="currentPage"
     [ps]="pageSize"
-    [page]="{ show: true, showSize: true, front: false }"
+    [page]="{
+      show: true,
+      showSize: true,
+      front: false
+    }"
     (change)="onSTChange($event)"
   >
 
@@ -73,7 +82,7 @@
     </ng-template>
 
     <ng-template st-row="type" let-item>
-      <nz-tag color="blue">
+      <nz-tag nzColor="blue">
         {{ ('app.inventory.transaction.type.' + item.transactionType.toLowerCase()) | i18n }}
       </nz-tag>
     </ng-template>
