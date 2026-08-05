@@ -43,6 +43,11 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'table/:id/detail',
+    canActivate: [contextGuard, permissionGuard('TABLE_MAP_READ'), permissionGuard('BOOKING_READ')],
+    loadComponent: () => import('./table/table-detail.component').then(m => m.TableDetailComponent)
+  },
+  {
     path: 'table',
     canActivate: [
       contextGuard,

@@ -1,11 +1,14 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { forkJoin, map, Observable, switchMap } from 'rxjs';
+import { map, Observable, switchMap, timeout } from 'rxjs';
 
 import {
   PagingResponse,
+  findTableContext,
   RegisterGuestRequest,
+  SaveTableRequest,
   TableBooking,
+  TableContext,
   TableMap,
   TableSearchItem,
   TableSearchParams,
@@ -25,6 +28,16 @@ export class TableService {
     return this.http.get<ApiResponse<TableMap>>(`${this.tableApi}/map`, { params }).pipe(map(response => response.data));
   }
 
+  getTableContext(tableId: string): Observable<TableContext> {
+    return this.getMap().pipe(
+      map(tableMap => {
+        const context = findTableContext(tableMap, tableId);
+        if (!context) throw new Error('TABLE_NOT_FOUND');
+        return context;
+      })
+    );
+  }
+
   search(filters: TableSearchParams): Observable<PagingResponse<TableSearchItem>> {
     let params = new HttpParams().set('page', filters.page).set('size', filters.size);
     if (filters.keyword) params = params.set('keyword', filters.keyword);
@@ -38,6 +51,27 @@ export class TableService {
 
   registerGuest(request: RegisterGuestRequest): Observable<TableSession> {
     return this.http.post<ApiResponse<TableSession>>(`${this.base}/table-sessions`, request).pipe(map(response => response.data));
+  }
+
+  getActiveOrder(tableId: string): Observable<{ orderId: string }> {
+    return this.http.get<ApiResponse<{ orderId: string }>>(`${this.base}/orders/tables/${tableId}/active-order/cooking-status`).pipe(
+      timeout(8000),
+      map(response => response.data)
+    );
+  }
+
+  createTable(request: SaveTableRequest): Observable<TableSearchItem> {
+    return this.http.post<ApiResponse<TableSearchItem>>(`${this.base}/erp/restaurant-tables`, request).pipe(map(response => response.data));
+  }
+
+  updateTable(id: string, request: SaveTableRequest): Observable<TableSearchItem> {
+    return this.http
+      .put<ApiResponse<TableSearchItem>>(`${this.base}/erp/restaurant-tables/${id}`, request)
+      .pipe(map(response => response.data));
+  }
+
+  deleteTable(id: string): Observable<void> {
+    return this.http.delete<ApiResponse<void>>(`${this.base}/erp/restaurant-tables/${id}`).pipe(map(response => response.data));
   }
 
   getActiveBookings(branchId: string): Observable<TableBooking[]> {
@@ -59,10 +93,6 @@ export class TableService {
       .pipe(map(response => response.data));
   }
 
-  getTransferOptions(): Observable<{ occupied: TableSearchItem[]; available: TableSearchItem[] }> {
-    return forkJoin({ occupied: this.searchByStatus('OCCUPIED'), available: this.searchByStatus('AVAILABLE') });
-  }
-
   transfer(sourceTableId: string, targetTableId: string): Observable<TableSession> {
     const params = new HttpParams().set('tableId', sourceTableId);
     return this.http.get<ApiResponse<TableSession>>(`${this.base}/table-sessions/active`, { params }).pipe(
@@ -71,7 +101,8 @@ export class TableService {
         this.http
           .put<ApiResponse<TableSession>>(`${this.base}/table-sessions/${session.id}/transfer`, { targetTableId })
           .pipe(map(response => response.data))
-      )
+      ),
+      timeout(15000)
     );
   }
 
@@ -80,14 +111,9 @@ export class TableService {
     return this.http.get<ApiResponse<TableSession>>(`${this.base}/table-sessions/active`, { params }).pipe(
       map(response => response.data),
       switchMap(session =>
-        this.http
-          .put<ApiResponse<TableSession>>(`${this.base}/table-sessions/${session.id}/close`, {})
-          .pipe(map(response => response.data))
-      )
+        this.http.put<ApiResponse<TableSession>>(`${this.base}/table-sessions/${session.id}/close`, {}).pipe(map(response => response.data))
+      ),
+      timeout(15000)
     );
-  }
-
-  private searchByStatus(status: TableSearchItem['status']): Observable<TableSearchItem[]> {
-    return this.search({ status, page: 1, size: 100 }).pipe(map(response => response.data));
   }
 }

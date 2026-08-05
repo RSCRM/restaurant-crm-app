@@ -1,30 +1,39 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { PageHeaderModule } from '@delon/abc/page-header';
 import { I18nPipe } from '@delon/theme';
+import { Store } from '@ngrx/store';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzTableModule, NzTableQueryParams } from 'ng-zorro-antd/table';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { finalize, firstValueFrom, Subscription } from 'rxjs';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { combineLatest, finalize, firstValueFrom, Subscription, timer } from 'rxjs';
 
 import {
+  isBookingDue,
+  isBookingLocked,
   RegisterGuestRequest,
   RestaurantTableStatus,
+  SaveTableRequest,
   TableAreaMap,
   TableBooking,
-  TableSearchItem,
   TableStatus
 } from './table.model';
 import { TableService } from './table.service';
+import { selectOrgRole, selectPermissions } from '../../auth/store/auth.selectors';
+import { CheckoutModalComponent } from '../invoice/checkout-modal/checkout-modal.component';
 
 @Component({
   selector: 'app-table',
@@ -33,17 +42,20 @@ import { TableService } from './table.service';
   imports: [
     CommonModule,
     FormsModule,
+    PageHeaderModule,
+    RouterLink,
+    NzBadgeModule,
     NzButtonModule,
     NzCardModule,
     NzEmptyModule,
     NzFormModule,
+    NzIconModule,
     NzInputModule,
     NzInputNumberModule,
     NzModalModule,
     NzSelectModule,
     NzSpinModule,
-    NzTableModule,
-    NzTagModule,
+    NzTooltipModule,
     I18nPipe
   ],
   templateUrl: './table.component.html',
@@ -54,15 +66,23 @@ export class TableComponent implements OnInit {
   private readonly modal = inject(NzModalService);
   private readonly message = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly store = inject(Store);
 
   mapLoading = false;
-  searchLoading = false;
   saving = false;
   modalVisible = false;
-  transferOptionsLoading = false;
+  tableFormVisible = false;
+  tableSaving = false;
   transferring = false;
+  transferSource: TableStatus | null = null;
   finishingTableId: string | null = null;
+  deletingTableId: string | null = null;
   bookingActionTableId: string | null = null;
+  canAddTable = false;
+  canUpdateTable = false;
+  canDeleteTable = false;
+  canViewBooking = false;
 
   selectedAreaId: string | null = null;
   areas: TableAreaMap[] = [];
@@ -70,37 +90,77 @@ export class TableComponent implements OnInit {
   keyword = '';
   status: RestaurantTableStatus | null = null;
   minCapacity: number | null = null;
-  page = 1;
-  size = 10;
-  total = 0;
-  tables: TableSearchItem[] = [];
-
-  selectedTable: TableStatus | TableSearchItem | null = null;
+  selectedTable: TableStatus | null = null;
+  editingTable: TableStatus | null = null;
   form: RegisterGuestRequest = { tableId: '', guestName: '', partySize: 1 };
-  occupiedTables: TableSearchItem[] = [];
-  availableTables: TableSearchItem[] = [];
-  sourceTableId: string | null = null;
-  targetTableId: string | null = null;
+  tableForm: SaveTableRequest = { areaId: '', tableNumber: '', capacity: 1, status: 'AVAILABLE' };
   bookingsByTable = new Map<string, TableBooking>();
-  private searchSubscription?: Subscription;
+  now = Date.now();
+  private mapSubscription?: Subscription;
+  private bookingSubscription?: Subscription;
 
   ngOnInit(): void {
+    combineLatest([this.store.select(selectOrgRole), this.store.select(selectPermissions)])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([role, permissions]) => {
+        const isOwner = role === 'OWNER';
+        const isManager = role === 'MANAGER';
+        this.canAddTable = isOwner || (isManager && permissions.includes('RESTAURANT_TABLE_ADD'));
+        this.canUpdateTable = isOwner || (isManager && permissions.includes('RESTAURANT_TABLE_UPDATE'));
+        this.canDeleteTable = isOwner || (isManager && permissions.includes('RESTAURANT_TABLE_DELETE'));
+        this.canViewBooking = isOwner || permissions.includes('BOOKING_READ');
+        this.cdr.markForCheck();
+      });
+    timer(0, 30_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.now = Date.now();
+        this.cdr.markForCheck();
+      });
     this.reload();
   }
 
   get visibleAreas(): TableAreaMap[] {
-    return this.selectedAreaId ? this.areas.filter(area => area.id === this.selectedAreaId) : this.areas;
+    if (this.transferSource) return this.areas;
+    const keyword = this.keyword.trim().toLowerCase();
+    return this.areas
+      .filter(area => !this.selectedAreaId || area.id === this.selectedAreaId)
+      .map(area => ({
+        ...area,
+        tables: area.tables.filter(
+          table =>
+            (!keyword || table.tableNumber.toLowerCase().includes(keyword)) &&
+            (!this.status || table.status === this.status) &&
+            (!this.minCapacity || table.capacity >= this.minCapacity)
+        )
+      }))
+      .filter(area => area.tables.length > 0);
+  }
+
+  get totalTablesCount(): number {
+    return this.areas.reduce((acc, area) => acc + area.tables.length, 0);
+  }
+
+  get availableCount(): number {
+    return this.areas.reduce((acc, area) => acc + (area.tables?.filter(t => t.status === 'AVAILABLE').length || 0), 0);
+  }
+
+  get occupiedCount(): number {
+    return this.areas.reduce((acc, area) => acc + (area.tables?.filter(t => t.status === 'OCCUPIED').length || 0), 0);
+  }
+
+  get reservedCount(): number {
+    return this.bookingsByTable.size;
   }
 
   reload(): void {
     this.loadMap();
-    this.search();
-    this.loadTransferOptions();
   }
 
   loadMap(): void {
+    this.mapSubscription?.unsubscribe();
     this.mapLoading = true;
-    this.tableService
+    this.mapSubscription = this.tableService
       .getMap()
       .pipe(
         finalize(() => {
@@ -118,11 +178,16 @@ export class TableComponent implements OnInit {
   }
 
   loadBookings(branchId: string): void {
-    this.tableService.getActiveBookings(branchId).subscribe({
+    this.bookingSubscription?.unsubscribe();
+    this.bookingSubscription = this.tableService.getActiveBookings(branchId).subscribe({
       next: bookings => {
-        this.bookingsByTable = new Map(
-          bookings.filter((booking): booking is TableBooking & { tableId: string } => !!booking.tableId).map(booking => [booking.tableId, booking])
-        );
+        this.bookingsByTable = new Map();
+        bookings
+          .filter((booking): booking is TableBooking & { tableId: string } => !!booking.tableId)
+          .sort((left, right) => new Date(left.bookingTime).getTime() - new Date(right.bookingTime).getTime())
+          .forEach(booking => {
+            if (!this.bookingsByTable.has(booking.tableId)) this.bookingsByTable.set(booking.tableId, booking);
+          });
         this.cdr.markForCheck();
       },
       error: () => {
@@ -132,79 +197,83 @@ export class TableComponent implements OnInit {
     });
   }
 
-  search(resetPage = false): void {
-    if (resetPage) this.page = 1;
-    this.searchSubscription?.unsubscribe();
-    this.searchLoading = true;
-    this.searchSubscription = this.tableService
-      .search({
-        keyword: this.keyword.trim() || undefined,
-        status: this.status ?? undefined,
-        minCapacity: this.minCapacity ?? undefined,
-        page: this.page,
-        size: this.size
-      })
-      .pipe(
-        finalize(() => {
-          this.searchLoading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe({
-        next: result => {
-          this.tables = result.data;
-          this.total = result.totalElement;
-        },
-        error: () => this.message.error('Không thể tìm kiếm bàn')
-      });
-  }
-
-  loadTransferOptions(): void {
-    this.transferOptionsLoading = true;
-    this.tableService
-      .getTransferOptions()
-      .pipe(
-        finalize(() => {
-          this.transferOptionsLoading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe({
-        next: options => {
-          this.occupiedTables = options.occupied;
-          this.availableTables = options.available;
-        },
-        error: () => this.message.error('Không thể tải danh sách chuyển bàn')
-      });
-  }
-
   reset(): void {
     this.keyword = '';
+    this.selectedAreaId = null;
     this.status = null;
     this.minCapacity = null;
-    this.search(true);
+    this.transferSource = null;
+    this.reload();
   }
 
-  onQuery(params: NzTableQueryParams): void {
-    if (params.pageIndex !== this.page || params.pageSize !== this.size) {
-      this.page = params.pageIndex;
-      this.size = params.pageSize;
-      this.search();
-    }
-  }
-
-  openRegistration(table: TableStatus | TableSearchItem): void {
+  openRegistration(table: TableStatus): void {
     if (table.status !== 'AVAILABLE') return;
     this.selectedTable = table;
-    this.form = { tableId: table.id, guestName: '', partySize: 1 };
+    this.form = { tableId: table.id, guestName: `Khách ${table.tableNumber}`, partySize: 1 };
     this.modalVisible = true;
   }
 
+  openCreateTable(): void {
+    this.editingTable = null;
+    this.tableForm = { areaId: this.selectedAreaId ?? this.areas[0]?.id ?? '', tableNumber: '', capacity: 1, status: 'AVAILABLE' };
+    this.tableFormVisible = true;
+  }
+
+  openEditTable(table: TableStatus, areaId: string): void {
+    this.editingTable = table;
+    this.tableForm = {
+      areaId,
+      tableNumber: table.tableNumber,
+      capacity: table.capacity,
+      status: table.status,
+      positionX: table.positionX,
+      positionY: table.positionY
+    };
+    this.tableFormVisible = true;
+  }
+
+  saveTable(): void {
+    const tableNumber = this.tableForm.tableNumber.trim();
+    if (!this.tableForm.areaId || !tableNumber || this.tableForm.capacity < 1) {
+      this.message.warning('Vui lòng nhập đủ thông tin bàn');
+      return;
+    }
+
+    this.tableSaving = true;
+    const request = { ...this.tableForm, tableNumber };
+    const save$ = this.editingTable ? this.tableService.updateTable(this.editingTable.id, request) : this.tableService.createTable(request);
+    save$
+      .pipe(
+        finalize(() => {
+          this.tableSaving = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.tableFormVisible = false;
+          this.message.success(this.editingTable ? 'Cập nhật bàn thành công' : 'Thêm bàn thành công');
+          this.reload();
+        },
+        error: error => this.message.error(error?.error?.errorMessage?.message ?? 'Không thể lưu bàn')
+      });
+  }
+
+  confirmDeleteTable(): void {
+    if (!this.editingTable || !this.canDeleteTable) return;
+    const table = this.editingTable;
+    this.modal.confirm({
+      nzTitle: 'Xóa bàn',
+      nzContent: `Xóa ${table.tableNumber}?`,
+      nzOkDanger: true,
+      nzOnOk: () => this.deleteTable(table)
+    });
+  }
+
   submit(): void {
-    const guestName = this.form.guestName.trim();
     const phone = this.form.guestPhone?.trim();
-    if (!guestName || this.form.partySize < 1 || this.form.partySize > (this.selectedTable?.capacity ?? 0)) {
-      this.message.warning('Vui lòng nhập đủ thông tin và đúng số lượng khách');
+    if (this.form.partySize < 1 || this.form.partySize > (this.selectedTable?.capacity ?? 0)) {
+      this.message.warning('Vui lòng nhập đúng số lượng khách');
       return;
     }
     if (phone && !/^\d{9,15}$/.test(phone)) {
@@ -214,7 +283,7 @@ export class TableComponent implements OnInit {
 
     this.saving = true;
     this.tableService
-      .registerGuest({ ...this.form, guestName, guestPhone: phone || undefined })
+      .registerGuest({ ...this.form, guestPhone: phone || undefined, note: undefined })
       .pipe(
         finalize(() => {
           this.saving = false;
@@ -231,35 +300,66 @@ export class TableComponent implements OnInit {
       });
   }
 
-  confirmTransfer(): void {
-    if (!this.sourceTableId || !this.targetTableId) {
-      this.message.warning('Vui lòng chọn bàn nguồn và bàn đích');
-      return;
-    }
-    const source = this.occupiedTables.find(table => table.id === this.sourceTableId)?.tableNumber;
-    const target = this.availableTables.find(table => table.id === this.targetTableId)?.tableNumber;
+  startTransfer(table: TableStatus): void {
+    this.transferSource = table;
+  }
+
+  cancelTransfer(): void {
+    this.transferSource = null;
+  }
+
+  confirmTransfer(target: TableStatus): void {
+    if (!this.transferSource || this.bookingLockedFor(target.id)) return;
+    const source = this.transferSource;
     this.modal.confirm({
       nzTitle: 'Xác nhận chuyển bàn',
-      nzContent: `Chuyển khách từ bàn ${source} sang bàn ${target}?`,
-      nzOnOk: () => this.transfer()
+      nzContent: `Chuyển khách từ ${source.tableNumber} sang ${target.tableNumber}?`,
+      nzOnOk: () => void this.transfer(source, target)
     });
   }
 
-  confirmFinish(table: TableStatus): void {
-    this.modal.confirm({
-      nzTitle: 'Xác nhận dọn bàn',
-      nzContent: `Kết thúc phục vụ và dọn bàn ${table.tableNumber}?`,
-      nzOnOk: () => this.finish(table)
-    });
+  async openPayment(table: TableStatus): Promise<void> {
+    if (this.finishingTableId) return;
+    this.finishingTableId = table.id;
+    this.cdr.markForCheck();
+    try {
+      const order = await firstValueFrom(this.tableService.getActiveOrder(table.id));
+      const modalRef = this.modal.create({
+        nzTitle: `Thanh toán ${table.tableNumber}`,
+        nzContent: CheckoutModalComponent,
+        nzWidth: 640,
+        nzFooter: null
+      });
+      modalRef.getContentComponent().orderId = order.orderId;
+      modalRef.afterClose.subscribe(result => {
+        if (result) void this.finish(table);
+      });
+    } catch (error: unknown) {
+      const detail = (error as { error?: { errorMessage?: { message?: string } } }).error?.errorMessage?.message;
+      this.message.error(detail ?? 'Không thể tải đơn hàng của bàn');
+    } finally {
+      this.finishingTableId = null;
+      this.cdr.markForCheck();
+    }
   }
 
   bookingFor(tableId: string): TableBooking | undefined {
     return this.bookingsByTable.get(tableId);
   }
 
+  bookingDueFor(tableId: string): boolean {
+    const booking = this.bookingFor(tableId);
+    return !!booking && isBookingDue(booking.bookingTime, this.now);
+  }
+
+  bookingLockedFor(tableId: string): boolean {
+    const booking = this.bookingFor(tableId);
+    return !!booking && isBookingLocked(booking.bookingTime, this.now);
+  }
+
   confirmReservation(table: TableStatus): void {
     const booking = this.bookingFor(table.id);
-    if (!booking || booking.status === 'CONFIRMED') return;
+    if (!booking || !this.bookingDueFor(table.id) || table.status === 'OCCUPIED') return;
     this.modal.confirm({
       nzTitle: 'Xác nhận đặt bàn',
       nzContent: `Xác nhận đặt bàn cho ${table.tableNumber}?`,
@@ -282,13 +382,12 @@ export class TableComponent implements OnInit {
     return status === 'AVAILABLE' ? 'green' : status === 'OCCUPIED' ? 'red' : 'gold';
   }
 
-  private async transfer(): Promise<void> {
+  private async transfer(source: TableStatus, target: TableStatus): Promise<void> {
     this.transferring = true;
     this.cdr.markForCheck();
     try {
-      await firstValueFrom(this.tableService.transfer(this.sourceTableId!, this.targetTableId!));
-      this.sourceTableId = null;
-      this.targetTableId = null;
+      await firstValueFrom(this.tableService.transfer(source.id, target.id));
+      this.transferSource = null;
       this.message.success('Chuyển bàn thành công');
       this.reload();
     } catch (error: unknown) {
@@ -300,16 +399,35 @@ export class TableComponent implements OnInit {
     }
   }
 
+  private async deleteTable(table: TableStatus): Promise<void> {
+    this.deletingTableId = table.id;
+    this.cdr.markForCheck();
+    try {
+      await firstValueFrom(this.tableService.deleteTable(table.id));
+      this.tableFormVisible = false;
+      this.editingTable = null;
+      this.message.success(`Đã xóa ${table.tableNumber}`);
+      this.reload();
+    } catch (error: unknown) {
+      const detail = (error as { error?: { errorMessage?: { message?: string } } }).error?.errorMessage?.message;
+      this.message.error(detail ?? 'Không thể xóa bàn');
+      throw error;
+    } finally {
+      this.deletingTableId = null;
+      this.cdr.markForCheck();
+    }
+  }
+
   private async finish(table: TableStatus): Promise<void> {
     this.finishingTableId = table.id;
     this.cdr.markForCheck();
     try {
       await firstValueFrom(this.tableService.finish(table.id));
-      this.message.success(`Đã dọn bàn ${table.tableNumber}`);
+      this.message.success(`Thanh toán ${table.tableNumber} thành công`);
       this.reload();
     } catch (error: unknown) {
       const detail = (error as { error?: { errorMessage?: { message?: string } } }).error?.errorMessage?.message;
-      this.message.error(detail ?? 'Không thể dọn bàn');
+      this.message.error(detail ?? 'Đã thanh toán nhưng không thể đóng phiên bàn');
     } finally {
       this.finishingTableId = null;
       this.cdr.markForCheck();

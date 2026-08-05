@@ -16,6 +16,16 @@ export const selectIsAuthenticated = createSelector(selectAccessToken, token => 
 export const selectIsAdmin = createSelector(selectSystemRoles, roles => (roles || []).includes('ADMIN'));
 export const selectHasContext = createSelector(selectContextToken, token => !!token);
 
+export const selectOrgRole = createSelector(selectContextToken, token => {
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(payload)).orgRole ?? null;
+  } catch {
+    return null;
+  }
+});
+
 // Decode permissions dynamically from contextToken JWT or state
 export const selectPermissions = createSelector(selectContextToken, selectAuthState, (token, state) => {
   if (state.permissions && state.permissions.length > 0) {

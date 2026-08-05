@@ -22,6 +22,30 @@ export interface TableMap {
   areas: TableAreaMap[];
 }
 
+export interface TableContext {
+  branchId: string;
+  areaId: string;
+  areaName: string;
+  table: TableStatus;
+}
+
+export function findTableContext(map: TableMap, tableId: string): TableContext | null {
+  for (const area of map.areas) {
+    const table = area.tables.find(item => item.id === tableId);
+    if (table) return { branchId: map.branchId, areaId: area.id, areaName: area.areaName, table };
+  }
+  return null;
+}
+
+export interface SaveTableRequest {
+  areaId: string;
+  tableNumber: string;
+  capacity: number;
+  status?: RestaurantTableStatus;
+  positionX?: number | null;
+  positionY?: number | null;
+}
+
 export interface TableSearchItem {
   id: string;
   areaId: string;
@@ -60,7 +84,19 @@ export type TableBookingStatus = 'PENDING' | 'CONFIRMED' | 'SEATED' | 'CANCELLED
 export interface TableBooking {
   id: string;
   tableId: string | null;
+  customerPhone: string;
+  bookingTime: string;
+  guestCount: number;
   status: TableBookingStatus;
+  note: string | null;
+}
+
+export function isBookingDue(bookingTime: string, now = Date.now()): boolean {
+  return new Date(bookingTime).getTime() <= now + 5 * 60_000;
+}
+
+export function isBookingLocked(bookingTime: string, now = Date.now()): boolean {
+  return new Date(bookingTime).getTime() <= now + 30 * 60_000;
 }
 
 export interface TableSession {
