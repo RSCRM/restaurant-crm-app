@@ -699,6 +699,7 @@
   "app.inventory.transaction.typePlaceholder": "Chọn loại giao dịch",
   "app.inventory.transaction.directionPlaceholder": "Chọn hướng giao dịch",
   "app.inventory.transaction.notePlaceholder": "Nhập ghi chú",
+  "app.inventory.transaction.createSuccess": "Thành công!",
 
   "app.inventory.category.title": "Danh mục tồn kho",
   "app.inventory.category.searchPlaceholder": "Tìm kiếm tên danh mục",

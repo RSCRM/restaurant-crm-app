@@ -829,7 +829,7 @@
   "app.inventory.transaction.typePlaceholder": "Select transaction type",
   "app.inventory.transaction.directionPlaceholder": "Select transaction direction",
   "app.inventory.transaction.notePlaceholder": "Enter note",
-
+  "app.inventory.transaction.createSuccess": "Success!",
   "app.inventory.category.title": "Inventory Categories",
   "app.inventory.category.searchPlaceholder": "Search category name",
   "app.inventory.category.search.button": "Search",
