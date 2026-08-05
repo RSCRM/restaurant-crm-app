@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Subscription, timer } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STModule, STChange } from '@delon/abc/st';
@@ -62,7 +63,7 @@ import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
   templateUrl: './customer.component.html',
   styleUrls: ['./customer.component.less']
 })
-export class CustomerComponent implements OnInit {
+export class CustomerComponent implements OnInit, OnDestroy {
   private i18n = inject(ALAIN_I18N_TOKEN);
   private customerService = inject(CustomerService);
   private modal = inject(NzModalService);
@@ -76,6 +77,12 @@ export class CustomerComponent implements OnInit {
   branchId: string | null = null;
   hasVoucherCreatePermission = false;
   hasRedeemPermission = false;
+  private refreshSub?: Subscription;
+
+  @ViewChild('bulkGiveModalTpl') bulkGiveModalTpl!: TemplateRef<any>;
+  availableBulkVouchers: VoucherResponse[] = [];
+  selectedBulkVoucherId = '';
+  bulkGiveDescText = '';
 
   // Active Tab Index
   activeTabIndex = 0;
@@ -170,7 +177,8 @@ export class CustomerComponent implements OnInit {
 
     this.sysVoucherColumns = [
       { title: this.i18n.fanyi('customer.sys-voucher.col.title'), index: 'title', width: 220, sort: true },
-      { title: this.i18n.fanyi('customer.sys-voucher.col.type'), width: 180, render: 'voucherType' },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.type'), width: 140, render: 'voucherType' },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.usageLimit'), width: 120, render: 'usageLimit' },
       { title: this.i18n.fanyi('customer.sys-voucher.col.discountPercent'), index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%`, sort: true },
       {
         title: this.i18n.fanyi('customer.sys-voucher.col.minBillAmount'),
@@ -216,8 +224,11 @@ export class CustomerComponent implements OnInit {
         this.hasVoucherCreatePermission = permissions.includes('VOUCHER_CREATE') || permissions.includes('ADMIN');
         this.hasRedeemPermission = permissions.includes('CUSTOMER_VOUCHER_REDEEM') || permissions.includes('ADMIN');
 
-        // Load member customers list for this organization
-        this.loadMemberCustomers();
+        // Auto-refresh member customer list every 10 seconds in background
+        this.refreshSub?.unsubscribe();
+        this.refreshSub = timer(0, 10_000).subscribe(() => {
+          this.loadMemberCustomers(true);
+        });
 
         // Dynamically resolve branchId if not present in context token (e.g. Owner)
         if (this.organizationId) {
@@ -241,11 +252,17 @@ export class CustomerComponent implements OnInit {
     });
   }
 
-  loadMemberCustomers(): void {
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  loadMemberCustomers(silent = false): void {
     if (!this.organizationId) return;
 
-    this.memberCustomerLoading = true;
-    this.cdr.markForCheck();
+    if (!silent) {
+      this.memberCustomerLoading = true;
+      this.cdr.markForCheck();
+    }
 
     this.customerService
       .getOrganizationCustomers(
@@ -295,39 +312,26 @@ export class CustomerComponent implements OnInit {
 
     this.customerService.getVouchers(this.branchId, { page: 1, size: 100 }).subscribe({
       next: res => {
-        const activeVouchers = res.data.filter(v => v.isActive === 1 && !v.voucherCode);
+        const activeVouchers = (res.data || []).filter(v => v.isActive === 1 && !v.voucherCode);
         if (activeVouchers.length === 0) {
           this.message.warning(this.i18n.fanyi('customer.msg.no-active-vouchers'));
           return;
         }
 
-        let selectedVoucherId = activeVouchers[0].id;
+        this.availableBulkVouchers = activeVouchers;
+        this.selectedBulkVoucherId = activeVouchers[0].id;
+        this.bulkGiveDescText = this.i18n.fanyi('customer.bulk-give-modal.desc', { count: this.selectedCustomerIds.length });
 
         const titleText = this.i18n.fanyi('customer.bulk-give-modal.title');
-        const descText = this.i18n.fanyi('customer.bulk-give-modal.desc', { count: this.selectedCustomerIds.length });
         const okText = this.i18n.fanyi('customer.bulk-give-modal.ok');
         const cancelText = this.i18n.fanyi('customer.bulk-give-modal.cancel');
 
-        const modalRef = this.modal.create({
+        this.modal.create({
           nzTitle: titleText,
-          nzContent: `
-            <div style="padding: 16px 0">
-              <p style="margin-bottom: 8px">${descText}</p>
-              <select class="ant-select-selector" style="width: 100%; height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 4px 11px;" id="voucher-bulk-select">
-                ${activeVouchers.map(v => {
-                  const typeText = v.voucherCode ? ` [Code: ${v.voucherCode}]` : '';
-                  return `<option value="${v.id}">${v.title}${typeText} (Off ${v.discountPercent}%)</option>`;
-                }).join('')}
-              </select>
-            </div>
-          `,
+          nzContent: this.bulkGiveModalTpl,
           nzOkText: okText,
           nzCancelText: cancelText,
-          nzOnOk: () => {
-            const selectEl = document.getElementById('voucher-bulk-select') as HTMLSelectElement;
-            const voucherId = selectEl?.value || selectedVoucherId;
-            return this.executeBulkGift(voucherId);
-          }
+          nzOnOk: () => this.executeBulkGift(this.selectedBulkVoucherId)
         });
       },
       error: () => {
@@ -385,12 +389,16 @@ export class CustomerComponent implements OnInit {
       this.cdr.markForCheck();
     } else if (e.type === 'sort' && e.sort && e.sort.column) {
       const col = e.sort.column;
-      const indexStr = (Array.isArray(col.index) ? col.index[0] : (col.index as string)) || '';
-      const sortField = (col.sort as any)?.key || indexStr || 'updatedAt';
-      const sortDir = e.sort.map ? e.sort.map[indexStr] : undefined;
-      
-      this.sortBy = sortDir ? sortField : 'updatedAt';
-      this.sortDirection = sortDir === 'ascend' ? 'ASC' : sortDir === 'descend' ? 'DESC' : 'DESC';
+      const sortKey = (col.sort as any)?.key || (Array.isArray(col.index) ? col.index[0] : (col.index as string)) || 'updatedAt';
+      const sortValue = e.sort.value; // 'ascend' | 'descend' | null
+
+      if (sortValue) {
+        this.sortBy = sortKey;
+        this.sortDirection = sortValue === 'ascend' ? 'ASC' : 'DESC';
+      } else {
+        this.sortBy = 'updatedAt';
+        this.sortDirection = 'DESC';
+      }
       this.memberCustomerPage = 1;
       this.loadMemberCustomers();
     }

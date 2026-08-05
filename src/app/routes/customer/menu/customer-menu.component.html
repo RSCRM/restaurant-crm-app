@@ -8,23 +8,44 @@
   @if (menu && !loading) {
   <h2 style="text-align: center; margin-bottom: 16px;">Thực Đơn</h2>
 
-  <!-- Categories with Products -->
+  <!-- 3 Tabs: Combo, Đồ ăn, Nước & Khác -->
   <nz-tabs nzType="card" nzSize="small">
-    @for (category of menu.categories; track category.categoryId || $index; let i = $index) {
-    <nz-tab [nzTitle]="category.categoryName || ('Món ăn ' + (i + 1))">
-      @if (category.products.length === 0) {
-      <nz-empty nzNotFoundContent="Chưa có món trong danh mục này."></nz-empty>
+    <!-- TAB 1: COMBO -->
+    <nz-tab nzTitle="Combo">
+      @if (combos.length === 0) {
+      <nz-empty nzNotFoundContent="Chưa có Combo nào hiện tại."></nz-empty>
       }
-      @for (product of category.products; track product.productId) {
+      @for (combo of combos; track combo.comboId) {
+      <nz-card [nzBordered]="true" style="margin-bottom: 12px;" nzSize="small">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="flex: 1;">
+            <strong>{{ combo.comboName }}</strong>
+            <nz-tag nzColor="red" style="margin-left: 6px; font-size: 10px;">Combo</nz-tag>
+            @if (combo.description) {
+            <p style="margin: 4px 0 0; color: #8c8c8c; font-size: 12px;">{{ combo.description }}</p>
+            }
+            <p style="margin: 4px 0 0; color: #fa541c; font-weight: bold;">{{ formatPrice(combo.price) }}</p>
+          </div>
+          <button nz-button nzType="primary" nzSize="small" nzShape="circle"
+            [disabled]="!combo.available || cartLoading" (click)="addComboToCart(combo)">
+            <span nz-icon nzType="plus"></span>
+          </button>
+        </div>
+      </nz-card>
+      }
+    </nz-tab>
+
+    <!-- TAB 2: ĐỒ ĂN -->
+    <nz-tab nzTitle="Đồ ăn">
+      @if (foodItems.length === 0) {
+      <nz-empty nzNotFoundContent="Chưa có món ăn nào."></nz-empty>
+      }
+      @for (product of foodItems; track product.productId) {
       <nz-card [nzBordered]="true" style="margin-bottom: 12px;" nzSize="small">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="flex: 1;">
             <strong>{{ product.productName }}</strong>
-            @if (product.requiresPreparation) {
             <nz-tag nzColor="orange" style="margin-left: 6px; font-size: 10px;">Cần chế biến</nz-tag>
-            } @else {
-            <nz-tag nzColor="green" style="margin-left: 6px; font-size: 10px;">Phục vụ ngay</nz-tag>
-            }
             @if (product.description) {
             <p style="margin: 4px 0 0; color: #8c8c8c; font-size: 12px;">{{ product.description }}</p>
             }
@@ -38,30 +59,32 @@
       </nz-card>
       }
     </nz-tab>
-    }
-  </nz-tabs>
 
-  <!-- Combos -->
-  @if (menu.combos.length > 0) {
-  <nz-divider nzText="🔥 Combo Ưu Đãi"></nz-divider>
-  @for (combo of menu.combos; track combo.comboId) {
-  <nz-card [nzBordered]="true" style="margin-bottom: 12px;" nzSize="small">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div style="flex: 1;">
-        <strong>{{ combo.comboName }}</strong>
-        @if (combo.description) {
-        <p style="margin: 4px 0 0; color: #8c8c8c; font-size: 12px;">{{ combo.description }}</p>
-        }
-        <p style="margin: 4px 0 0; color: #fa541c; font-weight: bold;">{{ formatPrice(combo.price) }}</p>
-      </div>
-      <button nz-button nzType="primary" nzSize="small" nzShape="circle" [disabled]="!combo.available || cartLoading"
-        (click)="addToCart({productId: '', productName: combo.comboName, description: combo.description, price: combo.price, imageUrl: '', available: combo.available, requiresPreparation: true})">
-        <span nz-icon nzType="plus"></span>
-      </button>
-    </div>
-  </nz-card>
-  }
-  }
+    <!-- TAB 3: NƯỚC & KHÁC -->
+    <nz-tab nzTitle="Nước & Khác">
+      @if (drinkAndOtherItems.length === 0) {
+      <nz-empty nzNotFoundContent="Chưa có nước uống hoặc món ăn kèm nào."></nz-empty>
+      }
+      @for (product of drinkAndOtherItems; track product.productId) {
+      <nz-card [nzBordered]="true" style="margin-bottom: 12px;" nzSize="small">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="flex: 1;">
+            <strong>{{ product.productName }}</strong>
+            <nz-tag nzColor="green" style="margin-left: 6px; font-size: 10px;">Phục vụ ngay</nz-tag>
+            @if (product.description) {
+            <p style="margin: 4px 0 0; color: #8c8c8c; font-size: 12px;">{{ product.description }}</p>
+            }
+            <p style="margin: 4px 0 0; color: #1890ff; font-weight: bold;">{{ formatPrice(product.price) }}</p>
+          </div>
+          <button nz-button nzType="primary" nzSize="small" nzShape="circle"
+            [disabled]="!product.available || cartLoading" (click)="addToCart(product)">
+            <span nz-icon nzType="plus"></span>
+          </button>
+        </div>
+      </nz-card>
+      }
+    </nz-tab>
+  </nz-tabs>
   }
 
   <!-- Cart Floating Bar -->

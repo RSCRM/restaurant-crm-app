@@ -56,7 +56,7 @@
           </nz-descriptions-item>
           <nz-descriptions-item [nzTitle]="'app.order.detail.tableId' | i18n">{{ order.tableId || '-' }}</nz-descriptions-item>
           <nz-descriptions-item [nzTitle]="'app.order.detail.total' | i18n">
-            <strong>{{ order.totalAmount?.toLocaleString('vi-VN') }} ₫</strong>
+            <strong>{{ order.totalAmount.toLocaleString('vi-VN') }} ₫</strong>
           </nz-descriptions-item>
         </nz-descriptions>
 

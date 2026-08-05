@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
@@ -10,6 +11,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzResultModule } from 'ng-zorro-antd/result';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { interval, Subscription } from 'rxjs';
 
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -33,6 +35,8 @@ import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
+    FormsModule,
+    NzInputModule,
     NzButtonModule, NzCardModule, NzProgressModule, NzTagModule,
     NzIconModule, NzSpinModule, NzEmptyModule, NzResultModule, NzDividerModule,
     NzModalModule, NzTabsModule, I18nPipe
@@ -45,16 +49,21 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
   private message = inject(NzMessageService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private i18n = inject(ALAIN_I18N_TOKEN);
 
   tracking: CustomerOrderTrackingResponse | null = null;
   loading = true;
   vouchers: CustomerVoucherApplicableResponse[] = [];
+  allMyVouchers: CustomerVoucherApplicableResponse[] = [];
   catalogVouchers: CustomerVoucherApplicableResponse[] = [];
+  displayedCatalogVouchers: CustomerVoucherApplicableResponse[] = [];
   myPoints = 0;
   selectedTabIndex = 0;
   voucherModalVisible = false;
   voucherLoading = false;
   showAllVouchers = false;
+  enteredCode = '';
+  codeLoading = false;
 
   private sseSub: Subscription | null = null;
   private pollSub: Subscription | null = null;
@@ -82,6 +91,11 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
           this.cdr.markForCheck();
         }
       });
+      if (this.voucherModalVisible) {
+        this.loadMyPoints();
+        this.loadMyVouchers();
+        this.loadCatalog();
+      }
     });
   }
 
@@ -164,11 +178,13 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     this.voucherLoading = true;
     this.customerService.getApplicableVouchers().subscribe({
       next: res => {
-        this.vouchers = res;
+        this.allMyVouchers = res || [];
+        this.vouchers = this.allMyVouchers.filter(v => !v.voucherCode);
         this.voucherLoading = false;
         this.cdr.markForCheck();
       },
       error: () => {
+        this.allMyVouchers = [];
         this.vouchers = [];
         this.voucherLoading = false;
         this.cdr.markForCheck();
@@ -179,11 +195,13 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
   private loadCatalog(): void {
     this.customerService.getVoucherCatalog().subscribe({
       next: res => {
-        this.catalogVouchers = res;
+        this.catalogVouchers = res || [];
+        this.displayedCatalogVouchers = this.catalogVouchers.filter(v => !v.voucherCode);
         this.cdr.markForCheck();
       },
       error: () => {
         this.catalogVouchers = [];
+        this.displayedCatalogVouchers = [];
         this.cdr.markForCheck();
       }
     });
@@ -193,7 +211,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     this.voucherLoading = true;
     this.customerService.redeemVoucher(v.customerVoucherId).subscribe({
       next: () => {
-        this.message.success(`Đổi Voucher ${v.title} thành công!`);
+        this.message.success(this.i18n.fanyi('voucher.msg.redeemSuccess'));
         this.loadMyPoints();
         this.loadCatalog();
         this.loadMyVouchers();
@@ -201,7 +219,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
       },
       error: err => {
         this.voucherLoading = false;
-        this.message.error(err?.error?.errorMessage || 'Không thể đổi voucher. Bạn có thể không đủ điểm.');
+        this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.msg.redeemError'));
         this.cdr.markForCheck();
       }
     });
@@ -223,14 +241,14 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     this.voucherLoading = true;
     this.customerService.applyVoucher(cv.customerVoucherId).subscribe({
       next: () => {
-        this.message.success(`Đã áp dụng Voucher ${cv.title}!`);
+        this.message.success(this.i18n.fanyi('voucher.msg.applySuccess'));
         this.voucherLoading = false;
         this.voucherModalVisible = false;
         this.loadStatus();
       },
       error: err => {
         this.voucherLoading = false;
-        this.message.error(err?.error?.errorMessage || 'Không thể áp dụng voucher.');
+        this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.msg.applyError'));
         this.cdr.markForCheck();
       }
     });
@@ -240,14 +258,94 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     this.voucherLoading = true;
     this.customerService.removeVoucher().subscribe({
       next: () => {
-        this.message.info('Đã hủy dùng Voucher!');
+        this.message.info(this.i18n.fanyi('voucher.msg.removeSuccess'));
         this.voucherLoading = false;
         this.voucherModalVisible = false;
         this.loadStatus();
       },
       error: () => {
         this.voucherLoading = false;
-        this.message.error('Lỗi khi bỏ voucher.');
+        this.message.error(this.i18n.fanyi('voucher.msg.removeError'));
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  applyPromoCode(): void {
+    const code = this.enteredCode.trim();
+    if (!code) {
+      this.message.warning(this.i18n.fanyi('voucher.promo-code.msg.empty'));
+      return;
+    }
+
+    this.codeLoading = true;
+    this.voucherLoading = true;
+    this.cdr.markForCheck();
+
+    // 1. Check if the customer already owns this promo code voucher in their wallet (e.g. from previous step)
+    const alreadyOwnedVoucher = this.allMyVouchers.find(v =>
+      v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase()
+    );
+
+    if (alreadyOwnedVoucher) {
+      // Already owned, apply directly without redeeming
+      this.customerService.applyVoucher(alreadyOwnedVoucher.customerVoucherId).subscribe({
+        next: () => {
+          this.message.success(this.i18n.fanyi('voucher.promo-code.msg.success'));
+          this.codeLoading = false;
+          this.voucherLoading = false;
+          this.voucherModalVisible = false;
+          this.enteredCode = '';
+          this.loadStatus();
+        },
+        error: (err) => {
+          this.codeLoading = false;
+          this.voucherLoading = false;
+          this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.applyError'));
+          this.cdr.markForCheck();
+        }
+      });
+      return;
+    }
+
+    // 2. If not owned yet, search in catalog for code-based voucher (v.voucherCode === code)
+    const matchedVoucher = this.catalogVouchers.find(v =>
+      v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase()
+    );
+
+    if (!matchedVoucher) {
+      this.codeLoading = false;
+      this.voucherLoading = false;
+      this.message.error(this.i18n.fanyi('voucher.promo-code.msg.invalid'));
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // Redeem code voucher (0 points)
+    this.customerService.redeemVoucher(matchedVoucher.customerVoucherId).subscribe({
+      next: (customerVoucherId) => {
+        // Apply newly redeemed customer voucher to order
+        this.customerService.applyVoucher(customerVoucherId).subscribe({
+          next: () => {
+            this.message.success(this.i18n.fanyi('voucher.promo-code.msg.success'));
+            this.codeLoading = false;
+            this.voucherLoading = false;
+            this.voucherModalVisible = false;
+            this.enteredCode = '';
+            this.loadStatus();
+          },
+          error: (err) => {
+            this.codeLoading = false;
+            this.voucherLoading = false;
+            this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.applyError'));
+            this.cdr.markForCheck();
+          }
+        });
+      },
+      error: (err) => {
+        this.codeLoading = false;
+        this.voucherLoading = false;
+        this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.unavailable'));
         this.cdr.markForCheck();
       }
     });

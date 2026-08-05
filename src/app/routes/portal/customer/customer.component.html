@@ -395,8 +395,13 @@
         <!-- Custom render for Voucher Type -->
         <ng-template st-row="voucherType" let-item>
           <nz-tag *ngIf="item.voucherCode" nzColor="blue">Code: {{ item.voucherCode }}</nz-tag>
-          <nz-tag *ngIf="item.voucherCode" nzColor="purple">{{ 'voucher-form.label.usageLimit' | i18n }}: {{ item.usageLimit }}</nz-tag>
           <nz-tag *ngIf="!item.voucherCode" nzColor="green">{{ 'customer.sys-voucher.type.normal' | i18n }}</nz-tag>
+        </ng-template>
+
+        <!-- Custom render for Usage Limit -->
+        <ng-template st-row="usageLimit" let-item>
+          <span *ngIf="item.voucherCode">{{ item.usageLimit ?? '∞' }}</span>
+          <span *ngIf="!item.voucherCode">—</span>
         </ng-template>
 
         <!-- Custom render for Actions -->
@@ -407,3 +412,19 @@
     </nz-card>
   </nz-tab>
 </nz-tabs>
+
+<!-- Modal Template for Bulk Gift Voucher -->
+<ng-template #bulkGiveModalTpl>
+  <div style="padding: 8px 0;">
+    <p style="margin-bottom: 12px; color: #595959; font-size: 14px;" [innerHTML]="bulkGiveDescText"></p>
+    <nz-select [(ngModel)]="selectedBulkVoucherId" style="width: 100%;" nzSize="large" [nzPlaceHolder]="'customer.placeholder.selectVoucher' | i18n">
+      @for (v of availableBulkVouchers; track v.id) {
+        <nz-option
+          [nzValue]="v.id"
+          [nzLabel]="v.title + ' (Giảm ' + v.discountPercent + '%) - ' + (v.pointsRequired ? v.pointsRequired + ' điểm' : 'Miễn phí')"
+        ></nz-option>
+      }
+    </nz-select>
+  </div>
+</ng-template>
+
