@@ -4,3 +4,51 @@
   align-items: center;
   min-height: 400px;
 }
+
+.toolbar {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-panel {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+
+  nz-form-item {
+    display: block;
+  }
+
+  nz-form-label {
+    display: block;
+    margin-bottom: 4px;
+    text-align: left;
+  }
+
+  nz-form-control {
+    display: block;
+  }
+}
+
+.filter-badge {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #ff4d4f;
+  border-radius: 50%;
+  margin-left: 4px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}

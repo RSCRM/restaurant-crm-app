@@ -5,12 +5,15 @@ import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { I18nPipe } from '@delon/theme';
-import { catchError, EMPTY, finalize } from 'rxjs';
+import { catchError, debounceTime, EMPTY, finalize, Subject, switchMap } from 'rxjs';
 
 import { OrganizationService } from '../organization.service';
 import { OrganizationResponse } from '../organization.model';
+import { UserService } from '../../user/user.service';
+import { UserResponse } from '../../user/user.model';
 
 interface ModalData {
   mode: 'create' | 'edit';
@@ -25,6 +28,7 @@ interface ModalData {
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,
+    NzSelectModule,
     NzButtonModule,
     I18nPipe
   ],
@@ -35,6 +39,7 @@ export class OrganizationFormComponent implements OnInit {
   private fb = inject(NonNullableFormBuilder);
   private modalRef = inject(NzModalRef);
   private orgService = inject(OrganizationService);
+  private userService = inject(UserService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
@@ -43,6 +48,9 @@ export class OrganizationFormComponent implements OnInit {
   mode: 'create' | 'edit' = 'create';
   organization: OrganizationResponse | null = null;
   loading = false;
+  userLoading = false;
+  users: UserResponse[] = [];
+  private userSearch$ = new Subject<string>();
 
   form = this.fb.group({
     ownerId: this.fb.control('', [Validators.required]),
@@ -54,6 +62,29 @@ export class OrganizationFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadUsers();
+
+    this.userSearch$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      debounceTime(300),
+      switchMap(keyword => {
+        this.userLoading = true;
+        this.cdr.markForCheck();
+        return this.userService.searchUsers(
+          keyword ? { username: keyword } : {},
+          1, 30
+        ).pipe(
+          finalize(() => {
+            this.userLoading = false;
+            this.cdr.markForCheck();
+          })
+        );
+      })
+    ).subscribe(res => {
+      this.users = res.data;
+      this.cdr.markForCheck();
+    });
+
     if (this.modalData?.mode === 'edit' && this.modalData.organization) {
       this.mode = 'edit';
       this.organization = this.modalData.organization;
@@ -65,9 +96,28 @@ export class OrganizationFormComponent implements OnInit {
         phone: this.organization.phone || '',
         email: this.organization.email || ''
       });
-      // ownerId not editable in edit mode
       this.form.controls.ownerId.disable();
     }
+  }
+
+  loadUsers(): void {
+    this.userLoading = true;
+    this.cdr.markForCheck();
+    this.userService.searchUsers({}, 1, 30).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.userLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe(res => {
+      this.users = res.data;
+      this.cdr.markForCheck();
+    });
+  }
+
+  onUserSearch(keyword: string): void {
+    this.userSearch$.next(keyword);
   }
 
   submit(): void {
