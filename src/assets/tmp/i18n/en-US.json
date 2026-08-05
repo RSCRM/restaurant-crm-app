@@ -128,6 +128,8 @@
   "app.license.status": "Status",
   "app.license.createdAt": "Created At",
   "app.license.updatedAt": "Updated At",
+  "app.license.subscription.startDate": "Start Date",
+  "app.license.subscription.endDate": "End Date",
   "app.license.actions": "Actions",
   "app.license.searchPlaceholder": "Search by license name...",
   "app.license.search": "Search",

@@ -81,6 +81,8 @@
   "app.license.status": "Trạng thái",
   "app.license.createdAt": "Ngày tạo",
   "app.license.updatedAt": "Cập nhật",
+  "app.license.subscription.startDate": "Ngày bắt đầu",
+  "app.license.subscription.endDate": "Ngày kết thúc",
   "app.license.actions": "Thao tác",
   "app.license.searchPlaceholder": "Tìm theo tên license...",
   "app.license.search": "Tìm kiếm",

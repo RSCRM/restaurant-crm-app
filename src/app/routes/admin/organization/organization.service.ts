@@ -38,6 +38,24 @@ export class OrganizationService {
       .pipe(map(res => res.data));
   }
 
+  searchOrganizationsWithoutActiveSubscription(
+    filter: OrganizationSearchRequest,
+    page = 1,
+    size = 10,
+    direction = 'DESC',
+    field = 'createdAt'
+  ): Observable<PagingResponse<OrganizationResponse>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('direction', direction)
+      .set('field', field);
+
+    return this.http
+      .post<ApiResponse<PagingResponse<OrganizationResponse>>>(`${this.ORG_API}/search-without-active-subscription`, filter, { params })
+      .pipe(map(res => res.data));
+  }
+
   createOrganization(request: CreateOrganizationRequest): Observable<OrganizationResponse> {
     return this.http
       .post<ApiResponse<OrganizationResponse>>(this.ORG_API, request)

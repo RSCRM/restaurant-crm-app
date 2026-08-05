@@ -92,20 +92,20 @@ export class LicenseComponent implements OnInit {
       type: 'number',
       format: item => `${item.price?.toLocaleString('vi-VN')} ₫`
     },
-    { title: { i18n: 'app.license.billingCycle' }, index: 'billingCycle', width: 100, render: 'billingCycle' },
+    { title: { i18n: 'app.license.billingCycle' }, index: 'billingCycle', width: 150, render: 'billingCycle' },
     {
       title: { i18n: 'app.license.maxBranch' },
       index: 'maxBranch',
-      width: 100,
+      width: 150,
       format: item => item.maxBranch === -1 ? '∞' : item.maxBranch
     },
     {
       title: { i18n: 'app.license.maxEmployee' },
       index: 'maxEmployee',
-      width: 100,
+      width: 150,
       format: item => item.maxEmployee === -1 ? '∞' : item.maxEmployee
     },
-    { title: { i18n: 'app.license.status' }, index: 'status', width: 110, render: 'status' },
+    { title: { i18n: 'app.license.status' }, index: 'status', width: 120, render: 'status' },
     {
       title: { i18n: 'app.license.createdAt' },
       index: 'createdAt',
@@ -219,6 +219,7 @@ export class LicenseComponent implements OnInit {
       nzTitle: undefined,
       nzContent: LicenseFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: null
     });
     modalRef.afterClose.subscribe(result => {
@@ -231,6 +232,7 @@ export class LicenseComponent implements OnInit {
       nzTitle: undefined,
       nzContent: LicenseFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: license
     });
     modalRef.afterClose.subscribe(result => {
