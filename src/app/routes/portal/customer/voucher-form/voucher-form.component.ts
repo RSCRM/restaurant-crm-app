@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -57,6 +57,26 @@ export class VoucherFormComponent implements OnInit {
   voucherId: string | null = null;
   restaurantId = '';
 
+  private dateRangeValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const formGroup = control.parent;
+    if (!formGroup) return null;
+
+    const startAt = formGroup.get('startAt')?.value;
+    const endAt = control.value;
+
+    if (!endAt) return null;
+
+    if (startAt && endAt) {
+      const startTime = new Date(startAt).getTime();
+      const endTime = new Date(endAt).getTime();
+
+      if (!isNaN(startTime) && !isNaN(endTime) && startTime > endTime) {
+        return { dateRangeInvalid: true };
+      }
+    }
+    return null;
+  };
+
   ngOnInit(): void {
     if (this.modalData) {
       this.restaurantId = this.modalData.restaurantId;
@@ -78,11 +98,15 @@ export class VoucherFormComponent implements OnInit {
       minBillAmount: [v?.minBillAmount ?? 0, [Validators.required, Validators.min(0)]],
       pointsRequired: [v?.pointsRequired ?? 0, [Validators.required, Validators.min(0)]],
       startAt: [v?.startAt ? new Date(v.startAt) : null, [Validators.required]],
-      endAt: [v?.endAt ? new Date(v.endAt) : null, [Validators.required]],
+      endAt: [v?.endAt ? new Date(v.endAt) : null, [Validators.required, this.dateRangeValidator]],
       isCodeBased: [!!v?.voucherCode],
       voucherCode: [v?.voucherCode || ''],
       usageLimit: [v?.usageLimit ?? null, [Validators.min(1)]],
       isActive: [v !== undefined && v !== null ? v.isActive === 1 : true]
+    });
+
+    this.form.get('startAt')?.valueChanges.subscribe(() => {
+      this.form.get('endAt')?.updateValueAndValidity();
     });
 
     const codeCtrl = this.form.get('voucherCode');

@@ -244,6 +244,7 @@ export interface CustomerVoucherApplicableResponse {
   pointsRequired?: number;
   status: string;
   expiredAt: string;
+  voucherCode?: string;
   isApplicable: boolean;
   reason: string;
 }

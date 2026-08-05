@@ -158,7 +158,7 @@ export class CustomerEntryComponent implements OnInit, OnDestroy {
       error: err => {
         this.loading = false;
         if (err?.status === 409 || err?.error?.errorCode === 'TQR_TABLE_SESSION_EXISTS') {
-          this.message.error('Bàn 101 đang có phiên gọi món chưa đóng. Vui lòng chạy `sdocker exec -it redis-crm redis-cli flushall` để reset bàn!');
+          this.message.error('Bàn ' + (this.tableInfo?.tableNumber || 'này') + ' đang có phiên gọi món chưa đóng. Vui lòng chạy `docker exec -it redis-crm redis-cli flushall` để reset bàn!');
         } else {
           this.message.error(err?.error?.errorMessage || 'Không thể tạo phiên. Vui lòng thử lại!');
         }

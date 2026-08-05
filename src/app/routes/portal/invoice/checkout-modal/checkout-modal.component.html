@@ -1,13 +1,13 @@
 <div style="padding: 8px 0;">
   <!-- Order ID -->
   <div style="margin-bottom: 16px;">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Mã Đơn Hàng (Order ID) <span style="color: red;">*</span></label>
-    <input nz-input [(ngModel)]="orderId" placeholder="Nhập Order ID cần thanh toán" nzSize="large" />
+    <label style="display: block; margin-bottom: 4px; font-weight: 500;">{{ 'checkout.label.orderId' | i18n }} <span style="color: red;">*</span></label>
+    <input nz-input [(ngModel)]="orderId" (ngModelChange)="onOrderIdChange()" (blur)="loadVouchers()" [placeholder]="'checkout.placeholder.orderId' | i18n" nzSize="large" />
   </div>
 
   <!-- Payment Method -->
   <div style="margin-bottom: 16px;">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Phương thức thanh toán <span style="color: red;">*</span></label>
+    <label style="display: block; margin-bottom: 4px; font-weight: 500;">{{ 'checkout.label.paymentMethod' | i18n }} <span style="color: red;">*</span></label>
     <nz-select [(ngModel)]="paymentMethod" nzSize="large" style="width: 100%;">
       @for (method of paymentMethods; track method.value) {
         <nz-option [nzValue]="method.value" [nzLabel]="method.label"></nz-option>
@@ -15,40 +15,51 @@
     </nz-select>
   </div>
 
-  <nz-divider nzText="🎫 Áp dụng Voucher (uc-scr-ui-03)" nzOrientation="left"></nz-divider>
+  <nz-divider [nzText]="'checkout.divider.voucher' | i18n" nzOrientation="left"></nz-divider>
 
-  <!-- Voucher Code -->
+  <!-- Option 1: Choose available customer vouchers -->
   <div style="margin-bottom: 16px;">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Mã Voucher (tùy chọn)</label>
-    <input nz-input [(ngModel)]="voucherCode" placeholder="Nhập mã voucher giảm giá nếu có" />
+    <label style="display: block; margin-bottom: 4px; font-weight: 500;">{{ 'checkout.label.selectVoucher' | i18n }}</label>
+    <nz-select [(ngModel)]="selectedVoucherId" (ngModelChange)="onVoucherSelected()" [nzDisabled]="!orderId" style="width: 100%;" [nzPlaceHolder]="'checkout.placeholder.selectVoucher' | i18n">
+      <nz-option nzValue="" [nzLabel]="'checkout.option.noVoucher' | i18n"></nz-option>
+      @for (v of applicableVouchers; track v.customerVoucherId) {
+        <nz-option [nzValue]="v.customerVoucherId" [nzLabel]="v.title + (v.isApplicable ? '' : ' (Không đủ ĐK: ' + v.reason + ')')"></nz-option>
+      }
+    </nz-select>
   </div>
 
-  <nz-divider nzText="🏆 Trừ điểm thành viên (uc-scr-ui-04)" nzOrientation="left"></nz-divider>
+  <!-- Option 2: Voucher Code -->
+  <div style="margin-bottom: 16px;">
+    <label style="display: block; margin-bottom: 4px; font-weight: 500;">{{ 'checkout.label.voucherCode' | i18n }}</label>
+    <input nz-input [(ngModel)]="voucherCode" (ngModelChange)="onVoucherCodeInput()" [placeholder]="'checkout.placeholder.voucherCode' | i18n" />
+  </div>
+
+  <nz-divider [nzText]="'checkout.divider.loyalty' | i18n" nzOrientation="left"></nz-divider>
 
   <!-- Loyalty Points -->
   <div style="margin-bottom: 16px;">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500;">SĐT Khách hàng thành viên (tùy chọn)</label>
-    <input nz-input [(ngModel)]="loyaltyPhone" placeholder="Nhập SĐT để tra cứu điểm tích lũy" />
+    <label style="display: block; margin-bottom: 4px; font-weight: 500;">{{ 'checkout.label.loyaltyPhone' | i18n }}</label>
+    <input nz-input [(ngModel)]="loyaltyPhone" [placeholder]="'checkout.placeholder.loyaltyPhone' | i18n" />
   </div>
   <div style="margin-bottom: 16px;">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Số điểm muốn đổi</label>
-    <input nz-input [(ngModel)]="loyaltyPoints" type="number" placeholder="Nhập số điểm cần trừ" />
+    <label style="display: block; margin-bottom: 4px; font-weight: 500;">{{ 'checkout.label.loyaltyPoints' | i18n }}</label>
+    <input nz-input [(ngModel)]="loyaltyPoints" type="number" [placeholder]="'checkout.placeholder.loyaltyPoints' | i18n" />
   </div>
 
   <nz-divider></nz-divider>
 
   <!-- Note -->
   <div style="margin-bottom: 16px;">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Ghi chú</label>
-    <textarea nz-input [(ngModel)]="note" placeholder="Ghi chú hóa đơn (tùy chọn)" [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+    <label style="display: block; margin-bottom: 4px; font-weight: 500;">{{ 'checkout.label.note' | i18n }}</label>
+    <textarea nz-input [(ngModel)]="note" [placeholder]="'checkout.placeholder.note' | i18n" [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
   </div>
 
   <!-- Actions -->
   <div style="display: flex; justify-content: flex-end; gap: 8px;">
-    <button nz-button nzType="default" (click)="onCancel()">Hủy</button>
+    <button nz-button nzType="default" (click)="onCancel()">{{ 'checkout.btn.cancel' | i18n }}</button>
     <button nz-button nzType="primary" nzSize="large" [nzLoading]="loading" (click)="onCheckout()">
       <span nz-icon nzType="check-circle"></span>
-      Xác nhận Thanh Toán
+      {{ 'checkout.btn.confirm' | i18n }}
     </button>
   </div>
 </div>

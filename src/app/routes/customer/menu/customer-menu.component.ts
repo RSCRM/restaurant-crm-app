@@ -19,7 +19,8 @@ import {
   CustomerMenuResponse,
   MenuCategoryResponse,
   MenuProductResponse,
-  GroupCartResponse
+  GroupCartResponse,
+  MenuComboResponse
 } from '../customer.model';
 
 @Component({
@@ -46,6 +47,10 @@ export class CustomerMenuComponent implements OnInit {
   loading = true;
   cartLoading = false;
 
+  foodItems: MenuProductResponse[] = [];
+  drinkAndOtherItems: MenuProductResponse[] = [];
+  combos: MenuComboResponse[] = [];
+
   ngOnInit(): void {
     if (!this.customerService.hasSession()) {
       this.router.navigate(['/customer/entry']);
@@ -60,6 +65,21 @@ export class CustomerMenuComponent implements OnInit {
     this.customerService.getMenu().subscribe({
       next: res => {
         this.menu = res;
+        this.combos = res.combos || [];
+
+        const allProducts: MenuProductResponse[] = [];
+        if (res.categories) {
+          res.categories.forEach(cat => {
+            if (cat.products) {
+              allProducts.push(...cat.products);
+            }
+          });
+        }
+
+        // Categorize based on requiresPreparation
+        this.foodItems = allProducts.filter(p => p.requiresPreparation);
+        this.drinkAndOtherItems = allProducts.filter(p => !p.requiresPreparation);
+
         this.loading = false;
         this.cdr.markForCheck();
       },
@@ -95,6 +115,23 @@ export class CustomerMenuComponent implements OnInit {
       error: () => {
         this.cartLoading = false;
         this.message.error('Lỗi thêm món vào giỏ.');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  addComboToCart(combo: MenuComboResponse): void {
+    this.cartLoading = true;
+    this.customerService.addCartItem({ comboId: combo.comboId, quantity: 1 }).subscribe({
+      next: res => {
+        this.cart = res;
+        this.cartLoading = false;
+        this.message.success(`Đã thêm combo ${combo.comboName} vào giỏ!`);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cartLoading = false;
+        this.message.error('Lỗi thêm combo vào giỏ.');
         this.cdr.markForCheck();
       }
     });

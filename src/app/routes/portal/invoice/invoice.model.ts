@@ -52,3 +52,17 @@ export interface CheckoutRequest {
   note?: string;
   voucherCode?: string;
 }
+
+export interface CustomerVoucherApplicableResponse {
+  customerVoucherId: string;
+  voucherSn: string;
+  title: string;
+  discountPercent: number;
+  minBillAmount: number;
+  pointsRequired?: number;
+  status: string;
+  expiredAt: string;
+  voucherCode?: string;
+  isApplicable: boolean;
+  reason: string;
+}
