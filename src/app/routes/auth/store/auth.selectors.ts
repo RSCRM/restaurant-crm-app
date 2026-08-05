@@ -51,3 +51,41 @@ export const selectPermissions = createSelector(selectContextToken, selectAuthSt
 
 export const selectHasPermission = (permission: string) =>
   createSelector(selectPermissions, selectIsAdmin, (perms, isAdmin) => isAdmin || perms.includes(permission));
+
+export const selectBranchId = createSelector(selectContextToken, token => {
+  if (!token) return null;
+  try {
+    const base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    return typeof payload.branchId === 'string' ? payload.branchId : null;
+  } catch {
+    return null;
+  }
+});
+
+export const selectIsOwnerContext = createSelector(selectContextToken, token => {
+  if (!token) return false;
+  try {
+    const base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    return !payload.employeeId;
+  } catch {
+    return false;
+  }
+});

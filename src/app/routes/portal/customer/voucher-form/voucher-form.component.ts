@@ -11,6 +11,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 
 import { VoucherResponse } from '../customer.model';
 import { CustomerService } from '../customer.service';
@@ -33,6 +34,7 @@ export interface VoucherFormModalData {
     NzInputNumberModule,
     NzSwitchModule,
     NzButtonModule,
+    NzDatePickerModule,
     NzSpinModule,
     NzGridModule,
     I18nPipe
@@ -75,9 +77,42 @@ export class VoucherFormComponent implements OnInit {
       discountPercent: [v?.discountPercent ?? 10, [Validators.required, Validators.min(1), Validators.max(100)]],
       minBillAmount: [v?.minBillAmount ?? 0, [Validators.required, Validators.min(0)]],
       pointsRequired: [v?.pointsRequired ?? 0, [Validators.required, Validators.min(0)]],
-      validDays: [v?.validDays ?? 30, [Validators.required, Validators.min(1)]],
-      isActive: [v !== undefined && v !== null ? v.isActive : true]
+      startAt: [v?.startAt ? new Date(v.startAt) : null, [Validators.required]],
+      endAt: [v?.endAt ? new Date(v.endAt) : null, [Validators.required]],
+      isCodeBased: [!!v?.voucherCode],
+      voucherCode: [v?.voucherCode || ''],
+      usageLimit: [v?.usageLimit ?? null, [Validators.min(1)]],
+      isActive: [v !== undefined && v !== null ? v.isActive === 1 : true]
     });
+
+    const codeCtrl = this.form.get('voucherCode');
+    const limitCtrl = this.form.get('usageLimit');
+    if (!!v?.voucherCode) {
+      codeCtrl?.setValidators([Validators.required]);
+      limitCtrl?.setValidators([Validators.required, Validators.min(1)]);
+    }
+
+    this.form.get('isCodeBased')?.valueChanges.subscribe(isCode => {
+      if (isCode) {
+        codeCtrl?.setValidators([Validators.required]);
+        limitCtrl?.setValidators([Validators.required, Validators.min(1)]);
+        if (!limitCtrl?.value) {
+          limitCtrl?.setValue(10);
+        }
+      } else {
+        codeCtrl?.clearValidators();
+        limitCtrl?.clearValidators();
+        codeCtrl?.setValue('');
+        limitCtrl?.setValue(null);
+      }
+      codeCtrl?.updateValueAndValidity();
+      limitCtrl?.updateValueAndValidity();
+    });
+
+    if (this.isEdit) {
+      this.form.get('isCodeBased')?.disable();
+      this.form.get('voucherCode')?.disable();
+    }
   }
 
   submit(): void {
@@ -94,11 +129,11 @@ export class VoucherFormComponent implements OnInit {
     this.submitting = true;
     this.cdr.markForCheck();
 
-    const val = this.form.value;
-    const safeNumber = (v: any, fallback = 0): number => {
-      if (v === null || v === undefined || v === '') return fallback;
+    const val = this.form.getRawValue();
+    const safeNumber = (v: any, fallbackValue: any = 0): any => {
+      if (v === null || v === undefined || v === '') return fallbackValue;
       const num = Number(v);
-      return isNaN(num) ? fallback : num;
+      return isNaN(num) ? fallbackValue : num;
     };
 
     if (this.isEdit && this.voucherId) {
@@ -107,7 +142,11 @@ export class VoucherFormComponent implements OnInit {
         discountPercent: safeNumber(val.discountPercent, 10),
         minBillAmount: safeNumber(val.minBillAmount, 0),
         pointsRequired: safeNumber(val.pointsRequired, 0),
-        isActive: val.isActive ? 1 : 0
+        isActive: val.isActive ? 1 : 0,
+        startAt: val.startAt ? new Date(val.startAt).toISOString() : null,
+        endAt: val.endAt ? new Date(val.endAt).toISOString() : null,
+        voucherCode: val.isCodeBased && val.voucherCode ? val.voucherCode.trim() : null,
+        usageLimit: val.isCodeBased && val.usageLimit ? safeNumber(val.usageLimit, null) : null
       };
 
       this.customerService.updateVoucher(this.voucherId, updateReq).subscribe({
@@ -129,7 +168,11 @@ export class VoucherFormComponent implements OnInit {
         title: val.title.trim(),
         discountPercent: safeNumber(val.discountPercent, 10),
         minBillAmount: safeNumber(val.minBillAmount, 0),
-        pointsRequired: safeNumber(val.pointsRequired, 0)
+        pointsRequired: safeNumber(val.pointsRequired, 0),
+        startAt: val.startAt ? new Date(val.startAt).toISOString() : null,
+        endAt: val.endAt ? new Date(val.endAt).toISOString() : null,
+        voucherCode: val.isCodeBased && val.voucherCode ? val.voucherCode.trim() : null,
+        usageLimit: val.isCodeBased && val.usageLimit ? safeNumber(val.usageLimit, null) : null
       };
 
       this.customerService.createVoucher(createReq).subscribe({

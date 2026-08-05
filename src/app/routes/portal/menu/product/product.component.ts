@@ -1,9 +1,12 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
+import { Store } from '@ngrx/store';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -16,14 +19,14 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { catchError, EMPTY, finalize, forkJoin } from 'rxjs';
+import { catchError, combineLatest, EMPTY, finalize } from 'rxjs';
 
-import { MOCK_BRANCH_ID } from '../menu.mock';
+import { CategoryManagerComponent } from './category-manager/category-manager.component';
+import { ProductFormComponent } from './product-form/product-form.component';
+import { selectBranchId, selectHasPermission, selectIsOwnerContext } from '../../../auth/store/auth.selectors';
+import { menuErrorMessage } from '../menu-error';
 import { CategoryResponse, ProductResponse } from '../menu.model';
 import { MenuService } from '../menu.service';
-import { CategoryManagerComponent } from './category-manager/category-manager.component';
-import { ModifierManagerComponent } from './modifier-manager/modifier-manager.component';
-import { ProductFormComponent } from './product-form/product-form.component';
 
 interface ProductFilter {
   categoryId: string | null;
@@ -61,14 +64,15 @@ export class ProductComponent implements OnInit {
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private store = inject(Store);
+  private router = inject(Router);
 
-  branchId = MOCK_BRANCH_ID;
+  branchId: string | null = null;
 
   canAddProduct = true;
   canUpdateProduct = true;
   canDeleteProduct = true;
 
-  allProducts: ProductResponse[] = [];
   data: ProductResponse[] = [];
   categories: CategoryResponse[] = [];
 
@@ -88,11 +92,11 @@ export class ProductComponent implements OnInit {
 
   columns: STColumn[] = [
     { title: { i18n: 'app.portal.menu.product.image' }, width: 70, render: 'image' },
-    { title: { i18n: 'app.portal.menu.product.name' }, index: 'productName' },
+    { title: { i18n: 'app.portal.menu.product.name' }, width: 200, index: 'productName' },
     { title: { i18n: 'app.portal.menu.product.category' }, width: 150, render: 'category' },
     { title: { i18n: 'app.portal.menu.product.price' }, width: 120, render: 'price' },
     { title: { i18n: 'app.portal.menu.product.status' }, width: 110, render: 'status' },
-    { title: { i18n: 'app.portal.menu.product.requiresPreparation' }, width: 130, render: 'prep' },
+    { title: { i18n: 'app.portal.menu.product.requiresPreparation' }, width: 170, render: 'prep' },
     {
       title: { i18n: 'app.portal.menu.product.actions' },
       width: 220,
@@ -105,9 +109,9 @@ export class ProductComponent implements OnInit {
           click: item => this.openEdit(item)
         },
         {
-          i18n: 'app.portal.menu.product.modifiers',
-          icon: 'setting',
-          click: item => this.openModifierManager(item)
+          i18n: 'app.portal.menu.product.detail',
+          icon: 'eye',
+          click: item => this.goToDetail(item)
         },
         {
           i18n: 'app.portal.menu.product.delete',
@@ -121,13 +125,39 @@ export class ProductComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadCategories();
-    this.loadData();
+    this.store
+      .select(selectBranchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(branchId => {
+        this.branchId = branchId;
+        if (!branchId) {
+          this.data = [];
+          this.total = 0;
+          this.cdr.markForCheck();
+          return;
+        }
+        this.loadCategories(branchId);
+        this.loadData();
+      });
+
+    combineLatest([
+      this.store.select(selectIsOwnerContext),
+      this.store.select(selectHasPermission('PRODUCT_ADD')),
+      this.store.select(selectHasPermission('PRODUCT_UPDATE')),
+      this.store.select(selectHasPermission('PRODUCT_DELETE'))
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([isOwner, canAdd, canUpdate, canDelete]) => {
+        this.canAddProduct = isOwner || canAdd;
+        this.canUpdateProduct = isOwner || canUpdate;
+        this.canDeleteProduct = isOwner || canDelete;
+        this.cdr.markForCheck();
+      });
   }
 
-  private loadCategories(): void {
+  private loadCategories(branchId: string): void {
     this.menuService
-      .listCategories(this.branchId)
+      .listCategories(branchId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(categories => {
         this.categories = categories;
@@ -141,60 +171,57 @@ export class ProductComponent implements OnInit {
   }
 
   loadData(): void {
+    if (!this.branchId) {
+      this.message.warning('Vui lòng chọn chi nhánh');
+      return;
+    }
+
     this.loading = true;
     this.cdr.markForCheck();
 
     this.menuService
-      .listProducts(this.branchId)
+      .searchProducts(
+        {
+          productName: this.searchValue.trim() || undefined,
+          priceFrom: this.filter.minPrice ?? undefined,
+          priceTo: this.filter.maxPrice ?? undefined
+        },
+        this.currentPage,
+        this.pageSize
+      )
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.allProducts = [];
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
+          this.data = [];
+          this.total = 0;
           return EMPTY;
         }),
         finalize(() => {
           this.loading = false;
-          this.applyFilter();
           this.cdr.markForCheck();
         })
       )
-      .subscribe(products => {
-        this.allProducts = products;
+      .subscribe(res => {
+        this.total = res.totalElement;
+        this.data = this.filter.categoryId ? res.data.filter(p => p.categoryId === this.filter.categoryId) : res.data;
       });
-  }
-
-  private applyFilter(): void {
-    const keyword = this.searchValue.trim().toLowerCase();
-    const filtered = this.allProducts.filter(product => {
-      if (keyword && !product.productName.toLowerCase().includes(keyword)) return false;
-      if (this.filter.categoryId && product.categoryId !== this.filter.categoryId) return false;
-      if (this.filter.status && product.status !== this.filter.status) return false;
-      if (this.filter.minPrice != null && product.price < this.filter.minPrice) return false;
-      if (this.filter.maxPrice != null && product.price > this.filter.maxPrice) return false;
-      return true;
-    });
-    this.total = filtered.length;
-    const start = (this.currentPage - 1) * this.pageSize;
-    this.data = filtered.slice(start, start + this.pageSize);
   }
 
   onSTChange(e: STChange): void {
     if (e.type === 'pi') {
       this.currentPage = e.pi ?? 1;
-      this.applyFilter();
-      this.cdr.markForCheck();
+      this.loadData();
     } else if (e.type === 'ps') {
       this.pageSize = e.ps ?? 10;
       this.currentPage = 1;
-      this.applyFilter();
-      this.cdr.markForCheck();
+      this.loadData();
     }
   }
 
   search(): void {
     this.currentPage = 1;
-    this.applyFilter();
-    this.cdr.markForCheck();
+    this.loadData();
   }
 
   toggleFilter(): void {
@@ -205,8 +232,7 @@ export class ProductComponent implements OnInit {
     this.filter = { categoryId: null, status: null, minPrice: null, maxPrice: null };
     this.searchValue = '';
     this.currentPage = 1;
-    this.applyFilter();
-    this.cdr.markForCheck();
+    this.loadData();
   }
 
   get hasActiveFilter(): boolean {
@@ -220,10 +246,15 @@ export class ProductComponent implements OnInit {
   }
 
   openCreate(): void {
+    if (!this.branchId) {
+      this.message.warning('Vui lòng chọn chi nhánh');
+      return;
+    }
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: ProductFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { branchId: this.branchId, categories: this.categories }
     });
     modalRef.afterClose.subscribe(result => {
@@ -232,10 +263,12 @@ export class ProductComponent implements OnInit {
   }
 
   openEdit(product: ProductResponse): void {
+    if (!this.branchId) return;
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: ProductFormComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { branchId: this.branchId, categories: this.categories, product }
     });
     modalRef.afterClose.subscribe(result => {
@@ -243,17 +276,15 @@ export class ProductComponent implements OnInit {
     });
   }
 
-  openModifierManager(product: ProductResponse): void {
-    const modalRef = this.modal.create({
-      nzTitle: undefined,
-      nzContent: ModifierManagerComponent,
-      nzWidth: 700,
-      nzData: { product }
-    });
-    modalRef.afterClose.subscribe(() => this.loadData());
+  goToDetail(product: ProductResponse): void {
+    this.router.navigate(['/portal/menu/product', product.id, 'detail']);
   }
 
   openCategoryManager(): void {
+    if (!this.branchId) {
+      this.message.warning('Vui lòng chọn chi nhánh');
+      return;
+    }
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: CategoryManagerComponent,
@@ -261,17 +292,18 @@ export class ProductComponent implements OnInit {
       nzData: { branchId: this.branchId }
     });
     modalRef.afterClose.subscribe(() => {
-      this.loadCategories();
+      if (this.branchId) this.loadCategories(this.branchId);
       this.loadData();
     });
   }
 
   deleteProduct(product: ProductResponse): void {
-    forkJoin([this.menuService.deleteProduct(product.id)])
+    this.menuService
+      .deleteProduct(product.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Xoá món thất bại');
+        catchError((err: HttpErrorResponse) => {
+          this.message.error(menuErrorMessage(err));
           return EMPTY;
         })
       )

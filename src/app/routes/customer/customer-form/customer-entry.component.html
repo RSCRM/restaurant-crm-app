@@ -1,81 +1,84 @@
 <div class="customer-entry-container" style="max-width: 420px; margin: 40px auto; padding: 24px;">
   <!-- Loading/Resolving QR -->
   @if (loading && currentStep === 0) {
-    <div style="text-align: center; padding: 60px 0;">
-      <nz-spin nzSize="large" nzTip="Đang xác thực mã QR bàn..."></nz-spin>
-    </div>
+  <div style="text-align: center; padding: 60px 0;">
+    <nz-spin nzSize="large" nzTip="Đang xác thực mã QR bàn..."></nz-spin>
+  </div>
   }
 
   <!-- Error: No QR Token -->
   @if (currentStep === -1) {
-    <nz-result nzStatus="warning" nzTitle="Không tìm thấy mã QR bàn" nzSubTitle="Vui lòng quét lại mã QR trên bàn để bắt đầu gọi món.">
-    </nz-result>
+  <nz-result nzStatus="warning" nzTitle="Không tìm thấy mã QR bàn"
+    nzSubTitle="Vui lòng quét lại mã QR trên bàn để bắt đầu gọi món.">
+  </nz-result>
   }
 
   <!-- Table Info Header -->
   @if (tableInfo) {
-    <div style="text-align: center; margin-bottom: 24px; padding: 16px; background: #f0f5ff; border-radius: 8px;">
-      <h2 style="margin: 0 0 4px 0;">🍽️ {{ tableInfo.branchName }}</h2>
-      <p style="margin: 0; color: #595959;">{{ tableInfo.areaName }} — Bàn {{ tableInfo.tableNumber }} ({{ tableInfo.capacity }} chỗ)</p>
-    </div>
+  <div style="text-align: center; margin-bottom: 24px; padding: 16px; background: #f0f5ff; border-radius: 8px;">
+    <h2 style="margin: 0 0 4px 0;">🍽️ {{ tableInfo.branchName }}</h2>
+    <p style="margin: 0; color: #595959;">{{ tableInfo.areaName }} — Bàn {{ tableInfo.tableNumber }} ({{
+      tableInfo.capacity }} chỗ)</p>
+  </div>
   }
 
   <!-- Step Progress -->
   @if (currentStep >= 1) {
-    <nz-steps [nzCurrent]="currentStep - 1" nzSize="small" style="margin-bottom: 24px;">
-      <nz-step nzTitle="Nhập SĐT"></nz-step>
-      <nz-step nzTitle="Xác thực OTP"></nz-step>
-    </nz-steps>
+  <nz-steps [nzCurrent]="currentStep - 1" nzSize="small" style="margin-bottom: 24px;">
+    <nz-step nzTitle="Nhập SĐT"></nz-step>
+    <nz-step nzTitle="Xác thực OTP"></nz-step>
+  </nz-steps>
   }
 
   <!-- STEP 1: Enter Phone -->
   @if (currentStep === 1) {
-    <p style="color: #595959; margin-bottom: 16px;">Nhập số điện thoại để xác thực và bắt đầu gọi món:</p>
-    <div style="margin-bottom: 16px;">
-      <nz-input-group nzSize="large" nzPrefixIcon="phone">
-        <input nz-input [(ngModel)]="phone" placeholder="Số điện thoại (vd: 0901234567)" />
-      </nz-input-group>
-    </div>
-    <button nz-button nzType="primary" nzBlock nzSize="large" [nzLoading]="loading" (click)="onRequestOtp()">
-      <span nz-icon nzType="send" nzTheme="outline"></span>
-      Gửi mã OTP
-    </button>
+  <p style="color: #595959; margin-bottom: 16px;">Nhập số điện thoại để xác thực và bắt đầu gọi món:</p>
+  <div class="shatter-keep" style="margin-bottom: 16px;">
+    <nz-input-group nzSize="large" nzPrefixIcon="phone">
+      <input nz-input [(ngModel)]="phone" placeholder="Số điện thoại (vd: 0901234567)" />
+    </nz-input-group>
+  </div>
+  <button class="shatter-keep" nz-button nzType="primary" nzBlock nzSize="large" [nzLoading]="loading"
+    (click)="onRequestOtp()">
+    <span nz-icon nzType="send" nzTheme="outline"></span>
+    Gửi mã OTP
+  </button>
   }
 
   <!-- STEP 2: Verify OTP -->
   @if (currentStep === 2) {
-    <p style="color: #595959; margin-bottom: 16px;">Mã OTP đã gửi đến <strong>{{ maskedPhone }}</strong>:</p>
-    <div style="margin-bottom: 16px;">
-      <nz-input-group nzSize="large" nzPrefixIcon="lock">
-        <input nz-input [(ngModel)]="otp" placeholder="Nhập mã OTP 6 số" maxlength="6" />
-      </nz-input-group>
-    </div>
-    <button nz-button nzType="primary" nzBlock nzSize="large" [nzLoading]="loading" (click)="onVerifyOtp()">
-      <span nz-icon nzType="check-circle" nzTheme="outline"></span>
-      Xác thực & Gọi Món
-    </button>
-    <button nz-button nzType="link" nzBlock (click)="goBackToPhone()" style="margin-top: 8px;"> ← Đổi SĐT khác </button>
+  <p style="color: #595959; margin-bottom: 16px;">Mã OTP đã gửi đến <strong>{{ maskedPhone }}</strong>:</p>
+  <div style="margin-bottom: 16px;">
+    <nz-input-group nzSize="large" nzPrefixIcon="lock">
+      <input nz-input [(ngModel)]="otp" placeholder="Nhập mã OTP 6 số" maxlength="6" />
+    </nz-input-group>
+  </div>
+  <button nz-button nzType="primary" nzBlock nzSize="large" [nzLoading]="loading" (click)="onVerifyOtp()">
+    <span nz-icon nzType="check-circle" nzTheme="outline"></span>
+    Xác thực & Gọi Món
+  </button>
+  <button nz-button nzType="link" nzBlock (click)="goBackToPhone()" style="margin-top: 8px;"> ← Đổi SĐT khác </button>
   }
 
   <!-- STEP 3: Table Has Active Session Block -->
   @if (currentStep === 3) {
-    <div style="text-align: center;">
-      <nz-result
-        nzStatus="warning"
-        nzTitle="Bàn đang có phiên gọi món!"
-        [nzSubTitle]="'Bàn ' + (tableInfo?.tableNumber || '') + ' hiện đang có một phiên gọi món đang mở chưa đóng.'">
-        <div nz-result-extra>
-          <div style="background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 6px; margin-bottom: 16px; text-align: left; font-size: 13px; color: #595959;">
-            💡 <strong>Hướng dẫn Reset Bàn:</strong><br>
-            Vui lòng mở Terminal và chạy lệnh sau để xóa sạch phiên cũ và reset bàn về ban đầu:<br>
-            <code style="color: #d46b08; font-weight: bold; background: #fff1b8; padding: 2px 6px; border-radius: 4px;">node task/FE/flush-redis.js</code>
-          </div>
-          <button nz-button nzType="primary" (click)="ngOnInit()">
-            <span nz-icon nzType="reload"></span>
-            Tải lại trạng thái bàn
-          </button>
+  <div style="text-align: center;">
+    <nz-result nzStatus="warning" nzTitle="Bàn đang có phiên gọi món!"
+      [nzSubTitle]="'Bàn ' + (tableInfo?.tableNumber || '') + ' hiện đang có một phiên gọi món đang mở chưa đóng.'">
+      <div nz-result-extra>
+        <div
+          style="background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 6px; margin-bottom: 16px; text-align: left; font-size: 13px; color: #595959;">
+          💡 <strong>Hướng dẫn Reset Bàn:</strong><br>
+          Vui lòng mở Terminal và chạy lệnh sau để xóa sạch phiên cũ và reset bàn về ban đầu:<br>
+          <code
+            style="color: #d46b08; font-weight: bold; background: #fff1b8; padding: 2px 6px; border-radius: 4px;">docker exec -it redis-crm redis-cli flushall</code>
         </div>
-      </nz-result>
-    </div>
+        <button nz-button nzType="primary" (click)="ngOnInit()">
+          <span nz-icon nzType="reload"></span>
+          Tải lại trạng thái bàn
+        </button>
+      </div>
+    </nz-result>
+  </div>
   }
 </div>

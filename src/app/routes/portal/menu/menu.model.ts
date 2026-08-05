@@ -98,5 +98,60 @@ export interface CreateModifierOptionRequest {
   status?: string;
 }
 
+export interface UpdateCategoryRequest {
+  categoryName: string;
+  description?: string;
+  displayOrder?: number;
+}
+
+export interface UpdateProductRequest {
+  categoryId?: string;
+  productName: string;
+  description?: string;
+  price: number;
+  status?: string;
+  requiresPreparation?: boolean;
+}
+
+export interface UpdateComboRequest {
+  comboName: string;
+  description?: string;
+  price: number;
+  status?: string;
+}
+
+export interface UpdateModifierGroupRequest {
+  groupName: string;
+  description?: string;
+  minSelection: number;
+  maxSelection: number;
+}
+
+export interface UpdateModifierOptionRequest {
+  optionName: string;
+  additionalPrice: number;
+  status?: string;
+}
+
+export interface ProductSearchRequest {
+  productName?: string;
+  priceFrom?: number;
+  priceTo?: number;
+}
+
+export interface ComboSearchRequest {
+  comboName?: string;
+  priceFrom?: number;
+  priceTo?: number;
+}
+
+export interface PagingResponse<T> {
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+  totalElement: number;
+  data: T[];
+}
+
 export const MENU_STATUS_AVAILABLE = 'AVAILABLE';
 export const MENU_STATUS_UNAVAILABLE = 'UNAVAILABLE';
