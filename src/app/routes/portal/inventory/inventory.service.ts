@@ -54,6 +54,24 @@ export class InventoryService {
       .pipe(map(res => res.data));
   }
 
+  searchInventoryCategories(
+    categoryName: string,
+    page = 1,
+    size = 10
+  ): Observable<PagingResponse<InventoryCategoryResponse>> {
+    const params = new HttpParams()
+      .set('categoryName', categoryName)
+      .set('page', page)
+      .set('size', size);
+
+    return this.http
+      .get<ApiResponse<PagingResponse<InventoryCategoryResponse>>>(
+        `${this.CATEGORY_API}/search`,
+        { params }
+      )
+      .pipe(map(res => res.data));
+  }
+
   createInventoryCategory(
     request: CreateInventoryCategoryRequest
   ): Observable<InventoryCategoryResponse> {

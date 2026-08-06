@@ -7,7 +7,9 @@
       <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px">
         <input
           nz-input
+          [(ngModel)]="searchKeyword"
           [placeholder]="'app.inventory.category.searchPlaceholder' | i18n"
+          (keyup.enter)="search()"
         />
       </nz-input-group>
 

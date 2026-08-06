@@ -800,6 +800,10 @@
   "app.error.inventory.category.required": "Category is required",
   "app.error.inventory.name.required": "Inventory name is required",
   "app.error.inventory.unit.required": "Unit is required",
+  "app.error.inventory.transaction.quantity.required": "Quantity is required.",
+  "app.error.inventoryName.required": "Inventory name is required.",
+  "app.error.unit.required": "Unit is required.",
+  "app.error.minimumQuantity.required": "Minimum quantity is required.",
 
   "app.inventory.transaction.title": "Inventory Transactions",
 

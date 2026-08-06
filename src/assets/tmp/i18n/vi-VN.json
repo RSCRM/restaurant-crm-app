@@ -673,6 +673,10 @@
   "app.error.inventory.category.required": "Danh mục không được để trống",
   "app.error.inventory.name.required": "Tên nguyên liệu không được để trống",
   "app.error.inventory.unit.required": "Đơn vị không được để trống",
+  "app.error.inventory.transaction.quantity.required": "Vui lòng nhập số lượng.",
+  "app.error.inventoryName.required": "Vui lòng nhập tên tồn kho.",
+  "app.error.unit.required": "Vui lòng nhập đơn vị.",
+  "app.error.minimumQuantity.required": "Vui lòng nhập số lượng tối thiểu.",
   "app.inventory.transaction.title": "Lịch sử giao dịch kho",
 
   "app.inventory.transaction.search": "Tìm kiếm kho...",
