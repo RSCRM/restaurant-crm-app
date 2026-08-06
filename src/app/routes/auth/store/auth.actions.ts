@@ -6,7 +6,7 @@ export const AuthActions = createActionGroup({
   source: 'Auth',
   events: {
     'Init': emptyProps(),
-    'Restore Auth': props<{ accessToken: string; systemRoles: string[]; contextToken: string | null }>(),
+    'Restore Auth': props<{ accessToken: string; systemRoles: string[]; contextToken: string | null; contexts?: ContextInfo[] }>(),
 
     'Login': props<{ email: string; password: string }>(),
     'Login Success': props<{ accessToken: string; refreshToken: string; contexts: ContextInfo[]; systemRoles: string[] }>(),

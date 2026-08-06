@@ -5,6 +5,7 @@ import { environment } from '@env/environment';
 import { Observable, map } from 'rxjs';
 
 import { ApiResponse, ContextSelectionRequest, ContextSelectionResponse, LoginRequest, LoginResponse } from '../models/auth.model';
+import { ContextInfo } from '../store/auth.state';
 
 const API = environment.api['apiPrefix'];
 export interface PendingAttendanceAction {
@@ -79,10 +80,24 @@ export class AuthService {
     return localStorage.getItem('auth_accessToken');
   }
 
+  setContexts(contexts: ContextInfo[]): void {
+    localStorage.setItem('auth_contexts', JSON.stringify(contexts));
+  }
+
+  getContexts(): ContextInfo[] {
+    try {
+      const raw = localStorage.getItem('auth_contexts');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
   clearPersistedAuth(): void {
     localStorage.removeItem('auth_systemRoles');
     localStorage.removeItem('auth_contextToken');
     localStorage.removeItem('auth_accessToken');
+    localStorage.removeItem('auth_contexts');
   }
 
   capturePendingAttendance(): void {
