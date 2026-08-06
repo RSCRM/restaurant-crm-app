@@ -7,44 +7,29 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
-import { NzSelectModule } from 'ng-zorro-antd/select';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { mapApiError } from '../../../../shared/utils/api-error';
-import { BranchOptionResponse } from '../employee.model';
+import { EmployeeResponse, UpdateEmployeeRequest } from '../employee.model';
 import { EmployeeService } from '../employee.service';
 import { PHONE_PATTERN, toDateString } from '../employee.util';
 
 interface ModalData {
-  branches: BranchOptionResponse[];
+  employee: EmployeeResponse;
 }
 
-/**
- * B1 — chỉ tạo account + hồ sơ. Backend đặt `status = INACTIVE`, `orgRoleName = null`.
- * Gán vai trò và kích hoạt là hai hành động riêng ở cột thao tác của bảng.
- */
+/** B2 — patch-style. Gửi kèm `status` hiện tại; đổi trạng thái là popup riêng. */
 @Component({
-  selector: 'app-employee-form',
+  selector: 'app-employee-update-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzAlertModule,
-    NzButtonModule,
-    NzDatePickerModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    I18nPipe
-  ],
-  templateUrl: './employee-form.component.html',
-  styleUrl: './employee-form.component.less'
+  imports: [ReactiveFormsModule, NzAlertModule, NzButtonModule, NzDatePickerModule, NzFormModule, NzInputModule, I18nPipe],
+  templateUrl: './employee-update-form.component.html',
+  styleUrl: './employee-update-form.component.less'
 })
-export class EmployeeFormComponent {
+export class EmployeeUpdateFormComponent {
   private fb = inject(NonNullableFormBuilder);
   private modalRef = inject(NzModalRef);
   private employeeService = inject(EmployeeService);
@@ -54,18 +39,15 @@ export class EmployeeFormComponent {
   private i18n = inject(ALAIN_I18N_TOKEN);
   private modalData = inject<ModalData>(NZ_MODAL_DATA);
 
-  branches = this.modalData.branches;
+  employee = this.modalData.employee;
   loading = false;
   errorText = '';
 
   form = this.fb.group({
-    username: this.fb.control('', [Validators.required]),
-    email: this.fb.control('', [Validators.required, Validators.email]),
-    fullName: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(255)]),
-    phone: this.fb.control('', [Validators.pattern(PHONE_PATTERN)]),
-    branchId: this.fb.control('', [Validators.required]),
-    startDate: this.fb.control<Date | null>(null, [Validators.required]),
-    salary: this.fb.control<number | null>(null)
+    fullName: this.fb.control(this.employee.fullName ?? '', [Validators.minLength(2), Validators.maxLength(255)]),
+    phone: this.fb.control(this.employee.phone ?? '', [Validators.pattern(PHONE_PATTERN)]),
+    startDate: this.fb.control<Date | null>(this.employee.startDate ? new Date(this.employee.startDate) : null),
+    endDate: this.fb.control<Date | null>(null)
   });
 
   submit(): void {
@@ -79,18 +61,14 @@ export class EmployeeFormComponent {
     this.cdr.markForCheck();
 
     const raw = this.form.getRawValue();
+    const request: UpdateEmployeeRequest = { status: this.employee.status };
+    if (raw.fullName) request.fullName = raw.fullName;
+    if (raw.phone) request.phone = raw.phone;
+    if (raw.startDate) request.startDate = toDateString(raw.startDate);
+    if (raw.endDate) request.endDate = toDateString(raw.endDate);
 
     this.employeeService
-      .createEmployee({
-        username: raw.username,
-        email: raw.email,
-        fullName: raw.fullName,
-        // Bo trong thi control tra chuoi rong; gui chuoi rong len se an loi EMPLOYEE_PHONE_INVALID.
-        phone: raw.phone || undefined,
-        branchId: raw.branchId,
-        startDate: toDateString(raw.startDate!),
-        salary: raw.salary ?? undefined
-      })
+      .updateEmployee(this.employee.id, request)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(err => {
@@ -103,7 +81,7 @@ export class EmployeeFormComponent {
         })
       )
       .subscribe(() => {
-        this.message.success(this.i18n.fanyi('app.employee.form.addSuccess'));
+        this.message.success(this.i18n.fanyi('app.employee.form.updateSuccess'));
         this.modalRef.destroy(true);
       });
   }

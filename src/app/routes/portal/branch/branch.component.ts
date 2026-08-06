@@ -23,8 +23,6 @@ import { BranchManagerResponse, OrganizationBranchResponse, OrganizationBranchSt
 import { BranchService } from './branch.service';
 import { selectPermissions, selectSelectedContext } from '../../auth/store/auth.selectors';
 import { SelectedContext } from '../../auth/store/auth.state';
-import { EmployeeSelectionModalComponent } from '../employee/employee-selection-modal/employee-selection-modal.component';
-import { EmployeeResponse } from '../employee/employee.model';
 
 @Component({
   selector: 'app-branch',
@@ -242,37 +240,11 @@ export class BranchComponent implements OnInit {
       });
   }
 
-  openAssignManager(branch: OrganizationBranchResponse): void {
-    const modalRef = this.modal.create({
-      nzTitle: this.translate('branch.manager.assign'),
-      nzContent: EmployeeSelectionModalComponent,
-      nzWidth: 'min(1200px, calc(100vw - 32px))',
-      nzFooter: null,
-      nzBodyStyle: {
-        padding: '16px 24px 0',
-        maxHeight: 'calc(100vh - 180px)',
-        overflow: 'auto'
-      },
-      nzData: {
-        organizationId: branch.organizationId,
-        branchId: branch.id,
-        role: 'MANAGER',
-        status: 'ACTIVE'
-      }
-    });
-
-    modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((employee?: EmployeeResponse) => {
-      if (!employee) return;
-
-      const managerUserId = employee.userId;
-      if (!managerUserId) {
-        this.message.error(this.translate('branch.manager.errors.notFound'));
-        return;
-      }
-
-      this.assignManager(branch, managerUserId);
-    });
-  }
+  // openAssignManager() da bi go: no dua tren EmployeeSelectionModalComponent va truong
+  // EmployeeResponse.userId, ca hai deu khong con sau khi employee module duoc viet lai theo
+  // API contract that (EmployeeResponse khong co userId). Can dung lai bang mot employee picker
+  // moi truoc khi bat lai nut "Gan quan ly" trong branch.component.html.
+  // Phuong thuc assignManager() ben duoi duoc giu nguyen de noi lai khi co picker.
 
   removeManager(branch: OrganizationBranchResponse): void {
     this.loading = true;

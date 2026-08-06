@@ -5,28 +5,26 @@ import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
-import { EmployeeResponse } from '../employee.model';
+import { OrgRoleResponse } from '../org-role.model';
 
 interface ModalData {
-  employee: EmployeeResponse;
-  branchName: string;
+  role: OrgRoleResponse;
 }
 
-/** Chỉ đọc — backend chưa có API get-1-employee nên dựng từ dữ liệu dòng. */
+/** Chỉ đọc — dựng từ dữ liệu dòng vì A2 đã trả kèm mảng permissions, không cần gọi lại A3. */
 @Component({
-  selector: 'app-employee-detail',
+  selector: 'app-org-role-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NzButtonModule, NzDescriptionsModule, NzTagModule, I18nPipe],
-  templateUrl: './employee-detail.component.html',
-  styleUrl: './employee-detail.component.less'
+  templateUrl: './org-role-detail.component.html',
+  styleUrl: './org-role-detail.component.less'
 })
-export class EmployeeDetailComponent {
+export class OrgRoleDetailComponent {
   private modalRef = inject(NzModalRef);
   private modalData = inject<ModalData>(NZ_MODAL_DATA);
 
-  employee = this.modalData.employee;
-  branchName = this.modalData.branchName;
+  role = this.modalData.role;
 
   close(): void {
     this.modalRef.destroy();

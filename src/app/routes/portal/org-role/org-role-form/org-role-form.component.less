@@ -1,0 +1,46 @@
+.modal-header {
+  margin-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.form-alert {
+  margin-bottom: 16px;
+}
+
+// Multi-column thay vi grid: doc doc tung cot, so cot tu co gian theo be rong popup.
+// Khong dat max-height o day - multi-column gap chieu cao bi gioi han se sinh them cot
+// va cuon ngang thay vi cuon doc.
+.permission-grid {
+  column-width: 220px;
+  column-gap: 16px;
+  padding: 4px 0;
+
+  // ng-zorro dat margin-left: 8px cho moi .ant-checkbox-wrapper dung sau mot wrapper khac
+  // (checkbox/style/index.css:160), khien item dau tien lech so voi cac item cung cot.
+  // display: flex chu KHONG phai block. ng-zorro dat .ant-checkbox-wrapper la inline-flex
+  // voi align-items: baseline, va .ant-checkbox ben trong co top: 0.2em duoc tinh chinh cho
+  // dung flex context do. Dat block se pha flex context va lam o checkbox lech khoi dong chu.
+  // flex giu nguyen align-items cua ng-zorro ma van la block-level de multi-column xep duoc.
+  label[nz-checkbox] {
+    display: flex;
+    break-inside: avoid;
+    margin-bottom: 8px;
+    margin-left: 0;
+  }
+}
+
+.permission-empty {
+  padding: 8px 0;
+  color: #8c8c8c;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
