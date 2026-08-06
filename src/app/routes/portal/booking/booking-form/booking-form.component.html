@@ -1,7 +1,7 @@
 <nz-spin [nzSpinning]="loading">
   <div style="padding: 16px">
     <h3 style="margin-bottom: 20px; font-weight: bold; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px">
-      {{ isEditMode ? 'Chỉnh Sửa Đặt Bàn' : 'Tạo Đặt Bàn Mới' }}
+      {{ (isEditMode ? 'booking-form.title.edit' : 'booking-form.title.create') | i18n }}
     </h3>
 
     <form nz-form [formGroup]="form" (ngSubmit)="submit()">
@@ -9,9 +9,9 @@
         <!-- Phone number -->
         <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label nzRequired [nzSpan]="24">Số Điện Thoại Khách</nz-form-label>
-            <nz-form-control nzErrorTip="Số điện thoại phải từ 9 - 15 chữ số">
-              <input nz-input formControlName="customerPhone" placeholder="Nhập SĐT khách hàng..." />
+            <nz-form-label nzRequired [nzSpan]="24">{{ 'booking-form.label.phone' | i18n }}</nz-form-label>
+            <nz-form-control [nzErrorTip]="'booking-form.error.phone' | i18n">
+              <input nz-input formControlName="customerPhone" [placeholder]="'booking-form.placeholder.phone' | i18n" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -19,9 +19,9 @@
         <!-- Name -->
         <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label [nzSpan]="24">Tên Khách Hàng (Tùy chọn)</nz-form-label>
+            <nz-form-label [nzSpan]="24">{{ 'booking-form.label.name' | i18n }}</nz-form-label>
             <nz-form-control>
-              <input nz-input formControlName="customerName" placeholder="Nhập tên khách hàng..." />
+              <input nz-input formControlName="customerName" [placeholder]="'booking-form.placeholder.name' | i18n" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -31,8 +31,8 @@
         <!-- Date / Time -->
         <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label nzRequired [nzSpan]="24">Thời Gian Đặt</nz-form-label>
-            <nz-form-control nzErrorTip="Vui lòng chọn thời gian đặt bàn">
+            <nz-form-label nzRequired [nzSpan]="24">{{ 'booking-form.label.time' | i18n }}</nz-form-label>
+            <nz-form-control [nzErrorTip]="'booking-form.error.time' | i18n">
               <nz-date-picker
                 formControlName="bookingTime"
                 [nzShowTime]="{ nzFormat: 'HH:mm' }"
@@ -47,8 +47,8 @@
         <!-- Duration -->
         <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label nzRequired [nzSpan]="24">Thời Lượng (Giờ)</nz-form-label>
-            <nz-form-control nzErrorTip="Vui lòng nhập thời lượng (> 0)">
+            <nz-form-label nzRequired [nzSpan]="24">{{ 'booking-form.label.duration' | i18n }}</nz-form-label>
+            <nz-form-control [nzErrorTip]="'booking-form.error.duration' | i18n">
               <nz-input-number formControlName="duration" [nzMin]="0.1" [nzStep]="0.5" style="width: 100%" />
             </nz-form-control>
           </nz-form-item>
@@ -57,43 +57,43 @@
 
       <!-- Note -->
       <nz-form-item>
-        <nz-form-label [nzSpan]="24">Ghi Chú Đặt Bàn</nz-form-label>
-        <nz-form-control nzErrorTip="Ghi chú quá dài">
+        <nz-form-label [nzSpan]="24">{{ 'booking-form.label.note' | i18n }}</nz-form-label>
+        <nz-form-control>
           <textarea
             nz-input
             formControlName="note"
             rows="2"
-            placeholder="Ghi chú thêm (ví dụ: ngồi góc phòng, có trẻ nhỏ...)..."
+            [placeholder]="'booking-form.placeholder.note' | i18n"
           ></textarea>
         </nz-form-control>
       </nz-form-item>
 
       <!-- Table Selection List (Green/Red overlapping check) -->
       <div style="margin-top: 16px">
-        <label style="font-weight: 500; font-size: 14px">Chọn Bàn Khả Dụng (Green = Trống, Red = Bị trùng giờ/Sức chứa nhỏ)</label>
+        <label style="font-weight: 500; font-size: 14px">{{ 'booking-form.label.table-select' | i18n }}</label>
         <div class="table-list-container">
           @if (tablesWithAvailability.length === 0) {
-            <div style="text-align: center; padding: 20px; color: #999"> Chưa có danh sách bàn hoặc dữ liệu chưa hợp lệ </div>
+            <div style="text-align: center; padding: 20px; color: #999"> {{ 'booking-form.table-select.empty' | i18n }} </div>
           }
 
           @for (t of tablesWithAvailability; track t.id) {
             <div class="table-item" [class.selected]="selectedTableId === t.id" [class.disabled]="!t.isAvailable" (click)="selectTable(t)">
               <div style="display: flex; justify-content: space-between; align-items: center">
                 <div>
-                  <strong>Bàn {{ t.tableNumber }}</strong>
-                  <span style="font-size: 12px; color: #666; margin-left: 8px">({{ t.areaName }} - Sức chứa: {{ t.capacity }} khách)</span>
+                  <strong>{{ 'booking-form.table.name' | i18n: { number: t.tableNumber } }}</strong>
+                  <span style="font-size: 12px; color: #666; margin-left: 8px">{{ 'booking-form.table.info' | i18n: { area: t.areaName, capacity: t.capacity } }}</span>
                 </div>
                 <div>
                   @if (t.isAvailable) {
-                    <nz-tag nzColor="success">Trống</nz-tag>
+                    <nz-tag nzColor="success">{{ 'booking-form.table.status.available' | i18n }}</nz-tag>
                   }
                   @if (!t.isAvailable) {
-                    <nz-tag nzColor="error" [nzTooltipTitle]="t.reason" nz-tooltip>Bận</nz-tag>
+                    <nz-tag nzColor="error" [nzTooltipTitle]="t.reason" nz-tooltip>{{ 'booking-form.table.status.busy' | i18n }}</nz-tag>
                   }
                 </div>
               </div>
               @if (!t.isAvailable && t.reason) {
-                <div style="font-size: 11px; color: #f5222d; margin-top: 4px"> Lý do: {{ t.reason }} </div>
+                <div style="font-size: 11px; color: #f5222d; margin-top: 4px"> {{ 'booking-form.table.reason-label' | i18n: { reason: t.reason } }} </div>
               }
             </div>
           }
@@ -102,9 +102,9 @@
 
       <!-- Actions -->
       <div style="margin-top: 24px; text-align: right">
-        <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting" style="margin-right: 8px"> Hủy </button>
+        <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting" style="margin-right: 8px"> {{ 'booking-form.btn.cancel' | i18n }} </button>
         <button nz-button nzType="primary" type="submit" [nzLoading]="submitting" [disabled]="form.invalid || !selectedTableId">
-          {{ isEditMode ? 'Cập Nhật Đặt Bàn' : 'Xác Nhận Đặt Bàn' }}
+          {{ (isEditMode ? 'booking-form.btn.update' : 'booking-form.btn.create') | i18n }}
         </button>
       </div>
     </form>

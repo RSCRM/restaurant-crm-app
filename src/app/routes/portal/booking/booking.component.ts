@@ -188,8 +188,17 @@ export class BookingComponent implements OnInit, OnDestroy {
         const isManager = payload['role'] === 'ADMIN' || payload['orgRole'] === 'OWNER' || payload['orgRole'] === 'MANAGER';
         this.hasCreatePermission = permissions.includes('BOOKING_CREATE') || isManager;
         this.hasUpdatePermission = permissions.includes('BOOKING_UPDATE') || isManager;
+        if (this.branchId) {
+          this.loadData();
+        }
+      } else {
+        this.branchId = null;
+        this.bookingsList = [];
+        this.displayBookings = [];
+        this.total = 0;
+        this.loading = false;
+        this.cdr.markForCheck();
       }
-      this.loadData();
     });
 
     this.refreshIntervalId = setInterval(() => {
@@ -215,6 +224,15 @@ export class BookingComponent implements OnInit, OnDestroy {
   }
 
   loadData(): void {
+    if (!this.branchId) {
+      this.loading = false;
+      this.bookingsList = [];
+      this.displayBookings = [];
+      this.total = 0;
+      this.cdr.markForCheck();
+      return;
+    }
+
     this.loading = true;
     this.cdr.markForCheck();
 
@@ -224,7 +242,7 @@ export class BookingComponent implements OnInit, OnDestroy {
     };
 
     const searchRequest: BookingSearchRequest = {
-      branchId: this.branchId || null,
+      branchId: this.branchId,
       searchKeyword: this.searchPhone.trim() || null,
       status: this.filterStatus !== 'ALL' ? this.filterStatus : null,
       minGuests: this.filterMinGuests,
