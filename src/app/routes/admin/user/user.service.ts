@@ -6,6 +6,7 @@ import { Observable, map } from 'rxjs';
 import { ApiResponse } from '../../../routes/auth/models/auth.model';
 import {
   PagingResponse,
+  RoleResponse,
   UserCreationRequest,
   UserResponse,
   UserRolesUpdateRequest,
@@ -19,6 +20,17 @@ export class UserService {
   private http = inject(HttpClient);
 
   private readonly USER_API = `${API}/users`;
+  private readonly ROLE_API = `${API}/roles`;
+
+  getRoles(): Observable<RoleResponse[]> {
+    return this.http
+      .get<ApiResponse<any>>(this.ROLE_API)
+      .pipe(map(res => {
+        const d = res.data;
+        // API có thể trả về array trực tiếp hoặc paging object { data: [...] }
+        return Array.isArray(d) ? d : (d?.data ?? []);
+      }));
+  }
 
   searchUsers(
     filter: UserSearchRequest,
