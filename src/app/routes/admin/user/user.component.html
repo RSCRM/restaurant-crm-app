@@ -44,53 +44,41 @@
   <!-- Filter Panel -->
   @if (showFilter) {
     <div class="filter-panel">
-      <div nz-row [nzGutter]="[16, 16]">
-        <!-- Status -->
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.user.filter.status' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-select
-                [(ngModel)]="filter.status"
-                [nzPlaceHolder]="'app.user.filter.all' | i18n"
-                [nzAllowClear]="true"
-              >
-                @for (opt of statusOptions; track opt.value) {
-                  <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
-                }
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item>
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.user.filter.status' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    [(ngModel)]="filter.status"
+                    style="width: 100%;"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.user.filter.roleName' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    [(ngModel)]="filter.roleName"
+                    style="width: 100%;"
+                  >
+                    @for (opt of roleOptions; track opt.value) {
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
         </div>
-
-        <!-- Role Name -->
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.user.filter.roleName' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-select
-                [(ngModel)]="filter.roleName"
-                [nzPlaceHolder]="'app.user.filter.all' | i18n"
-                [nzAllowClear]="true"
-              >
-                @for (opt of roleOptions; track opt.value) {
-                  <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
-                }
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </div>
-
-      <!-- Filter Actions -->
-      <div class="filter-actions">
-        <button nz-button nzType="primary" (click)="search()">
-          <span nz-icon nzType="search" nzTheme="outline"></span>
-          {{ 'app.user.applyFilter' | i18n }}
-        </button>
-        <button nz-button nzType="default" (click)="clearFilter()">
-          {{ 'app.user.clearFilter' | i18n }}
-        </button>
       </div>
     </div>
   }

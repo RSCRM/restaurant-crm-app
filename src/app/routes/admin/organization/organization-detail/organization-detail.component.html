@@ -11,7 +11,8 @@
     </button>
   </ng-template>
 
-  <nz-card [nzTitle]="'app.organization.detail.info' | i18n">
+  <!-- Org Info -->
+  <nz-card [nzTitle]="'app.organization.detail.info' | i18n" class="mb-16">
     <nz-descriptions nzBordered [nzColumn]="2">
       <nz-descriptions-item [nzTitle]="'app.organization.detail.id' | i18n">{{ organization.id }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.col.name' | i18n">{{ organization.organizationName }}</nz-descriptions-item>
@@ -28,5 +29,222 @@
       <nz-descriptions-item [nzTitle]="'app.organization.col.createdAt' | i18n">{{ organization.createdAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.detail.updatedAt' | i18n">{{ organization.updatedAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
     </nz-descriptions>
+  </nz-card>
+
+  <!-- Subscription History -->
+  <nz-card [nzTitle]="'app.subscription.title' | i18n">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <nz-input-group [nzPrefix]="prefixSearch" style="width: 250px;">
+          <input
+            nz-input
+            [placeholder]="'app.license.searchPlaceholder' | i18n"
+            [(ngModel)]="searchValue"
+            (keyup.enter)="search()"
+          />
+        </nz-input-group>
+        <ng-template #prefixSearch>
+          <span nz-icon nzType="search" nzTheme="outline"></span>
+        </ng-template>
+
+        <button nz-button nzType="primary" (click)="search()">
+          {{ 'app.license.search' | i18n }}
+        </button>
+
+        <button nz-button nzType="default" (click)="toggleFilter()">
+          <span nz-icon nzType="filter" nzTheme="outline"></span>
+          {{ 'app.license.filter' | i18n }}
+          @if (hasActiveFilter) {
+            <span class="filter-badge"></span>
+          }
+        </button>
+
+        @if (hasActiveFilter) {
+          <button nz-button nzType="default" nzDanger (click)="clearFilter()">
+            <span nz-icon nzType="close-circle" nzTheme="outline"></span>
+            {{ 'app.license.clearFilter' | i18n }}
+          </button>
+        }
+      </div>
+      <div class="toolbar-right">
+        <button nz-button nzType="primary" (click)="openGrantSubscription()">
+          <i nz-icon nzType="plus"></i>{{ 'app.subscription.create' | i18n }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Panel -->
+    @if (showFilter) {
+      <div class="filter-panel">
+        <!-- Row 1: Status + Billing Cycle | Price From + Price To -->
+        <div nz-row [nzGutter]="[16, 0]">
+          <div nz-col [nzSpan]="12">
+            <div nz-row [nzGutter]="[16, 0]">
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.status' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-select
+                      [(ngModel)]="filter['status']"
+                      style="width: 100%;"
+                    >
+                      @for (opt of statusOptions; track opt.value) {
+                        <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.billingCycle' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-select
+                      [(ngModel)]="filter['billingCycle']"
+                      style="width: 100%;"
+                    >
+                      @for (opt of billingCycleOptions; track opt.value) {
+                        <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div nz-row [nzGutter]="[16, 0]">
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.priceFrom' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number
+                      [(ngModel)]="filter['priceFrom']"
+                      [nzMin]="0"
+                      [nzStep]="100000"
+                      [nzFormatter]="priceFormatter"
+                      [nzPlaceHolder]="'app.license.filter.priceFrom' | i18n"
+                      style="width: 100%;"
+                    ></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.priceTo' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number
+                      [(ngModel)]="filter['priceTo']"
+                      [nzMin]="0"
+                      [nzStep]="100000"
+                      [nzFormatter]="priceFormatter"
+                      [nzPlaceHolder]="'app.license.filter.priceTo' | i18n"
+                      style="width: 100%;"
+                    ></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Max Branch From + To | Max Employee From + To -->
+        <div nz-row [nzGutter]="[16, 0]" style="margin-top: 8px;">
+          <div nz-col [nzSpan]="12">
+            <div nz-row [nzGutter]="[16, 0]">
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.maxBranchFrom' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number
+                      [(ngModel)]="filter['maxBranchFrom']"
+                      [nzMin]="0"
+                      [nzPlaceHolder]="'app.license.filter.maxBranchFrom' | i18n"
+                      style="width: 100%;"
+                    ></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.maxBranchTo' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number
+                      [(ngModel)]="filter['maxBranchTo']"
+                      [nzMin]="0"
+                      [nzPlaceHolder]="'app.license.filter.maxBranchTo' | i18n"
+                      style="width: 100%;"
+                    ></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <div nz-row [nzGutter]="[16, 0]">
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.maxEmployeeFrom' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number
+                      [(ngModel)]="filter['maxEmployeeFrom']"
+                      [nzMin]="0"
+                      [nzPlaceHolder]="'app.license.filter.maxEmployeeFrom' | i18n"
+                      style="width: 100%;"
+                    ></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label>{{ 'app.license.filter.maxEmployeeTo' | i18n }}</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number
+                      [(ngModel)]="filter['maxEmployeeTo']"
+                      [nzMin]="0"
+                      [nzPlaceHolder]="'app.license.filter.maxEmployeeTo' | i18n"
+                      style="width: 100%;"
+                    ></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Table -->
+    <st
+      #st
+      [columns]="subColumns"
+      [data]="subscriptions"
+      [total]="subTotal"
+      [ps]="subPageSize"
+      [pi]="subCurrentPage"
+      [loading]="subLoading"
+      [scroll]="{ x: '1400px' }"
+      [page]="{ show: true, showSize: true }"
+      (change)="onSubSTChange($event)"
+    >
+      <ng-template st-row="status" let-item>
+        <nz-tag [nzColor]="getSubStatusColor(item.status)">
+          {{ getSubStatusText(item.status) | i18n }}
+        </nz-tag>
+      </ng-template>
+      <ng-template st-row="billingCycle" let-item>
+        {{ item.billingCycle === 'YEARLY' ? ('app.license.billing.yearly' | i18n) : ('app.license.billing.monthly' | i18n) }}
+      </ng-template>
+      <ng-template st-row="price" let-item>
+        {{ item.price?.toLocaleString('vi-VN') }} ₫
+      </ng-template>
+      <ng-template st-row="maxBranch" let-item>
+        {{ item.maxBranch === -1 ? '∞' : item.maxBranch }}
+      </ng-template>
+      <ng-template st-row="maxEmployee" let-item>
+        {{ item.maxEmployee === -1 ? '∞' : item.maxEmployee }}
+      </ng-template>
+    </st>
   </nz-card>
 }

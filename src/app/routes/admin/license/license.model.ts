@@ -65,9 +65,15 @@ export interface GrantSubscriptionRequest {
   startDate?: string;
 }
 
+export interface LicenseInfo {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export interface SubscriptionResponse {
   id: string;
-  licenseId: string;
+  license: LicenseInfo;
   organizationId: string;
   startDate: string;
   endDate: string;

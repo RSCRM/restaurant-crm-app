@@ -136,6 +136,7 @@
   "app.error.billingCycle.required": "Vui lòng chọn chu kỳ",
   "app.error.maxBranch.hint": "Nhập -1 cho không giới hạn",
   "app.error.orgId.required": "Vui lòng nhập ID tổ chức",
+  "app.error.licenseId.required": "Vui lòng chọn license",
   "app.portal.dashboard.title": "Bảng điều khiển",
   "app.portal.order.title": "Quản lý Đơn hàng",
   "app.portal.order.desc": "Danh sách và quản lý đơn hàng",

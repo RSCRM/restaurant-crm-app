@@ -1,0 +1,63 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.subscription.create' | i18n }}</div>
+</div>
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.license.title' | i18n }}</nz-form-label>
+    <nz-form-control [nzErrorTip]="'app.error.licenseId.required' | i18n">
+      <input
+        nz-input
+        [placeholder]="'app.license.searchPlaceholder' | i18n"
+        (input)="onSearch(searchInput.value)"
+        #searchInput
+      />
+      <div class="license-listbox">
+        @if (licenseLoading) {
+          <div class="license-listbox-loading">
+            <nz-spin nzSimple></nz-spin>
+          </div>
+        } @else if (licenses.length === 0) {
+          <div class="license-listbox-empty">Không có license nào</div>
+        } @else {
+          @for (license of licenses; track license.id) {
+            <div
+              class="license-item"
+              [class.selected]="form.getRawValue().licenseId === license.id"
+              (click)="selectLicense(license.id)"
+            >
+              <div class="license-item-header">
+                <span class="radio-dot" [class.checked]="form.getRawValue().licenseId === license.id"></span>
+                <span class="license-name">{{ license.name }}</span>
+              </div>
+              <div class="license-item-details">
+                @if (license.code) {
+                  <div class="license-detail-line">Code: {{ license.code }}</div>
+                }
+                @if (license.billingCycle) {
+                  <div class="license-detail-line">{{ license.billingCycle }}</div>
+                }
+                @if (license.price != null) {
+                  <div class="license-detail-line">Price: {{ license.price | number }}đ</div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.form.startDate.label' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker formControlName="startDate" class="full-width" [nzPlaceHolder]="'app.form.startDate.placeholder' | i18n"></nz-date-picker>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ 'app.form.grant' | i18n }}
+    </button>
+  </div>
+</form>

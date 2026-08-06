@@ -44,171 +44,172 @@
   <!-- Filter Panel -->
   @if (showFilter) {
     <div class="filter-panel">
-      <div nz-row [nzGutter]="[16, 16]">
-        <!-- Status -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.status' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-select
-                [(ngModel)]="filter.status"
-                [nzPlaceHolder]="'app.license.filter.all' | i18n"
-                [nzAllowClear]="true"
-              >
-                @for (opt of statusOptions; track opt.value) {
-                  <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
-                }
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item>
+      <!-- Row 1: Group 1 (Status + Billing Cycle) | Group 2 (Price From + Price To) -->
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.status' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    [(ngModel)]="filter.status"
+                    style="width: 100%;"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.billingCycle' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    [(ngModel)]="filter.billingCycle"
+                    style="width: 100%;"
+                  >
+                    @for (opt of billingCycleOptions; track opt.value) {
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
         </div>
-
-        <!-- Billing Cycle -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.billingCycle' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-select
-                [(ngModel)]="filter.billingCycle"
-                [nzPlaceHolder]="'app.license.filter.all' | i18n"
-                [nzAllowClear]="true"
-              >
-                @for (opt of billingCycleOptions; track opt.value) {
-                  <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
-                }
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <!-- Price Range -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.priceFrom' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                [(ngModel)]="filter.priceFrom"
-                [nzMin]="0"
-                [nzStep]="100000"
-                [nzFormatter]="priceFormatter"
-                [nzPlaceHolder]="'app.license.filter.priceFrom' | i18n"
-                style="width: 100%;"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.priceTo' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                [(ngModel)]="filter.priceTo"
-                [nzMin]="0"
-                [nzStep]="100000"
-                [nzFormatter]="priceFormatter"
-                [nzPlaceHolder]="'app.license.filter.priceTo' | i18n"
-                style="width: 100%;"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <!-- Max Branch Range -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.maxBranchFrom' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                [(ngModel)]="filter.maxBranchFrom"
-                [nzMin]="0"
-                [nzPlaceHolder]="'app.license.filter.maxBranchFrom' | i18n"
-                style="width: 100%;"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.maxBranchTo' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                [(ngModel)]="filter.maxBranchTo"
-                [nzMin]="0"
-                [nzPlaceHolder]="'app.license.filter.maxBranchTo' | i18n"
-                style="width: 100%;"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <!-- Max Employee Range -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.maxEmployeeFrom' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                [(ngModel)]="filter.maxEmployeeFrom"
-                [nzMin]="0"
-                [nzPlaceHolder]="'app.license.filter.maxEmployeeFrom' | i18n"
-                style="width: 100%;"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.maxEmployeeTo' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                [(ngModel)]="filter.maxEmployeeTo"
-                [nzMin]="0"
-                [nzPlaceHolder]="'app.license.filter.maxEmployeeTo' | i18n"
-                style="width: 100%;"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <!-- Date Range -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.createdAtFrom' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-date-picker
-                [(ngModel)]="filter.createdAtFrom"
-                [nzPlaceHolder]="'app.license.filter.createdAtFrom' | i18n"
-                style="width: 100%;"
-              ></nz-date-picker>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.license.filter.createdAtTo' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-date-picker
-                [(ngModel)]="filter.createdAtTo"
-                [nzPlaceHolder]="'app.license.filter.createdAtTo' | i18n"
-                style="width: 100%;"
-              ></nz-date-picker>
-            </nz-form-control>
-          </nz-form-item>
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.priceFrom' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number
+                    [(ngModel)]="filter.priceFrom"
+                    [nzMin]="0"
+                    [nzStep]="100000"
+                    [nzFormatter]="priceFormatter"
+                    [nzPlaceHolder]="'app.license.filter.priceFrom' | i18n"
+                    style="width: 100%;"
+                  ></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.priceTo' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number
+                    [(ngModel)]="filter.priceTo"
+                    [nzMin]="0"
+                    [nzStep]="100000"
+                    [nzFormatter]="priceFormatter"
+                    [nzPlaceHolder]="'app.license.filter.priceTo' | i18n"
+                    style="width: 100%;"
+                  ></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Filter Actions -->
-      <div class="filter-actions">
-        <button nz-button nzType="primary" (click)="search()">
-          <span nz-icon nzType="search" nzTheme="outline"></span>
-          {{ 'app.license.applyFilter' | i18n }}
-        </button>
-        <button nz-button nzType="default" (click)="clearFilter()">
-          {{ 'app.license.clearFilter' | i18n }}
-        </button>
+      <!-- Row 2: Group 3 (Max Branch From + To) | Group 4 (Max Employee From + To) -->
+      <div nz-row [nzGutter]="[16, 0]" style="margin-top: 8px;">
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.maxBranchFrom' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number
+                    [(ngModel)]="filter.maxBranchFrom"
+                    [nzMin]="0"
+                    [nzPlaceHolder]="'app.license.filter.maxBranchFrom' | i18n"
+                    style="width: 100%;"
+                  ></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.maxBranchTo' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number
+                    [(ngModel)]="filter.maxBranchTo"
+                    [nzMin]="0"
+                    [nzPlaceHolder]="'app.license.filter.maxBranchTo' | i18n"
+                    style="width: 100%;"
+                  ></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </div>
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.maxEmployeeFrom' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number
+                    [(ngModel)]="filter.maxEmployeeFrom"
+                    [nzMin]="0"
+                    [nzPlaceHolder]="'app.license.filter.maxEmployeeFrom' | i18n"
+                    style="width: 100%;"
+                  ></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.maxEmployeeTo' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number
+                    [(ngModel)]="filter.maxEmployeeTo"
+                    [nzMin]="0"
+                    [nzPlaceHolder]="'app.license.filter.maxEmployeeTo' | i18n"
+                    style="width: 100%;"
+                  ></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Group 5 (Created From + To) -->
+      <div nz-row [nzGutter]="[16, 0]" style="margin-top: 8px;">
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.createdAtFrom' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-date-picker
+                    [(ngModel)]="filter.createdAtFrom"
+                    [nzPlaceHolder]="'app.license.filter.createdAtFrom' | i18n"
+                    style="width: 100%;"
+                  ></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.license.filter.createdAtTo' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-date-picker
+                    [(ngModel)]="filter.createdAtTo"
+                    [nzPlaceHolder]="'app.license.filter.createdAtTo' | i18n"
+                    style="width: 100%;"
+                  ></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   }
