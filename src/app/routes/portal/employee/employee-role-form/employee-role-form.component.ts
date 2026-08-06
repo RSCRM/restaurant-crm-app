@@ -4,47 +4,36 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { mapApiError } from '../../../../shared/utils/api-error';
-import { BranchOptionResponse } from '../employee.model';
+import { OrgRoleResponse } from '../../org-role/org-role.model';
+import { EmployeeResponse } from '../employee.model';
 import { EmployeeService } from '../employee.service';
-import { PHONE_PATTERN, toDateString } from '../employee.util';
 
 interface ModalData {
-  branches: BranchOptionResponse[];
+  employee: EmployeeResponse;
+  roles: OrgRoleResponse[];
 }
 
 /**
- * B1 — chỉ tạo account + hồ sơ. Backend đặt `status = INACTIVE`, `orgRoleName = null`.
- * Gán vai trò và kích hoạt là hai hành động riêng ở cột thao tác của bảng.
+ * B3 — dùng cho cả lần gán đầu lẫn đổi vai trò về sau.
+ * Gán vai trò không tự kích hoạt nhân viên; muốn ACTIVE phải đổi trạng thái riêng.
+ * Danh sách vai trò được trang danh sách prefetch rồi truyền vào, không gọi lại ở đây.
  */
 @Component({
-  selector: 'app-employee-form',
+  selector: 'app-employee-role-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzAlertModule,
-    NzButtonModule,
-    NzDatePickerModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    I18nPipe
-  ],
-  templateUrl: './employee-form.component.html',
-  styleUrl: './employee-form.component.less'
+  imports: [ReactiveFormsModule, NzAlertModule, NzButtonModule, NzFormModule, NzSelectModule, I18nPipe],
+  templateUrl: './employee-role-form.component.html',
+  styleUrl: './employee-role-form.component.less'
 })
-export class EmployeeFormComponent {
+export class EmployeeRoleFormComponent {
   private fb = inject(NonNullableFormBuilder);
   private modalRef = inject(NzModalRef);
   private employeeService = inject(EmployeeService);
@@ -54,18 +43,13 @@ export class EmployeeFormComponent {
   private i18n = inject(ALAIN_I18N_TOKEN);
   private modalData = inject<ModalData>(NZ_MODAL_DATA);
 
-  branches = this.modalData.branches;
+  employee = this.modalData.employee;
+  roles = this.modalData.roles;
   loading = false;
   errorText = '';
 
   form = this.fb.group({
-    username: this.fb.control('', [Validators.required]),
-    email: this.fb.control('', [Validators.required, Validators.email]),
-    fullName: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(255)]),
-    phone: this.fb.control('', [Validators.pattern(PHONE_PATTERN)]),
-    branchId: this.fb.control('', [Validators.required]),
-    startDate: this.fb.control<Date | null>(null, [Validators.required]),
-    salary: this.fb.control<number | null>(null)
+    orgRoleId: this.fb.control('', [Validators.required])
   });
 
   submit(): void {
@@ -78,19 +62,8 @@ export class EmployeeFormComponent {
     this.loading = true;
     this.cdr.markForCheck();
 
-    const raw = this.form.getRawValue();
-
     this.employeeService
-      .createEmployee({
-        username: raw.username,
-        email: raw.email,
-        fullName: raw.fullName,
-        // Bo trong thi control tra chuoi rong; gui chuoi rong len se an loi EMPLOYEE_PHONE_INVALID.
-        phone: raw.phone || undefined,
-        branchId: raw.branchId,
-        startDate: toDateString(raw.startDate!),
-        salary: raw.salary ?? undefined
-      })
+      .assignRole(this.employee.id, this.form.getRawValue().orgRoleId)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(err => {
@@ -103,7 +76,7 @@ export class EmployeeFormComponent {
         })
       )
       .subscribe(() => {
-        this.message.success(this.i18n.fanyi('app.employee.form.addSuccess'));
+        this.message.success(this.i18n.fanyi('app.employee.form.roleSuccess'));
         this.modalRef.destroy(true);
       });
   }

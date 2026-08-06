@@ -1,0 +1,31 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.employee.form.statusTitle' | i18n }}</div>
+</div>
+
+@if (errorText) {
+  <nz-alert nzType="error" [nzMessage]="errorText" nzShowIcon class="form-alert" />
+}
+
+@if (!canActivate) {
+  <nz-alert nzType="info" [nzMessage]="'app.employee.form.activateDisabledHint' | i18n" nzShowIcon class="form-alert" />
+}
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.status' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-select formControlName="status">
+        @for (option of statusOptions; track option.value) {
+          <nz-option [nzValue]="option.value" [nzLabel]="option.labelKey | i18n" [nzDisabled]="option.disabled" />
+        }
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.employee.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ 'app.employee.form.submit' | i18n }}
+    </button>
+  </div>
+</form>

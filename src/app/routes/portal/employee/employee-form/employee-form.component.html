@@ -1,115 +1,69 @@
-<div class="employee-form-header">
-  <h2>{{ (isEdit ? 'employee.form.editTitle' : 'employee.form.createTitle') | i18n }}</h2>
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.employee.form.addTitle' | i18n }}</div>
 </div>
 
-@if (errorMessageKey) {
-  <div class="employee-form-alert">{{ errorMessageKey | i18n }}</div>
+@if (errorText) {
+  <nz-alert nzType="error" [nzMessage]="errorText" nzShowIcon class="form-alert" />
 }
 
-<form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
-  <div class="employee-form-grid">
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.fullName' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.fullNameRequired' | i18n">
-        <input nz-input formControlName="fullName" [placeholder]="'employee.placeholders.fullName' | i18n" />
-      </nz-form-control>
-    </nz-form-item>
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.username' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="username" [placeholder]="'app.employee.form.usernamePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.username' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.usernameRequired' | i18n">
-        <input nz-input formControlName="username" [placeholder]="'employee.placeholders.username' | i18n" />
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.email' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="email" [placeholder]="'app.employee.form.emailPlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label [nzRequired]="!isEdit">{{ 'employee.fields.password' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.passwordRequired' | i18n">
-        <input
-          nz-input
-          type="password"
-          formControlName="password"
-          [placeholder]="(isEdit ? 'employee.placeholders.passwordUpdate' : 'employee.placeholders.password') | i18n"
-          autocomplete="new-password"
-        />
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.fullName' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="fullName" [placeholder]="'app.employee.form.fullNamePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.email' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'validation.email.wrong-format' | i18n">
-        <input nz-input formControlName="email" [placeholder]="'employee.placeholders.email' | i18n" />
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.phone' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="phone" [placeholder]="'app.employee.form.phonePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.phone' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.phoneRequired' | i18n">
-        <input nz-input formControlName="phone" [placeholder]="'employee.placeholders.phone' | i18n" />
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.branch' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-select formControlName="branchId" [nzPlaceHolder]="'app.employee.form.branchPlaceholder' | i18n">
+        @for (branch of branches; track branch.id) {
+          <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+        }
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
 
-    @if (showBranchSelect) {
-      <nz-form-item>
-        <nz-form-label nzRequired>{{ 'employee.fields.branch' | i18n }}</nz-form-label>
-        <nz-form-control [nzErrorTip]="'employee.validation.branchRequired' | i18n">
-          <nz-select formControlName="branchId" [nzPlaceHolder]="'employee.placeholders.branch' | i18n">
-            @for (branch of branches; track branch.id) {
-              <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
-            }
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-    }
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.startDate' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker formControlName="startDate" nzFormat="yyyy-MM-dd" class="full-width" />
+    </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.role' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.roleRequired' | i18n">
-        <nz-select formControlName="role" [nzPlaceHolder]="'employee.placeholders.role' | i18n">
-          @for (role of roles; track role.id) {
-            <nz-option [nzValue]="role.id" [nzLabel]="role.name" />
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.salary' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-input-number formControlName="salary" [nzMin]="0" [nzStep]="100000" class="full-width" />
+    </nz-form-control>
+  </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.status' | i18n }}</nz-form-label>
-      <nz-form-control>
-        <nz-select formControlName="status">
-          @for (status of statuses; track status) {
-            <nz-option [nzValue]="status" [nzLabel]="'employee.status.' + status.toLowerCase() | i18n" />
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item>
-      <nz-form-label nzRequired>{{ 'employee.fields.startDate' | i18n }}</nz-form-label>
-      <nz-form-control [nzErrorTip]="'employee.validation.startDateRequired' | i18n">
-        <nz-date-picker formControlName="startDate" />
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item>
-      <nz-form-label>{{ 'employee.fields.endDate' | i18n }}</nz-form-label>
-      <nz-form-control>
-        <nz-date-picker formControlName="endDate" />
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item>
-      <nz-form-label>{{ 'employee.fields.salary' | i18n }}</nz-form-label>
-      <nz-form-control>
-        <input nz-input type="number" min="0" formControlName="salary" [placeholder]="'employee.placeholders.salary' | i18n" />
-      </nz-form-control>
-    </nz-form-item>
-  </div>
-
-  <div class="employee-form-actions">
-    <button nz-button type="button" (click)="close()" [disabled]="submitting">{{ 'common.cancel' | i18n }}</button>
-    <button nz-button nzType="primary" type="submit" [nzLoading]="submitting" [disabled]="form.invalid || submitting">
-      {{ 'common.submit' | i18n }}
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.employee.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ 'app.employee.form.submit' | i18n }}
     </button>
   </div>
 </form>

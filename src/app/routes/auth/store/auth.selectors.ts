@@ -26,6 +26,12 @@ export const selectOrgRole = createSelector(selectContextToken, token => {
   }
 });
 
+/**
+ * Owner theo claim `orgRole` của context token. Đây là điều kiện backend dùng để gác Org Role APIs
+ * (OrgRoleGuard.requireOwner), khác với `selectIsOwnerContext` bên dưới vốn dựa trên việc không có employeeId.
+ */
+export const selectIsOwner = createSelector(selectOrgRole, role => role === 'OWNER');
+
 // Decode permissions dynamically from contextToken JWT or state
 export const selectPermissions = createSelector(selectContextToken, selectAuthState, (token, state) => {
   if (state.permissions && state.permissions.length > 0) {
@@ -51,6 +57,21 @@ export const selectPermissions = createSelector(selectContextToken, selectAuthSt
 
 export const selectHasPermission = (permission: string) =>
   createSelector(selectPermissions, selectIsAdmin, (perms, isAdmin) => isAdmin || perms.includes(permission));
+
+/**
+ * Gộp mọi thứ layout portal cần để dựng menu vào một selector.
+ * Không tách thành hai `store.select` rồi `combineLatest`: cả hai vế cùng dẫn xuất từ `contextToken`,
+ * tách ra sẽ khiến `buildMenu()` chạy hai lần mỗi lần token đổi.
+ */
+export const selectPortalMenuState = createSelector(
+  selectHasContext,
+  selectIsOwner,
+  selectPermissions,
+  (hasContext, isOwner, permissions) => ({
+    hasContext,
+    canManageOrgRole: isOwner && permissions.includes('ORG_ROLE_MANAGE')
+  })
+);
 
 export const selectBranchId = createSelector(selectContextToken, token => {
   if (!token) return null;

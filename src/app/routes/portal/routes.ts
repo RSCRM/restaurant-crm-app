@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { contextGuard } from '../auth/guards/context.guard';
+import { ownerGuard } from '../auth/guards/owner.guard';
 import { permissionGuard } from '../auth/guards/permission.guard';
 
 export const routes: Routes = [
@@ -69,31 +70,28 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inventory', pathMatch: 'full' },
       {
         path: 'inventory-category',
-        loadComponent: () =>
-          import('./inventory/inventory-category/inventory-category.component').then(
-            m => m.InventoryCategoryComponent
-          )
+        loadComponent: () => import('./inventory/inventory-category/inventory-category.component').then(m => m.InventoryCategoryComponent)
       },
       {
         path: 'inventory',
-        loadComponent: () =>
-          import('./inventory/inventory/inventory.component').then(
-            m => m.InventoryComponent
-          )
+        loadComponent: () => import('./inventory/inventory/inventory.component').then(m => m.InventoryComponent)
       },
       {
         path: 'inventory-transaction',
         loadComponent: () =>
-          import('./inventory/inventory-transaction/inventory-transaction.component').then(
-            m => m.InventoryTransactionComponent
-          )
+          import('./inventory/inventory-transaction/inventory-transaction.component').then(m => m.InventoryTransactionComponent)
       }
     ]
   },
   {
     path: 'employee',
-    canActivate: [contextGuard, permissionGuard('PROFILE_VIEW')],
+    canActivate: [contextGuard, permissionGuard('EMPLOYEE_VIEW')],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
+  },
+  {
+    path: 'org-role',
+    canActivate: [contextGuard, ownerGuard, permissionGuard('ORG_ROLE_MANAGE')],
+    loadComponent: () => import('./org-role/org-role.component').then(m => m.OrgRoleComponent)
   },
   {
     path: 'profile',

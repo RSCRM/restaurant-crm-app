@@ -4,47 +4,30 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { mapApiError } from '../../../../shared/utils/api-error';
-import { BranchOptionResponse } from '../employee.model';
+import { EmployeeResponse, EmployeeStatus, UpdateEmployeeRequest } from '../employee.model';
 import { EmployeeService } from '../employee.service';
-import { PHONE_PATTERN, toDateString } from '../employee.util';
 
 interface ModalData {
-  branches: BranchOptionResponse[];
+  employee: EmployeeResponse;
 }
 
-/**
- * B1 — chỉ tạo account + hồ sơ. Backend đặt `status = INACTIVE`, `orgRoleName = null`.
- * Gán vai trò và kích hoạt là hai hành động riêng ở cột thao tác của bảng.
- */
+/** B2 với trạng thái mới; các field khác lấy từ dữ liệu hiện tại của nhân viên. */
 @Component({
-  selector: 'app-employee-form',
+  selector: 'app-employee-status-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzAlertModule,
-    NzButtonModule,
-    NzDatePickerModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    I18nPipe
-  ],
-  templateUrl: './employee-form.component.html',
-  styleUrl: './employee-form.component.less'
+  imports: [ReactiveFormsModule, NzAlertModule, NzButtonModule, NzFormModule, NzSelectModule, I18nPipe],
+  templateUrl: './employee-status-form.component.html',
+  styleUrl: './employee-status-form.component.less'
 })
-export class EmployeeFormComponent {
+export class EmployeeStatusFormComponent {
   private fb = inject(NonNullableFormBuilder);
   private modalRef = inject(NzModalRef);
   private employeeService = inject(EmployeeService);
@@ -54,18 +37,21 @@ export class EmployeeFormComponent {
   private i18n = inject(ALAIN_I18N_TOKEN);
   private modalData = inject<ModalData>(NZ_MODAL_DATA);
 
-  branches = this.modalData.branches;
+  employee = this.modalData.employee;
   loading = false;
   errorText = '';
 
+  /** Không cho chọn ACTIVE khi chưa gán vai trò — backend trả EMPLOYEE_ACTIVATE_REQUIRES_ORG_ROLE. */
+  readonly canActivate = this.employee.orgRoleName != null;
+
+  readonly statusOptions = [
+    { value: EmployeeStatus.ACTIVE, labelKey: 'app.employee.status.ACTIVE', disabled: !this.canActivate },
+    { value: EmployeeStatus.INACTIVE, labelKey: 'app.employee.status.INACTIVE', disabled: false },
+    { value: EmployeeStatus.TERMINATED, labelKey: 'app.employee.status.TERMINATED', disabled: false }
+  ];
+
   form = this.fb.group({
-    username: this.fb.control('', [Validators.required]),
-    email: this.fb.control('', [Validators.required, Validators.email]),
-    fullName: this.fb.control('', [Validators.required, Validators.minLength(2), Validators.maxLength(255)]),
-    phone: this.fb.control('', [Validators.pattern(PHONE_PATTERN)]),
-    branchId: this.fb.control('', [Validators.required]),
-    startDate: this.fb.control<Date | null>(null, [Validators.required]),
-    salary: this.fb.control<number | null>(null)
+    status: this.fb.control<EmployeeStatus>(this.employee.status, [Validators.required])
   });
 
   submit(): void {
@@ -78,19 +64,13 @@ export class EmployeeFormComponent {
     this.loading = true;
     this.cdr.markForCheck();
 
-    const raw = this.form.getRawValue();
+    const request: UpdateEmployeeRequest = { status: this.form.getRawValue().status };
+    if (this.employee.fullName) request.fullName = this.employee.fullName;
+    if (this.employee.phone) request.phone = this.employee.phone;
+    if (this.employee.startDate) request.startDate = this.employee.startDate;
 
     this.employeeService
-      .createEmployee({
-        username: raw.username,
-        email: raw.email,
-        fullName: raw.fullName,
-        // Bo trong thi control tra chuoi rong; gui chuoi rong len se an loi EMPLOYEE_PHONE_INVALID.
-        phone: raw.phone || undefined,
-        branchId: raw.branchId,
-        startDate: toDateString(raw.startDate!),
-        salary: raw.salary ?? undefined
-      })
+      .updateEmployee(this.employee.id, request)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(err => {
@@ -103,7 +83,7 @@ export class EmployeeFormComponent {
         })
       )
       .subscribe(() => {
-        this.message.success(this.i18n.fanyi('app.employee.form.addSuccess'));
+        this.message.success(this.i18n.fanyi('app.employee.form.statusSuccess'));
         this.modalRef.destroy(true);
       });
   }

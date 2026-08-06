@@ -1,0 +1,44 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.employee.form.updateTitle' | i18n }}</div>
+</div>
+
+@if (errorText) {
+  <nz-alert nzType="error" [nzMessage]="errorText" nzShowIcon class="form-alert" />
+}
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.fullName' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="fullName" [placeholder]="'app.employee.form.fullNamePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.phone' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="phone" [placeholder]="'app.employee.form.phonePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.startDate' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker formControlName="startDate" nzFormat="yyyy-MM-dd" class="full-width" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.endDate' | i18n }}</nz-form-label>
+    <nz-form-control [nzExtra]="'app.employee.form.endDateHint' | i18n">
+      <nz-date-picker formControlName="endDate" nzFormat="yyyy-MM-dd" class="full-width" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.employee.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ 'app.employee.form.submit' | i18n }}
+    </button>
+  </div>
+</form>
