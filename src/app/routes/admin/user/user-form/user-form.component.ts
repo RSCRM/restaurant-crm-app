@@ -10,7 +10,8 @@ import { I18nPipe } from '@delon/theme';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { UserService } from '../user.service';
-import { UserResponse } from '../user.model';
+import { RoleResponse, UserResponse } from '../user.model';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 interface ModalData {
   mode: 'create' | 'roles';
@@ -26,6 +27,7 @@ interface ModalData {
     NzFormModule,
     NzInputModule,
     NzButtonModule,
+    NzSpinModule,
     I18nPipe
   ],
   templateUrl: './user-form.component.html',
@@ -43,6 +45,9 @@ export class UserFormComponent implements OnInit {
   mode: 'create' | 'roles' = 'create';
   user: UserResponse | null = null;
   loading = false;
+  rolesLoading = false;
+  roles: RoleResponse[] = [];
+  selectedRoleIds: Set<string> = new Set();
 
   createForm = this.fb.group({
     username: this.fb.control('', [Validators.required, Validators.minLength(5), Validators.maxLength(50)]),
@@ -60,10 +65,44 @@ export class UserFormComponent implements OnInit {
     if (this.modalData?.mode === 'roles' && this.modalData.user) {
       this.mode = 'roles';
       this.user = this.modalData.user;
+      this.selectedRoleIds = new Set(this.user.roles.map(r => r.id));
       this.rolesForm.patchValue({
         roleIds: this.user.roles.map(r => r.id)
       });
+      this.loadRoles();
     }
+  }
+
+  loadRoles(): void {
+    this.rolesLoading = true;
+    this.cdr.markForCheck();
+
+    this.userService.getRoles().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.rolesLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe(roles => {
+      this.roles = roles;
+      this.cdr.markForCheck();
+    });
+  }
+
+  toggleRole(roleId: string): void {
+    if (this.selectedRoleIds.has(roleId)) {
+      this.selectedRoleIds.delete(roleId);
+    } else {
+      this.selectedRoleIds.add(roleId);
+    }
+    this.rolesForm.patchValue({
+      roleIds: Array.from(this.selectedRoleIds)
+    });
+  }
+
+  isRoleSelected(roleId: string): boolean {
+    return this.selectedRoleIds.has(roleId);
   }
 
   submit(): void {
