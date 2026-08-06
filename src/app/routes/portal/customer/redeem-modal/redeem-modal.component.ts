@@ -73,7 +73,7 @@ export class RedeemModalComponent implements OnInit {
 
     this.customerService.getActiveVouchers(this.restaurantId, { page: 1, size: 100 }).subscribe({
       next: res => {
-        this.vouchers = res.data.filter(v => !v.voucherCode);
+        this.vouchers = res.data;
         this.loading = false;
         this.cdr.markForCheck();
       },

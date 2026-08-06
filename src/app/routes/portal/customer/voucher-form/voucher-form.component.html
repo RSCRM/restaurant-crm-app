@@ -39,7 +39,7 @@
     </div>
 
     <div nz-row [nzGutter]="16">
-      <div nz-col nzSpan="8">
+      <div nz-col nzSpan="12">
         <nz-form-item>
           <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.points' | i18n }}</nz-form-label>
           <nz-form-control [nzErrorTip]="'voucher-form.error.points' | i18n">
@@ -48,49 +48,11 @@
         </nz-form-item>
       </div>
 
-      <div nz-col nzSpan="8">
+      <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.startAt' | i18n }}</nz-form-label>
-          <nz-form-control [nzErrorTip]="'voucher-form.error.startAt' | i18n">
-            <nz-date-picker formControlName="startAt" nzShowTime nzFormat="yyyy-MM-dd HH:mm" style="width: 100%" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-
-      <div nz-col nzSpan="8">
-        <nz-form-item>
-          <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.endAt' | i18n }}</nz-form-label>
-          <nz-form-control [nzErrorTip]="'voucher-form.error.endAt' | i18n">
-            <nz-date-picker formControlName="endAt" nzShowTime nzFormat="yyyy-MM-dd HH:mm" style="width: 100%" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-    </div>
-
-    <div nz-row [nzGutter]="16">
-      <div nz-col nzSpan="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">{{ 'voucher-form.label.isCodeBased' | i18n }}</nz-form-label>
-          <nz-form-control>
-            <nz-switch formControlName="isCodeBased" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-
-      <div nz-col nzSpan="8" *ngIf="form.get('isCodeBased')?.value">
-        <nz-form-item>
-          <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.voucherCode' | i18n }}</nz-form-label>
-          <nz-form-control [nzErrorTip]="'voucher-form.error.voucherCode' | i18n">
-            <input nz-input formControlName="voucherCode" placeholder="Ví dụ: BAN10" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-
-      <div nz-col nzSpan="8" *ngIf="form.get('isCodeBased')?.value">
-        <nz-form-item>
-          <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.usageLimit' | i18n }}</nz-form-label>
-          <nz-form-control [nzErrorTip]="'voucher-form.error.usageLimit' | i18n">
-            <nz-input-number formControlName="usageLimit" [nzMin]="1" [nzStep]="1" style="width: 100%" />
+          <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.validDays' | i18n }}</nz-form-label>
+          <nz-form-control [nzErrorTip]="'voucher-form.error.validDays' | i18n">
+            <nz-input-number formControlName="validDays" [nzMin]="1" [nzStep]="1" style="width: 100%" />
           </nz-form-control>
         </nz-form-item>
       </div>

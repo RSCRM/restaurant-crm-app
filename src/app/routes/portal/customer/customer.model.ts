@@ -60,10 +60,6 @@ export interface VoucherResponse {
   validDays?: number;
   isActive: number;
   expiredAt?: string | null;
-  startAt?: string | null;
-  endAt?: string | null;
-  voucherCode?: string | null;
-  usageLimit?: number | null;
   createdAt: string;
 }
 
@@ -90,10 +86,6 @@ export interface CreateVoucherRequest {
   discountPercent: number;
   minBillAmount: number;
   pointsRequired: number;
-  startAt?: string | null;
-  endAt?: string | null;
-  voucherCode?: string | null;
-  usageLimit?: number | null;
 }
 
 export interface UpdateVoucherRequest {
@@ -102,10 +94,6 @@ export interface UpdateVoucherRequest {
   minBillAmount: number;
   pointsRequired: number;
   isActive: number;
-  startAt?: string | null;
-  endAt?: string | null;
-  voucherCode?: string | null;
-  usageLimit?: number | null;
 }
 
 export interface RedeemVoucherRequest {

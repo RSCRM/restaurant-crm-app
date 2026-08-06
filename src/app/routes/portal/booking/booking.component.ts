@@ -16,7 +16,6 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { combineLatest } from 'rxjs';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
 import { BookingFormComponent } from './booking-form/booking-form.component';
 import { BookingResponse, BookingStatus } from './booking.model';
@@ -39,9 +38,7 @@ import { selectHasPermission, selectSelectedBranchId, selectSelectedRole } from 
     NzSelectModule,
     NzFormModule,
     NzGridModule,
-    NzInputNumberModule,
-    STModule,
-    I18nPipe
+    STModule
   ],
   templateUrl: './booking.component.html',
   styles: [
@@ -72,46 +69,6 @@ import { selectHasPermission, selectSelectedBranchId, selectSelectedRole } from 
           opacity: 1;
         }
       }
-      .toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 16px;
-      }
-      .toolbar-left {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .search-input {
-        width: 250px;
-      }
-      .filter-panel {
-        margin-bottom: 16px;
-        padding: 16px;
-        border: 1px solid #f0f0f0;
-        border-radius: 8px;
-        background: #fafafa;
-      }
-      .filter-badge {
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        margin-left: 4px;
-        border-radius: 50%;
-        background: #ff4d4f;
-      }
-      .price-range {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .price-range nz-input-number {
-        flex: 1;
-      }
-      .price-range-separator {
-        color: #8c8c8c;
-      }
     `
   ]
 })
@@ -140,15 +97,17 @@ export class BookingComponent implements OnInit, OnDestroy {
   // Filters
   searchPhone = '';
   filterStatus = 'ALL';
-  showFilter = false;
-  filterMinGuests: number | null = null;
-  filterMaxGuests: number | null = null;
-  sortBy = '';
-  sortDirection = '';
 
   private refreshIntervalId: ReturnType<typeof setInterval> | null = null;
 
-  columns: STColumn[] = [];
+  columns: STColumn[] = [
+    { title: 'SĐT Khách hàng', index: 'customerPhone', width: 140 },
+    { title: 'Số khách', index: 'guestCount', width: 100, type: 'number' },
+    { title: 'Thời gian đặt', width: 180, render: 'bookingTime' },
+    { title: 'Ghi chú', index: 'note' },
+    { title: 'Trạng thái', width: 130, render: 'status' },
+    { title: 'Thao tác', width: 220, fixed: 'right', render: 'actions' }
+  ];
 
   getCountdownInfo(booking: BookingResponse): { type: 'none' | 'countdown' | 'overdue'; text: string } {
     if (booking.status !== BookingStatus.PENDING && booking.status !== BookingStatus.CONFIRMED) {
@@ -165,106 +124,32 @@ export class BookingComponent implements OnInit, OnDestroy {
     const limitSec = 15 * 60; // 15 minutes
 
     if (diffSec >= limitSec) {
-      return { type: 'overdue', text: this.i18n.fanyi('booking.countdown.overdue') };
+      return { type: 'overdue', text: 'QUÁ LÂU CHƯA TỚI (>15 PHÚT)' };
     } else {
       const remainSec = limitSec - diffSec;
       const min = Math.floor(remainSec / 60);
       const sec = remainSec % 60;
       const minStr = min < 10 ? `0${min}` : min.toString();
       const secStr = sec < 10 ? `0${sec}` : sec.toString();
-      return { type: 'countdown', text: `${this.i18n.fanyi('booking.countdown.prefix')}${minStr}:${secStr}` };
+      return { type: 'countdown', text: `Hết hạn sau: ${minStr}:${secStr}` };
     }
-  }
-
-//   ngOnInit(): void {
-//     combineLatest([
-//       this.store.select(selectSelectedBranchId),
-//       this.store.select(selectSelectedRole),
-//       this.store.select(selectHasPermission('BOOKING_CREATE')),
-//       this.store.select(selectHasPermission('BOOKING_UPDATE'))
-//     ])
-//       .pipe(takeUntilDestroyed(this.destroyRef))
-//       .subscribe(([branchId, role, canCreate, canUpdate]) => {
-//         const isManager = role === 'OWNER' || role === 'MANAGER';
-//         const previousBranchId = this.branchId;
-//         this.branchId = branchId;
-//         this.hasCreatePermission = canCreate || isManager;
-//         this.hasUpdatePermission = canUpdate || isManager;
-//         if (this.branchId && this.branchId !== previousBranchId) {
-
-  private parseTokenPayload(token: string | null): Record<string, unknown> | null {
-    if (!token) return null;
-    try {
-      const base64Url = token.split('.')[1];
-      let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) {
-        base64 += '=';
-      }
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch {
-      return null;
-    }
-  }
-
-  private initColumns(): void {
-    this.columns = [
-      {
-        title: this.i18n.fanyi('booking.column.phone'),
-        index: 'customerPhone',
-        width: 140,
-        sort: true
-      },
-      {
-        title: this.i18n.fanyi('booking.column.guests'),
-        index: 'guestCount',
-        width: 100,
-        type: 'number',
-        sort: true
-      },
-      {
-        title: this.i18n.fanyi('booking.column.time'),
-        index: 'bookingTime',
-        width: 180,
-        render: 'bookingTime',
-        sort: true
-      },
-      {
-        title: this.i18n.fanyi('booking.column.note'),
-        index: 'note'
-      },
-      {
-        title: this.i18n.fanyi('booking.column.status'),
-        index: 'status',
-        width: 130,
-        render: 'status',
-        sort: true
-      },
-      {
-        title: this.i18n.fanyi('booking.column.actions'),
-        width: 220,
-        fixed: 'right',
-        render: 'actions'
-      }
-    ];
   }
 
   ngOnInit(): void {
-    this.initColumns();
-    this.store.select(selectContextToken).subscribe(token => {
-      const payload = this.parseTokenPayload(token);
-      if (payload) {
-        this.branchId = (payload['branchId'] as string) || null;
-        const permissions: string[] = (payload['permission'] as string[]) || [];
-        const isManager = payload['role'] === 'ADMIN' || payload['orgRole'] === 'OWNER' || payload['orgRole'] === 'MANAGER';
-        this.hasCreatePermission = permissions.includes('BOOKING_CREATE') || isManager;
-        this.hasUpdatePermission = permissions.includes('BOOKING_UPDATE') || isManager;
-        if (this.branchId) {
+    combineLatest([
+      this.store.select(selectSelectedBranchId),
+      this.store.select(selectSelectedRole),
+      this.store.select(selectHasPermission('BOOKING_CREATE')),
+      this.store.select(selectHasPermission('BOOKING_UPDATE'))
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([branchId, role, canCreate, canUpdate]) => {
+        const isManager = role === 'OWNER' || role === 'MANAGER';
+        const previousBranchId = this.branchId;
+        this.branchId = branchId;
+        this.hasCreatePermission = canCreate || isManager;
+        this.hasUpdatePermission = canUpdate || isManager;
+        if (this.branchId && this.branchId !== previousBranchId) {
           this.loadData();
         }
         this.cdr.markForCheck();
@@ -305,51 +190,18 @@ export class BookingComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.loading = false;
-        this.message.error(this.i18n.fanyi('booking.msg.load-error'));
+        this.message.error('Lỗi khi tải danh sách đặt bàn.');
         this.cdr.markForCheck();
       }
     });
   }
 
-  toggleFilter(): void {
-    this.showFilter = !this.showFilter;
-    this.cdr.markForCheck();
-  }
-
-  get hasActiveFilter(): boolean {
-    return this.filterStatus !== 'ALL' || this.filterMinGuests !== null || this.filterMaxGuests !== null;
-  }
-
   filterData(): void {
-    let filtered = [...this.bookingsList];
-    if (this.filterStatus !== 'ALL') {
-      filtered = filtered.filter(b => b.status === this.filterStatus);
+    if (this.filterStatus === 'ALL') {
+      this.displayBookings = [...this.bookingsList];
+    } else {
+      this.displayBookings = this.bookingsList.filter(b => b.status === this.filterStatus);
     }
-    if (this.filterMinGuests !== null) {
-      filtered = filtered.filter(b => b.guestCount >= this.filterMinGuests!);
-    }
-    if (this.filterMaxGuests !== null) {
-      filtered = filtered.filter(b => b.guestCount <= this.filterMaxGuests!);
-    }
-
-    if (this.sortBy && this.sortDirection) {
-      const field = this.sortBy;
-      const isAsc = this.sortDirection === 'ASC';
-      filtered.sort((a: any, b: any) => {
-        const valA = a[field];
-        const valB = b[field];
-        if (valA == null) return isAsc ? 1 : -1;
-        if (valB == null) return isAsc ? -1 : 1;
-        if (typeof valA === 'number' && typeof valB === 'number') {
-          return isAsc ? valA - valB : valB - valA;
-        }
-        return isAsc
-          ? String(valA).localeCompare(String(valB))
-          : String(valB).localeCompare(String(valA));
-      });
-    }
-
-    this.displayBookings = filtered;
     this.cdr.markForCheck();
   }
 
@@ -361,10 +213,6 @@ export class BookingComponent implements OnInit, OnDestroy {
   reset(): void {
     this.searchPhone = '';
     this.filterStatus = 'ALL';
-    this.filterMinGuests = null;
-    this.filterMaxGuests = null;
-    this.sortBy = '';
-    this.sortDirection = '';
     this.currentPage = 1;
     this.loadData();
   }
@@ -377,14 +225,6 @@ export class BookingComponent implements OnInit, OnDestroy {
       this.pageSize = e.ps!;
       this.currentPage = 1;
       this.loadData();
-    } else if (e.type === 'sort' && e.sort && e.sort.column) {
-      const col = e.sort.column;
-      const indexStr = (Array.isArray(col.index) ? col.index[0] : (col.index as string)) || '';
-      const sortDir = e.sort.map ? e.sort.map[indexStr] : undefined;
-      
-      this.sortBy = sortDir ? indexStr : '';
-      this.sortDirection = sortDir === 'ascend' ? 'ASC' : sortDir === 'descend' ? 'DESC' : '';
-      this.filterData();
     }
   }
 
@@ -409,7 +249,7 @@ export class BookingComponent implements OnInit, OnDestroy {
     if (status === BookingStatus.SEATED) {
       confirmMsg = 'Xác nhận khách đã nhận bàn?';
     } else if (status === BookingStatus.CANCELLED) {
-      confirmMsg = this.i18n.fanyi('booking.confirm.cancel');
+      confirmMsg = 'Bạn có chắc chắn muốn hủy đặt bàn này?';
     }
 
     this.modal.confirm({
@@ -420,17 +260,12 @@ export class BookingComponent implements OnInit, OnDestroy {
         this.bookingService.updateBookingStatus(booking.id, { status }).subscribe({
           next: () => {
             this.loading = false;
-
-            if (status === BookingStatus.SEATED) {
-              this.message.success(this.i18n.fanyi('booking.success.seated'));
-            } else {
-              this.message.success(status === BookingStatus.CANCELLED ? this.i18n.fanyi('booking.success.cancel') : this.i18n.fanyi('booking.success.update-status'));
-            }
+            this.message.success('Cập nhật trạng thái thành công!');
             this.loadData();
           },
           error: err => {
             this.loading = false;
-            const msg = err?.error?.errorMessage?.message || err?.message || 'Error updating status.';
+            const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi cập nhật trạng thái.';
             this.message.error(msg);
             this.cdr.markForCheck();
           }

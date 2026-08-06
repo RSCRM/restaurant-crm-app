@@ -17,11 +17,8 @@ export class BookingService {
   private http = inject(HttpClient);
   private readonly API = '/api/v1/crm/bookings';
 
-  getTables(branchId: string | null, params: { page: number; size: number }): Observable<PagingResponse<TableSearchResponse>> {
-    let httpParams = new HttpParams().set('page', params.page.toString()).set('size', params.size.toString());
-    if (branchId) {
-      httpParams = httpParams.set('branchId', branchId);
-    }
+  getTables(params: { page: number; size: number }): Observable<PagingResponse<TableSearchResponse>> {
+    const httpParams = new HttpParams().set('page', params.page.toString()).set('size', params.size.toString());
 
     return this.http
       .get<ApiResponse<PagingResponse<TableSearchResponse>>>('/api/v1/erp/tables/search', { params: httpParams })

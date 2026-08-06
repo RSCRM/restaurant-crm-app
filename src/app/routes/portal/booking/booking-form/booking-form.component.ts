@@ -96,6 +96,7 @@ export class BookingFormComponent implements OnInit {
       customerName: [''], // Optional
       bookingTime: [null, [Validators.required]],
       duration: [3, [Validators.required, Validators.min(0.1)]], // Dining duration in hours, defaults to 3
+      guestCount: [2, [Validators.required, Validators.min(1)]],
       note: ['']
     });
   }
@@ -108,7 +109,7 @@ export class BookingFormComponent implements OnInit {
     // Load tables (size 100 to get all tables of this branch)
     // and load active bookings of this branch (size 1000 for conflict check)
     // using Promise.all or manual subscriptions. Let's subscribe to both.
-    this.bookingService.getTables(this.branchId, { page: 1, size: 100 }).subscribe({
+    this.bookingService.getTables({ page: 1, size: 100 }).subscribe({
       next: tableRes => {
         this.allTables = tableRes.data;
         this.checkDataLoaded();
@@ -151,13 +152,14 @@ export class BookingFormComponent implements OnInit {
   calculateAvailability(): void {
     const bookingTimeVal = this.form.get('bookingTime')?.value;
     const durationVal = this.form.get('duration')?.value;
+    const guestCountVal = this.form.get('guestCount')?.value;
 
-    if (!bookingTimeVal || !durationVal) {
+    if (!bookingTimeVal || !durationVal || !guestCountVal) {
       // Clear availability if form is incomplete
       this.tablesWithAvailability = this.allTables.map(t => ({
         ...t,
         isAvailable: false,
-        reason: 'Vui lòng chọn thời gian và thời lượng dùng bữa.'
+        reason: 'Vui lòng chọn thời gian, số khách và thời lượng dùng bữa.'
       }));
       this.cdr.markForCheck();
       return;
@@ -168,6 +170,14 @@ export class BookingFormComponent implements OnInit {
     const bufferStart = targetStart - 3 * 60 * 60 * 1000; // Block 3h before to avoid overlap with previous diners
 
     this.tablesWithAvailability = this.allTables.map(table => {
+      // 1. Check Capacity
+      if (table.capacity < guestCountVal) {
+        return {
+          ...table,
+          isAvailable: false,
+          reason: `Sức chứa nhỏ (${table.capacity} chỗ < ${guestCountVal} khách)`
+        };
+      }
 
       // 2. Check overlap with existing bookings on the same table
       const overlappingBooking = this.allBookings.find(booking => {
@@ -239,7 +249,7 @@ export class BookingFormComponent implements OnInit {
       tableId: this.selectedTableId,
       customerPhone: rawForm.customerPhone.trim(),
       bookingTime: new Date(rawForm.bookingTime).toISOString(),
-      guestCount: 1,
+      guestCount: rawForm.guestCount,
       note: (nameStr + noteStr).trim() || null
     };
 
