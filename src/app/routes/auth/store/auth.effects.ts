@@ -21,11 +21,15 @@ export class AuthEffects {
         if (accessToken) {
           const systemRoles = this.authService.getSystemRoles();
           const contextToken = this.authService.getContextToken();
+          const contexts = this.authService.getContexts();
           // Restore contextToken into DA_SERVICE_TOKEN if exists
           if (contextToken) {
             this.authService.setToken(contextToken, 72 * 60 * 60 * 1000);
+          } else {
+            // No contextToken yet (user hasn't selected context) → use accessToken for API calls
+            this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
           }
-          return of(AuthActions.restoreAuth({ accessToken, systemRoles, contextToken }));
+          return of(AuthActions.restoreAuth({ accessToken, systemRoles, contextToken, contexts }));
         }
         return of();
       })
@@ -61,14 +65,15 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
-        tap(({ accessToken, systemRoles }) => {
+        tap(({ accessToken, contexts, systemRoles }) => {
           this.authService.capturePendingAttendance();
           this.authService.setAccessToken(accessToken);
           this.authService.setSystemRoles(systemRoles);
+          this.authService.setContexts(contexts);
+          // Always set token so API calls (including logout) work
+          this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
           if (systemRoles.includes('ADMIN')) {
             this.authService.clearPendingAttendance();
-            // ADMIN: use accessToken as the main API token
-            this.authService.setToken(accessToken, 72 * 60 * 60 * 1000);
             window.location.href = '/#/admin/dashboard';
           } else {
             // USER: redirect to context-select within portal
