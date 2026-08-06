@@ -1,0 +1,29 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.employee.detail.title' | i18n }}</div>
+</div>
+
+<nz-descriptions nzBordered [nzColumn]="1" nzSize="small">
+  <nz-descriptions-item [nzTitle]="'app.employee.col.username' | i18n">{{ employee.username }}</nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.fullName' | i18n">{{ employee.fullName || '-' }}</nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.email' | i18n">{{ employee.email }}</nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.phone' | i18n">{{ employee.phone || '-' }}</nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.branch' | i18n">{{ branchName }}</nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.orgRole' | i18n">
+    @if (employee.orgRoleName) {
+      <nz-tag>{{ employee.orgRoleName }}</nz-tag>
+    } @else {
+      {{ 'app.employee.noRole' | i18n }}
+    }
+  </nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.salary' | i18n">
+    {{ employee.salary != null ? employee.salary.toLocaleString('vi-VN') : '-' }}
+  </nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.status' | i18n">
+    {{ 'app.employee.status.' + employee.status | i18n }}
+  </nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.employee.col.startDate' | i18n">{{ employee.startDate }}</nz-descriptions-item>
+</nz-descriptions>
+
+<div class="modal-footer">
+  <button nz-button (click)="close()">{{ 'app.employee.detail.close' | i18n }}</button>
+</div>

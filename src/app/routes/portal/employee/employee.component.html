@@ -1,47 +1,16 @@
-<page-header [title]="'user.management' | i18n" />
+<page-header [title]="'app.employee.title' | i18n" />
 
 <nz-card>
-  <st
-    [columns]="columns"
-    [data]="data"
-    [total]="total"
-    [pi]="page"
-    [ps]="size"
-    [loading]="loading"
-    [page]="{ show: true, showSize: true }"
-    (change)="onChange($event)"
-  >
+  <div class="toolbar">
+    <button nz-button nzType="primary" [disabled]="!canAdd" (click)="openAdd()">
+      <span nz-icon nzType="plus" nzTheme="outline"></span>
+      {{ 'app.employee.add' | i18n }}
+    </button>
+  </div>
+
+  <st #st [columns]="columns" [data]="data" [loading]="loading" [page]="{ show: true, showSize: true }" [scroll]="{ x: '2100px' }">
     <ng-template st-row="status" let-item>
-      <nz-tag [nzColor]="getStatusColor(item.status)">{{ 'status.' + item.status.toLowerCase() | i18n }}</nz-tag>
+      <nz-tag [nzColor]="statusColor(item.status)">{{ 'app.employee.status.' + item.status | i18n }}</nz-tag>
     </ng-template>
   </st>
 </nz-card>
-
-@if (selected; as profile) {
-  <nz-card [nzTitle]="(editing ? 'user.update-staff' : 'user.detail') | i18n" style="margin-top: 16px">
-    <div style="display: grid; gap: 14px; max-width: 560px">
-      <label>
-        {{ 'profile.username' | i18n }}
-        <input nz-input [value]="profile.username" disabled />
-      </label>
-      <label>
-        {{ 'profile.fullname' | i18n }}
-        <input nz-input [(ngModel)]="fullName" [disabled]="!editing" />
-      </label>
-      <label>
-        {{ 'profile.email' | i18n }}
-        <input nz-input type="email" [(ngModel)]="email" [disabled]="!editing" />
-      </label>
-      <label>
-        {{ 'profile.phone' | i18n }}
-        <input nz-input [(ngModel)]="phone" [disabled]="!editing" />
-      </label>
-      @if (editing) {
-        <div>
-          <button nz-button nzType="primary" (click)="save()" [nzLoading]="loading">{{ 'action.save' | i18n }}</button>
-          <button nz-button (click)="editing = false">{{ 'action.cancel' | i18n }}</button>
-        </div>
-      }
-    </div>
-  </nz-card>
-}

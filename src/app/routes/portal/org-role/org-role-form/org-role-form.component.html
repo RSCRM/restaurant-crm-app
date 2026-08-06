@@ -1,0 +1,43 @@
+<div class="modal-header">
+  <div class="modal-title">
+    {{ (mode === 'create' ? 'app.org-role.form.createTitle' : 'app.org-role.form.editTitle') | i18n }}
+  </div>
+</div>
+
+@if (errorText) {
+  <nz-alert nzType="error" [nzMessage]="errorText" nzShowIcon class="form-alert" />
+}
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.org-role.form.roleName' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="roleName" [placeholder]="'app.org-role.form.roleNamePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.org-role.form.permissions' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-spin [nzSpinning]="permissionLoading">
+        @if (permissions.length === 0 && !permissionLoading) {
+          <div class="permission-empty">{{ 'app.org-role.form.permissionsEmpty' | i18n }}</div>
+        }
+        <div class="permission-grid">
+          @for (permission of permissions; track permission.id) {
+            <label nz-checkbox [nzChecked]="isChecked(permission.id)" (nzCheckedChange)="toggle(permission.id, $event)">
+              {{ permission.permissionName }}
+            </label>
+          }
+        </div>
+      </nz-spin>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.org-role.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ (mode === 'create' ? 'app.org-role.form.create' : 'app.org-role.form.update') | i18n }}
+    </button>
+  </div>
+</form>

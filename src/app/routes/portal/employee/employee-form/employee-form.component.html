@@ -1,0 +1,69 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.employee.form.addTitle' | i18n }}</div>
+</div>
+
+@if (errorText) {
+  <nz-alert nzType="error" [nzMessage]="errorText" nzShowIcon class="form-alert" />
+}
+
+<form nz-form [formGroup]="form" (ngSubmit)="submit()" nzLayout="vertical">
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.username' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="username" [placeholder]="'app.employee.form.usernamePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.email' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="email" [placeholder]="'app.employee.form.emailPlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.fullName' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="fullName" [placeholder]="'app.employee.form.fullNamePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.phone' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="phone" [placeholder]="'app.employee.form.phonePlaceholder' | i18n" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.branch' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-select formControlName="branchId" [nzPlaceHolder]="'app.employee.form.branchPlaceholder' | i18n">
+        @for (branch of branches; track branch.id) {
+          <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+        }
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label [nzRequired]="true">{{ 'app.employee.form.startDate' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker formControlName="startDate" nzFormat="yyyy-MM-dd" class="full-width" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>{{ 'app.employee.form.salary' | i18n }}</nz-form-label>
+    <nz-form-control>
+      <nz-input-number formControlName="salary" [nzMin]="0" [nzStep]="100000" class="full-width" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="modal-footer">
+    <button nz-button type="button" (click)="close()">{{ 'app.employee.form.cancel' | i18n }}</button>
+    <button nz-button type="submit" nzType="primary" [nzLoading]="loading" [disabled]="form.invalid">
+      {{ 'app.employee.form.submit' | i18n }}
+    </button>
+  </div>
+</form>
