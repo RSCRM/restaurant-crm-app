@@ -635,7 +635,6 @@
   "app.inventory.applyFilter": "Áp dụng bộ lọc",
   "app.inventory.clearFilter": "Xóa bộ lọc",
   "app.inventory.inventoryName": "Nguyên liệu",
-
   "app.inventory.quantity": "Số lượng",
   "app.inventory.minimumQuantity": "Tồn kho tối thiểu",
   "app.inventory.status": "Trạng thái",
@@ -674,9 +673,7 @@
   "app.error.inventory.name.required": "Tên nguyên liệu không được để trống",
   "app.error.inventory.unit.required": "Đơn vị không được để trống",
   "app.inventory.transaction.title": "Lịch sử giao dịch kho",
-
   "app.inventory.transaction.search": "Tìm kiếm kho...",
-
   "app.inventory.transaction.inventory": "Kho",
   "app.inventory.transaction.type": "Loại giao dịch",
   "app.inventory.transaction.direction": "Hướng giao dịch",
@@ -684,16 +681,13 @@
   "app.inventory.transaction.employee": "Nhân viên",
   "app.inventory.transaction.note": "Ghi chú",
   "app.inventory.transaction.transactionTime": "Thời gian giao dịch",
-
   "app.inventory.transaction.direction.in": "Nhập",
   "app.inventory.transaction.direction.out": "Xuất",
-
   "app.inventory.transaction.type.purchase": "Nhập hàng",
   "app.inventory.transaction.type.sale": "Bán hàng",
   "app.inventory.transaction.type.adjustment": "Điều chỉnh",
   "app.inventory.transaction.type.waste": "Hao hụt",
   "app.inventory.transaction.type.return": "Trả hàng",
-
   "app.inventory.transaction.loadError": "Không thể tải lịch sử giao dịch kho.",
   "app.inventory.transaction.search.button": "Tìm kiếm",
   "app.inventory.transaction.reset.button": "Reset",
@@ -703,27 +697,22 @@
   "app.inventory.transaction.directionPlaceholder": "Chọn hướng giao dịch",
   "app.inventory.transaction.notePlaceholder": "Nhập ghi chú",
   "app.inventory.transaction.createSuccess": "Thành công!",
-
   "app.inventory.category.title": "Danh mục tồn kho",
   "app.inventory.category.searchPlaceholder": "Tìm kiếm tên danh mục",
   "app.inventory.category.search.button": "Tìm kiếm",
   "app.inventory.category.reset.button": "Đặt lại",
   "app.inventory.category.create": "Tạo danh mục",
-
   "app.inventory.category.categoryName": "Tên danh mục",
   "app.inventory.category.description": "Mô tả",
-
   "app.inventory.category.deleteConfirm": "Bạn có chắc muốn xóa danh mục này không?",
   "app.inventory.category.search": "Tìm kiếm",
   "app.inventory.category.reset": "Đặt lại",
   "app.inventory.category.action": "Thao tác",
   "app.inventory.category.edit": "Chỉnh sửa",
   "app.inventory.category.delete": "Xóa",
-
   "app.inventory.category.categoryNamePlaceholder": "Nhập tên danh mục",
   "app.inventory.category.descriptionPlaceholder": "Nhập mô tả",
   "app.error.inventoryCategoryName.required": "Tên danh mục là bắt buộc",
-
   "voucher.modal.title": "Voucher & Tích Điểm Thành Viên",
   "voucher.my-vouchers": "Voucher của tôi",
   "voucher.catalog": "Kho Voucher (Đổi điểm)",
@@ -918,9 +907,7 @@
   "booking.confirm.seated": "Xác nhận khách đã nhận bàn? Hệ thống sẽ tự động đăng ký/lưu Khách hàng thành viên cho Nhà hàng.",
   "booking.warning.no-table": "Phiếu đặt bàn này chưa được gán bàn! Vui lòng chỉnh sửa để chọn bàn trước khi Nhận bàn.",
   "booking.success.seated": "Nhận bàn thành công! Đã tự động lưu hồ sơ Khách hàng & khởi tạo ví điểm thành viên.",
-
   "customer.sys-voucher.col.usageLimit": "Giới hạn dùng",
-
   "checkout.label.orderId": "Mã Đơn Hàng (Order ID)",
   "checkout.placeholder.orderId": "Nhập Order ID cần thanh toán",
   "checkout.label.paymentMethod": "Phương thức thanh toán",
@@ -945,7 +932,6 @@
   "checkout.payment.cash": "💵 Tiền mặt",
   "checkout.payment.transfer": "💳 Chuyển khoản",
   "checkout.payment.creditCard": "💳 Thẻ tín dụng",
-
   "voucher.promo-code.label": "Hoặc nhập mã ưu đãi (Voucher Code)",
   "voucher.promo-code.placeholder": "Nhập mã (ví dụ: PHO20, SUSHI25)",
   "voucher.promo-code.apply": "Áp dụng",
@@ -960,9 +946,7 @@
   "voucher.msg.applyError": "Không thể áp dụng voucher.",
   "voucher.msg.removeSuccess": "Đã hủy dùng Voucher!",
   "voucher.msg.removeError": "Lỗi khi bỏ voucher.",
-
   "customer.placeholder.selectVoucher": "Chọn voucher cần tặng...",
-
   "voucher.spin.loading": "Đang tải voucher...",
   "voucher.showing.all": "Đang hiện: Tất cả",
   "voucher.showing.applicable": "Đang hiện: Khả dụng",
@@ -970,7 +954,6 @@
   "voucher.toggle.showAll": "Hiện tất cả",
   "voucher.sn.label": "Mã",
   "voucher.not-eligible": "Không đủ ĐK",
-
   "order.status.loading": "Đang tải trạng thái đơn hàng...",
   "order.empty.title": "Chưa có đơn hàng nào",
   "order.empty.subtitle": "Hãy quay lại thực đơn để gọi món.",

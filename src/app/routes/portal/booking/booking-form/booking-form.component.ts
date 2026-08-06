@@ -263,9 +263,6 @@ export class BookingFormComponent implements OnInit {
     return msg || err.message || fallback;
   }
 
-    return msg || err.message || fallback;
-  }
-
   submit(): void {
     if (this.form.invalid || !this.branchId) {
       Object.values(this.form.controls).forEach(control => {
