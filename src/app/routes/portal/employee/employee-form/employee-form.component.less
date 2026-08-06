@@ -1,0 +1,37 @@
+.employee-form-header h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.employee-form-alert {
+  margin-bottom: 16px;
+  color: #ff4d4f;
+}
+
+.employee-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+.employee-form-password {
+  grid-column: 1 / -1;
+}
+
+.employee-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+nz-date-picker {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .employee-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
