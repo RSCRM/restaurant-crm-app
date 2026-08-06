@@ -15,6 +15,26 @@ export interface CreateBookingRequest {
   note?: string | null;
 }
 
+export interface UpdateBookingRequest {
+  branchId?: string;
+  tableId?: string | null;
+  customerPhone?: string;
+  bookingTime?: string;
+  guestCount?: number;
+  note?: string | null;
+  status?: BookingStatus;
+}
+
+export interface BookingSearchRequest {
+  branchId?: string | null;
+  searchKeyword?: string | null;
+  status?: BookingStatus | string | null;
+  minGuests?: number | null;
+  maxGuests?: number | null;
+  bookingTimeFrom?: string | null;
+  bookingTimeTo?: string | null;
+}
+
 export interface UpdateBookingStatusRequest {
   status: BookingStatus;
 }

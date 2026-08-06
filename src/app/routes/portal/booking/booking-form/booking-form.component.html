@@ -1,6 +1,8 @@
 <nz-spin [nzSpinning]="loading">
   <div style="padding: 16px">
-    <h3 style="margin-bottom: 20px; font-weight: bold; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px"> Tạo Đặt Bàn Mới </h3>
+    <h3 style="margin-bottom: 20px; font-weight: bold; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px">
+      {{ isEditMode ? 'Chỉnh Sửa Đặt Bàn' : 'Tạo Đặt Bàn Mới' }}
+    </h3>
 
     <form nz-form [formGroup]="form" (ngSubmit)="submit()">
       <div nz-row [nzGutter]="16">
@@ -102,7 +104,7 @@
       <div style="margin-top: 24px; text-align: right">
         <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting" style="margin-right: 8px"> Hủy </button>
         <button nz-button nzType="primary" type="submit" [nzLoading]="submitting" [disabled]="form.invalid || !selectedTableId">
-          Xác Nhận Đặt Bàn
+          {{ isEditMode ? 'Cập Nhật Đặt Bàn' : 'Xác Nhận Đặt Bàn' }}
         </button>
       </div>
     </form>

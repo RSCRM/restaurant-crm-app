@@ -1050,6 +1050,8 @@
   "voucher.msg.applyError": "Unable to apply voucher.",
   "voucher.msg.removeSuccess": "Voucher removed!",
   "voucher.msg.removeError": "Error removing voucher.",
+  "voucher.msg.inactive": "This voucher has been disabled by the restaurant or is unavailable!",
+  "booking.msg.future-required": "Booking time must be in the future!",
   "customer.placeholder.selectVoucher": "Select voucher to grant...",
   "voucher.spin.loading": "Loading vouchers...",
   "voucher.showing.all": "Showing: All",

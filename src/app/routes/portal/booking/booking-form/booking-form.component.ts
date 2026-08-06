@@ -16,6 +16,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
+import { ALAIN_I18N_TOKEN } from '@delon/theme';
 import { selectContextToken } from '../../../auth/store/auth.selectors';
 import { BookingStatus, BookingResponse, TableSearchResponse } from '../booking.model';
 import { BookingService } from '../booking.service';
@@ -48,6 +49,7 @@ interface TableAvailability extends TableSearchResponse {
   styleUrls: ['./booking-form.component.less']
 })
 export class BookingFormComponent implements OnInit {
+  private i18n = inject(ALAIN_I18N_TOKEN);
   private fb = inject(FormBuilder);
   private bookingService = inject(BookingService);
   private store = inject(Store);
@@ -59,6 +61,9 @@ export class BookingFormComponent implements OnInit {
   branchId: string | null = null;
   loading = false;
   submitting = false;
+  isEditMode = false;
+  bookingId: string | null = null;
+  bookingData: BookingResponse | null = null;
 
   // Raw data from API
   allBookings: BookingResponse[] = [];
@@ -87,6 +92,13 @@ export class BookingFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.bookingData = this.modalRef.getConfig().nzData || null;
+    if (this.bookingData) {
+      this.isEditMode = true;
+      this.bookingId = this.bookingData.id;
+      this.selectedTableId = this.bookingData.tableId;
+    }
+
     this.initForm();
     this.store.select(selectContextToken).subscribe(token => {
       const id = this.getBranchIdFromToken(token);
@@ -106,11 +118,11 @@ export class BookingFormComponent implements OnInit {
 
   private initForm(): void {
     this.form = this.fb.group({
-      customerPhone: ['', [Validators.required, Validators.pattern(/^\d{9,15}$/)]],
+      customerPhone: [this.bookingData?.customerPhone || '', [Validators.required, Validators.pattern(/^\d{9,15}$/)]],
       customerName: [''], // Optional
-      bookingTime: [null, [Validators.required]],
+      bookingTime: [this.bookingData ? new Date(this.bookingData.bookingTime) : null, [Validators.required]],
       duration: [3, [Validators.required, Validators.min(0.1)]], // Dining duration in hours, defaults to 3
-      note: ['']
+      note: [this.bookingData?.note || '']
     });
   }
 
@@ -136,8 +148,8 @@ export class BookingFormComponent implements OnInit {
 
     this.bookingService.getBookingsByBranch(this.branchId, { page: 1, size: 1000 }).subscribe({
       next: bookingRes => {
-        // Filter out cancelled or expired bookings for conflict checking
-        this.allBookings = bookingRes.data.filter(b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED);
+        // Filter out cancelled, expired or current editing booking for conflict checking
+        this.allBookings = bookingRes.data.filter(b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED && b.id !== this.bookingId);
         this.checkDataLoaded();
       },
       error: () => {
@@ -230,6 +242,30 @@ export class BookingFormComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (!err) return fallback;
+    const e = err.error;
+    if (!e) return err.message || fallback;
+
+    let msg = '';
+    if (typeof e.errorMessage === 'string') {
+      msg = e.errorMessage;
+    } else if (typeof e.errorMessage === 'object' && e.errorMessage?.message) {
+      msg = e.errorMessage.message;
+    } else if (typeof e.message === 'string') {
+      msg = e.message;
+    }
+
+    if (msg === 'BOOKING_TIME_MUST_BE_FUTURE' || msg.includes('FUTURE')) {
+      return this.i18n.fanyi('booking.msg.future-required');
+    }
+
+    return msg || err.message || fallback;
+  }
+
+    return msg || err.message || fallback;
+  }
+
   submit(): void {
     if (this.form.invalid || !this.branchId) {
       Object.values(this.form.controls).forEach(control => {
@@ -257,19 +293,35 @@ export class BookingFormComponent implements OnInit {
       note: (nameStr + noteStr).trim() || null
     };
 
-    this.bookingService.createBooking(request).subscribe({
-      next: () => {
-        this.submitting = false;
-        this.message.success('Đặt bàn thành công!');
-        this.modalRef.close(true);
-      },
-      error: err => {
-        this.submitting = false;
-        const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi tạo đặt bàn.';
-        this.message.error(msg);
-        this.cdr.markForCheck();
-      }
-    });
+    if (this.isEditMode && this.bookingId) {
+      this.bookingService.updateBooking(this.bookingId, request).subscribe({
+        next: () => {
+          this.submitting = false;
+          this.message.success('Cập nhật đặt bàn thành công!');
+          this.modalRef.close(true);
+        },
+        error: err => {
+          this.submitting = false;
+          const msg = this.extractErrorMessage(err, 'Lỗi khi cập nhật đặt bàn.');
+          this.message.error(msg);
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      this.bookingService.createBooking(request).subscribe({
+        next: () => {
+          this.submitting = false;
+          this.message.success('Đặt bàn thành công!');
+          this.modalRef.close(true);
+        },
+        error: err => {
+          this.submitting = false;
+          const msg = this.extractErrorMessage(err, 'Lỗi khi tạo đặt bàn.');
+          this.message.error(msg);
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
   cancel(): void {
