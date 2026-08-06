@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STModule } from '@delon/abc/st';
@@ -187,12 +189,13 @@ export class EmployeeComponent implements OnInit {
       .listEmployees()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
+        catchError((error: HttpErrorResponse) => {
           this.data = [];
           return EMPTY;
         }),
         finalize(() => {
           this.loading = false;
+          this.firstLoaded = true;
           this.cdr.markForCheck();
         })
       )

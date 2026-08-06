@@ -44,63 +44,56 @@
   <!-- Filter Panel -->
   @if (showFilter) {
     <div class="filter-panel">
-      <div nz-row [nzGutter]="[16, 16]">
-        <!-- Status -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.organization.filter.status' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-select
-                [(ngModel)]="filter.status"
-                [nzPlaceHolder]="'app.organization.filter.all' | i18n"
-                [nzAllowClear]="true"
-              >
-                @for (opt of statusOptions; track opt.value) {
-                  <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
-                }
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item>
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.organization.filter.status' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <nz-select
+                    [(ngModel)]="filter.status"
+                    style="width: 100%;"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.organization.filter.ownerId' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <input
+                    nz-input
+                    [(ngModel)]="filter.ownerId"
+                    [placeholder]="'app.organization.filter.ownerIdPlaceholder' | i18n"
+                    style="width: 100%;"
+                  />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
         </div>
-
-        <!-- Owner ID -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.organization.filter.ownerId' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <input
-                nz-input
-                [(ngModel)]="filter.ownerId"
-                [placeholder]="'app.organization.filter.ownerIdPlaceholder' | i18n"
-              />
-            </nz-form-control>
-          </nz-form-item>
+        <div nz-col [nzSpan]="12">
+          <div nz-row [nzGutter]="[16, 0]">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>{{ 'app.organization.filter.address' | i18n }}</nz-form-label>
+                <nz-form-control>
+                  <input
+                    nz-input
+                    [(ngModel)]="filter.address"
+                    [placeholder]="'app.organization.filter.addressPlaceholder' | i18n"
+                    style="width: 100%;"
+                  />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
         </div>
-
-        <!-- Address -->
-        <div nz-col [nzSpan]="6">
-          <nz-form-item>
-            <nz-form-label>{{ 'app.organization.filter.address' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <input
-                nz-input
-                [(ngModel)]="filter.address"
-                [placeholder]="'app.organization.filter.addressPlaceholder' | i18n"
-              />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </div>
-
-      <!-- Filter Actions -->
-      <div class="filter-actions">
-        <button nz-button nzType="primary" (click)="search()">
-          <span nz-icon nzType="search" nzTheme="outline"></span>
-          {{ 'app.organization.applyFilter' | i18n }}
-        </button>
-        <button nz-button nzType="default" (click)="clearFilter()">
-          {{ 'app.organization.clearFilter' | i18n }}
-        </button>
       </div>
     </div>
   }

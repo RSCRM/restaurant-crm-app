@@ -13,7 +13,30 @@
     <nz-form-item>
       <nz-form-label [nzRequired]="true">{{ 'app.organization.form.ownerId' | i18n }}</nz-form-label>
       <nz-form-control>
-        <input nz-input formControlName="ownerId" [placeholder]="'app.organization.form.ownerIdPlaceholder' | i18n" />
+        <nz-select
+          formControlName="ownerId"
+          nzShowSearch
+          nzServerSearch
+          [nzLoading]="userLoading"
+          [nzPlaceHolder]="'app.organization.form.ownerIdPlaceholder' | i18n"
+          [nzOptionHeightPx]="48"
+          [nzDropdownStyle]="{ 'max-height': '240px' }"
+          (nzOnSearch)="onUserSearch($event)"
+          style="width: 100%;"
+        >
+          @for (user of users; track user.id) {
+            <nz-option
+              [nzValue]="user.id"
+              [nzLabel]="user.username"
+              nzCustomContent
+            >
+              <div class="user-option">
+                <div class="user-name">{{ user.username }}</div>
+                <div class="user-info">{{ user.email }} @if (user.fullName) { · {{ user.fullName }} }</div>
+              </div>
+            </nz-option>
+          }
+        </nz-select>
       </nz-form-control>
     </nz-form-item>
   }
