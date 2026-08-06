@@ -1,3 +1,84 @@
+@border-color: #f0f0f0;
+@page-background: #f5f7fa;
+
+.employee-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: calc(100vh - 180px);
+  padding: 16px;
+  background: @page-background;
+}
+
+.employee-page nz-card {
+  border: 1px solid @border-color;
+  border-radius: 8px;
+}
+
+.employee-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.employee-toolbar-filters {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.employee-toolbar-actions,
+.employee-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.employee-name {
+  height: auto;
+  padding: 0;
+  font-weight: 600;
+  white-space: normal;
+  text-align: left;
+}
+
+:host ::ng-deep .ant-table-cell {
+  vertical-align: middle;
+}
+
+@media (max-width: 991px) {
+  .employee-toolbar {
+    flex-direction: column;
+  }
+
+  .employee-toolbar-filters {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .employee-toolbar-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 575px) {
+  .employee-page {
+    padding: 12px;
+  }
+
+  .employee-toolbar-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .employee-toolbar-actions button {
+    flex: 1;
+  }
+}
+
 .page-container {
   padding: 24px;
 }

@@ -1,0 +1,42 @@
+<div class="branch-detail">
+  <nz-descriptions nzBordered [nzColumn]="1" nzSize="small">
+    <nz-descriptions-item [nzTitle]="'branch.branchId' | i18n">
+      {{ branch.id || ('common.emptyValue' | i18n) }}
+    </nz-descriptions-item>
+
+    <nz-descriptions-item [nzTitle]="'branch.branchName' | i18n">
+      {{ branch.branchName || ('common.emptyValue' | i18n) }}
+    </nz-descriptions-item>
+
+    <nz-descriptions-item [nzTitle]="'branch.organization' | i18n">
+      {{ branch.organizationId || ('common.emptyValue' | i18n) }}
+    </nz-descriptions-item>
+
+    <nz-descriptions-item [nzTitle]="'branch.branchAddress' | i18n">
+      {{ branch.address || ('common.emptyValue' | i18n) }}
+    </nz-descriptions-item>
+
+    <nz-descriptions-item [nzTitle]="'branch.branchPhone' | i18n">
+      {{ branch.phone || ('common.emptyValue' | i18n) }}
+    </nz-descriptions-item>
+
+    <nz-descriptions-item [nzTitle]="'branch.status.title' | i18n">
+      <nz-tag [nzColor]="getBranchStatusColor(branch.status)">
+        {{ getBranchStatusKey(branch.status) | i18n }}
+      </nz-tag>
+    </nz-descriptions-item>
+
+    <nz-descriptions-item [nzTitle]="'branch.manager.current' | i18n">
+      @if (branch.managerName || branch.managerUsername || branch.managerEmail) {
+        <div>{{ branch.managerName || branch.managerUsername }}</div>
+        <div class="branch-detail-subtext">{{ branch.managerEmail || ('common.emptyValue' | i18n) }}</div>
+      } @else {
+        {{ 'branch.manager.empty' | i18n }}
+      }
+    </nz-descriptions-item>
+  </nz-descriptions>
+
+  <div class="branch-detail-actions">
+    <button nz-button type="button" (click)="close()">{{ 'common.cancel' | i18n }}</button>
+  </div>
+</div>
