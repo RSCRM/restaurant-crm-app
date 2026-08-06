@@ -13,8 +13,54 @@
 .context-item {
   flex: 0 0 calc(20% - 13px);
   min-width: 200px;
+
+  ::ng-deep .ant-card {
+    height: 240px;
+    display: flex;
+    flex-direction: column;
+
+    .ant-card-head {
+      flex-shrink: 0;
+
+      .ant-card-head-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .ant-card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .context-card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+
+      p {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0;
+      }
+    }
+
+    .context-card-bottom {
+      margin-top: auto;
+    }
+
+    .ant-btn {
+      height: 36px;
+    }
+  }
 }
 
 .context-role {
   margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
