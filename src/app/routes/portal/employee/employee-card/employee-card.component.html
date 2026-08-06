@@ -1,0 +1,17 @@
+@if (employee) {
+  <div class="employee-card">
+    <div class="employee-card-main">
+      <div class="employee-card-name">{{ employee.fullName || employee.username || ('common.emptyValue' | i18n) }}</div>
+      <div class="employee-card-meta">
+        <span>{{ employee.employeeCode || employee.employeeId || employee.id }}</span>
+        <span>{{ employee.branchName || employee.branchId || ('common.emptyValue' | i18n) }}</span>
+        <span>{{ employee.email || ('common.emptyValue' | i18n) }}</span>
+        <span>{{ employee.phone || ('common.emptyValue' | i18n) }}</span>
+      </div>
+    </div>
+    <div class="employee-card-badges">
+      <app-employee-role-badge [role]="employee.orgRoleName || employee.role" />
+      <app-employee-status-badge [status]="employee.status" />
+    </div>
+  </div>
+}

@@ -26,6 +26,13 @@ export interface AuthUser {
   avatar: string | null;
 }
 
+export interface SelectedContext {
+  organizationId: string;
+  branchId: string | null;
+  role: string;
+  dataScope: string | null;
+}
+
 export const initialAuthState: AuthState = {
   accessToken: null,
   refreshToken: null,
