@@ -5,7 +5,12 @@
   <div class="toolbar">
     <div class="toolbar-left">
       <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px">
-        <input nz-input [placeholder]="'app.inventory.category.searchPlaceholder' | i18n" />
+        <input
+          nz-input
+          [(ngModel)]="searchKeyword"
+          [placeholder]="'app.inventory.category.searchPlaceholder' | i18n"
+          (keyup.enter)="search()"
+        />
       </nz-input-group>
 
       <ng-template #prefixSearch>

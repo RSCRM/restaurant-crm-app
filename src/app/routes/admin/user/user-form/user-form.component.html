@@ -70,7 +70,37 @@
     <nz-form-item>
       <nz-form-label>{{ 'app.user.form.roleIds' | i18n }}</nz-form-label>
       <nz-form-control>
-        <input nz-input formControlName="roleIds" [placeholder]="'app.user.form.roleIdsPlaceholder' | i18n" />
+        <div class="role-listbox">
+          @if (rolesLoading) {
+            <div class="role-listbox-loading">
+              <nz-spin nzSimple></nz-spin>
+            </div>
+          } @else if (roles.length === 0) {
+            <div class="role-listbox-empty">Không có vai trò nào</div>
+          } @else {
+            @for (role of roles; track role.id) {
+              <div
+                class="role-item"
+                [class.selected]="isRoleSelected(role.id)"
+                (click)="toggleRole(role.id)"
+              >
+                <div class="role-item-header">
+                  <span class="checkbox" [class.checked]="isRoleSelected(role.id)">
+                    @if (isRoleSelected(role.id)) {
+                      <span nz-icon nzType="check" nzTheme="outline"></span>
+                    }
+                  </span>
+                  <span class="role-name">{{ role.roleName }}</span>
+                </div>
+                @if (role.dataScope) {
+                  <div class="role-item-details">
+                    <div class="role-detail-line">DataScope: {{ role.dataScope }}</div>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
       </nz-form-control>
     </nz-form-item>
 

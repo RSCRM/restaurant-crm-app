@@ -62,3 +62,10 @@ yarn-error.log
 /crm
 /ng-alain
 /ng-alain/
+
+
+.claude/
+.superpowers/
+.understand-anything/
+docs/superpowers/
+documents/

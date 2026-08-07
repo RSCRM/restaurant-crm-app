@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { contextGuard } from '../auth/guards/context.guard';
+import { ownerGuard } from '../auth/guards/owner.guard';
 import { permissionGuard } from '../auth/guards/permission.guard';
 
 export const routes: Routes = [
@@ -84,8 +85,13 @@ export const routes: Routes = [
   },
   {
     path: 'employee',
-    canActivate: [contextGuard, permissionGuard('PROFILE_VIEW')],
+    canActivate: [contextGuard, permissionGuard('EMPLOYEE_VIEW')],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)
+  },
+  {
+    path: 'org-role',
+    canActivate: [contextGuard, ownerGuard, permissionGuard('ORG_ROLE_MANAGE')],
+    loadComponent: () => import('./org-role/org-role.component').then(m => m.OrgRoleComponent)
   },
   {
     path: 'profile',

@@ -10,17 +10,12 @@
           [(ngModel)]="searchPhone"
           name="searchPhone"
           [placeholder]="'booking.search.placeholder' | i18n"
-          (keyup.enter)="search()"
+          (ngModelChange)="onSearchChange($event)"
         />
       </nz-input-group>
       <ng-template #prefixSearchPhone>
         <span nz-icon nzType="phone" nzTheme="outline"></span>
       </ng-template>
-
-      <button nz-button nzType="primary" (click)="search()">
-        <span nz-icon nzType="search"></span>
-        {{ 'customer.search.button' | i18n }}
-      </button>
 
       <button nz-button nzType="default" (click)="toggleFilter()">
         <span nz-icon nzType="filter" nzTheme="outline"></span>
@@ -57,7 +52,7 @@
           <nz-form-item style="margin-bottom: 0">
             <nz-form-label>{{ 'booking.filter.status' | i18n }}</nz-form-label>
             <nz-form-control>
-              <nz-select [(ngModel)]="filterStatus" name="filterStatus" style="width: 100%" (ngModelChange)="filterData()">
+              <nz-select [(ngModel)]="filterStatus" name="filterStatus" style="width: 100%" (ngModelChange)="onFilterChange()">
                 <nz-option nzValue="ALL" [nzLabel]="'booking.filter.all' | i18n" />
                 <nz-option nzValue="PENDING" [nzLabel]="'booking.status.pending' | i18n" />
                 <nz-option nzValue="CONFIRMED" [nzLabel]="'booking.status.confirmed' | i18n" />
@@ -158,6 +153,12 @@
     <!-- Custom render for Actions column -->
     <ng-template st-row="actions" let-item>
       <div style="display: flex; gap: 8px; align-items: center">
+        @if (hasUpdatePermission && (item.status === 'CONFIRMED' || item.status === 'PENDING')) {
+          <button nz-button nzType="default" nzSize="small" (click)="openEditBooking(item)">
+            <span nz-icon nzType="edit"></span>Sửa
+          </button>
+        }
+
         @if (item.status === 'CONFIRMED' || item.status === 'PENDING') {
           <button nz-button nzType="primary" nzSize="small" (click)="updateStatus(item, bookingStatus.SEATED)">
             {{ 'booking.action.seated' | i18n }}

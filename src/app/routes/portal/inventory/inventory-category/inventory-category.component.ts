@@ -35,6 +35,9 @@ export class InventoryCategoryComponent implements OnInit {
 
   categories: InventoryCategoryResponse[] = [];
 
+  /** Search text */
+  searchKeyword = '';
+
   total = 0;
   currentPage = 1;
   pageSize = 10;
@@ -83,8 +86,16 @@ export class InventoryCategoryComponent implements OnInit {
       size: this.pageSize
     };
 
-    this.inventoryService
-      .getInventoryCategories(params)
+    const request =
+      this.searchKeyword.trim().length > 0
+        ? this.inventoryService.searchInventoryCategories(
+          this.searchKeyword.trim(),
+          this.currentPage,
+          this.pageSize
+        )
+        : this.inventoryService.getInventoryCategories(params);
+
+    request
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
@@ -158,6 +169,7 @@ export class InventoryCategoryComponent implements OnInit {
   }
 
   reset(): void {
+    this.searchKeyword = '';
     this.currentPage = 1;
     this.loadData();
   }

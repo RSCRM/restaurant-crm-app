@@ -116,6 +116,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
   // Filters for System Vouchers
   searchVoucherTitle = '';
   filterVoucherStatus = 'ALL';
+  filterVoucherType: 'ALL' | 'POINT' | 'CODE' = 'ALL';
   filterMinDiscount: number | null = null;
   filterMaxDiscount: number | null = null;
   filterVoucherMinPoints: number | null = null;
@@ -616,9 +617,10 @@ export class CustomerComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(v => v.isActive === 0);
     }
 
-    if (this.searchVoucherTitle.trim()) {
-      const q = this.searchVoucherTitle.trim().toLowerCase();
-      filtered = filtered.filter(v => v.title.toLowerCase().includes(q));
+    if (this.filterVoucherType === 'POINT') {
+      filtered = filtered.filter(v => !v.voucherCode);
+    } else if (this.filterVoucherType === 'CODE') {
+      filtered = filtered.filter(v => !!v.voucherCode);
     }
 
     if (this.filterMinDiscount !== null) {
@@ -634,9 +636,31 @@ export class CustomerComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(v => v.pointsRequired <= this.filterVoucherMaxPoints!);
     }
 
+    if (this.searchVoucherTitle.trim()) {
+      const q = this.searchVoucherTitle.trim().toLowerCase();
+      filtered = filtered.filter(v => {
+        const matchTitle = v.title && v.title.toLowerCase().includes(q);
+        const matchCode = v.voucherCode && v.voucherCode.toLowerCase().includes(q);
+        const matchDiscount = v.discountPercent !== null && v.discountPercent !== undefined && v.discountPercent.toString().includes(q);
+        return matchTitle || matchCode || matchDiscount;
+      });
+    }
+
     this.displaySystemVouchers = filtered;
     this.sysVoucherTotal = filtered.length;
     this.cdr.markForCheck();
+  }
+
+  onCustomerSearchChange(value: string): void {
+    this.searchPhone = value;
+    this.memberCustomerPage = 1;
+    this.loadMemberCustomers();
+  }
+
+  onVoucherSearchChange(value: string): void {
+    this.searchVoucherTitle = value;
+    this.sysVoucherPage = 1;
+    this.filterSystemVouchers();
   }
 
   searchVouchers(): void {
@@ -650,6 +674,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
   resetVoucherFilter(): void {
     this.searchVoucherTitle = '';
     this.filterVoucherStatus = 'ALL';
+    this.filterVoucherType = 'ALL';
     this.filterMinDiscount = null;
     this.filterMaxDiscount = null;
     this.filterVoucherMinPoints = null;
@@ -661,6 +686,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
     return (
       this.searchVoucherTitle.trim() !== '' ||
       this.filterVoucherStatus !== 'ALL' ||
+      this.filterVoucherType !== 'ALL' ||
       this.filterMinDiscount !== null ||
       this.filterMaxDiscount !== null ||
       this.filterVoucherMinPoints !== null ||
@@ -697,11 +723,17 @@ export class CustomerComponent implements OnInit, OnDestroy {
         const msgKey = active ? 'customer.msg.toggle-status-enable-success' : 'customer.msg.toggle-status-disable-success';
         this.message.success(this.i18n.fanyi(msgKey, { title: voucher.title }));
         this.filterSystemVouchers();
+        this.loadSystemVouchers();
+        if (this.currentCustomer) {
+          this.loadCustomerVouchers();
+        }
+        this.cdr.markForCheck();
       },
       error: err => {
         const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('customer.msg.toggle-status-error');
         this.message.error(msg);
         this.loadSystemVouchers();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -722,6 +754,10 @@ export class CustomerComponent implements OnInit, OnDestroy {
     modalRef.afterClose.subscribe(result => {
       if (result) {
         this.loadSystemVouchers();
+        if (this.currentCustomer) {
+          this.loadCustomerVouchers();
+        }
+        this.cdr.markForCheck();
       }
     });
   }
@@ -743,6 +779,10 @@ export class CustomerComponent implements OnInit, OnDestroy {
     modalRef.afterClose.subscribe(result => {
       if (result) {
         this.loadSystemVouchers();
+        if (this.currentCustomer) {
+          this.loadCustomerVouchers();
+        }
+        this.cdr.markForCheck();
       }
     });
   }

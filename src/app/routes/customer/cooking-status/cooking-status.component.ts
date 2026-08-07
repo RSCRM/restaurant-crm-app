@@ -214,6 +214,28 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     });
   }
 
+  private extractVoucherError(err: any, defaultMsgKey: string): string {
+    if (!err) return this.i18n.fanyi(defaultMsgKey);
+    const e = err.error;
+    if (!e) return err.message || this.i18n.fanyi(defaultMsgKey);
+
+    let msg = '';
+    if (typeof e.errorMessage === 'string') {
+      msg = e.errorMessage;
+    } else if (typeof e.errorMessage === 'object' && e.errorMessage?.message) {
+      msg = e.errorMessage.message;
+    } else if (typeof e.message === 'string') {
+      msg = e.message;
+    }
+
+    const lower = msg.toLowerCase();
+    if (msg === 'VOUCHER_INACTIVE' || lower.includes('inactive') || lower.includes('khóa') || lower.includes('tắt') || lower.includes('ngưng')) {
+      return this.i18n.fanyi('voucher.msg.inactive');
+    }
+
+    return msg || err.message || this.i18n.fanyi(defaultMsgKey);
+  }
+
   redeemVoucher(v: CustomerVoucherApplicableResponse): void {
     this.voucherLoading = true;
     this.customerService.redeemVoucher(v.customerVoucherId).subscribe({
@@ -226,7 +248,10 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
       },
       error: err => {
         this.voucherLoading = false;
-        this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.msg.redeemError'));
+        const msg = this.extractVoucherError(err, 'voucher.msg.redeemError');
+        this.message.error(msg);
+        this.loadCatalog();
+        this.loadMyVouchers();
         this.cdr.markForCheck();
       }
     });
@@ -255,7 +280,10 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
       },
       error: err => {
         this.voucherLoading = false;
-        this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.msg.applyError'));
+        const msg = this.extractVoucherError(err, 'voucher.msg.applyError');
+        this.message.error(msg);
+        this.loadCatalog();
+        this.loadMyVouchers();
         this.cdr.markForCheck();
       }
     });
@@ -289,66 +317,22 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     this.voucherLoading = true;
     this.cdr.markForCheck();
 
-    // 1. Check if the customer already owns this promo code voucher in their wallet (e.g. from previous step)
-    const alreadyOwnedVoucher = this.allMyVouchers.find(v => v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase());
-
-    if (alreadyOwnedVoucher) {
-      // Already owned, apply directly without redeeming
-      this.customerService.applyVoucher(alreadyOwnedVoucher.customerVoucherId).subscribe({
-        next: () => {
-          this.message.success(this.i18n.fanyi('voucher.promo-code.msg.success'));
-          this.codeLoading = false;
-          this.voucherLoading = false;
-          this.voucherModalVisible = false;
-          this.enteredCode = '';
-          this.loadStatus();
-        },
-        error: err => {
-          this.codeLoading = false;
-          this.voucherLoading = false;
-          this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.applyError'));
-          this.cdr.markForCheck();
-        }
-      });
-      return;
-    }
-
-    // 2. If not owned yet, search in catalog for code-based voucher (v.voucherCode === code)
-    const matchedVoucher = this.catalogVouchers.find(v => v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase());
-
-    if (!matchedVoucher) {
-      this.codeLoading = false;
-      this.voucherLoading = false;
-      this.message.error(this.i18n.fanyi('voucher.promo-code.msg.invalid'));
-      this.cdr.markForCheck();
-      return;
-    }
-
-    // Redeem code voucher (0 points)
-    this.customerService.redeemVoucher(matchedVoucher.customerVoucherId).subscribe({
-      next: customerVoucherId => {
-        // Apply newly redeemed customer voucher to order
-        this.customerService.applyVoucher(customerVoucherId).subscribe({
-          next: () => {
-            this.message.success(this.i18n.fanyi('voucher.promo-code.msg.success'));
-            this.codeLoading = false;
-            this.voucherLoading = false;
-            this.voucherModalVisible = false;
-            this.enteredCode = '';
-            this.loadStatus();
-          },
-          error: err => {
-            this.codeLoading = false;
-            this.voucherLoading = false;
-            this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.applyError'));
-            this.cdr.markForCheck();
-          }
-        });
+    this.customerService.applyVoucherCode(code).subscribe({
+      next: () => {
+        this.message.success(this.i18n.fanyi('voucher.promo-code.msg.success'));
+        this.codeLoading = false;
+        this.voucherLoading = false;
+        this.voucherModalVisible = false;
+        this.enteredCode = '';
+        this.loadStatus();
       },
       error: err => {
         this.codeLoading = false;
         this.voucherLoading = false;
-        this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.unavailable'));
+        const msg = this.extractVoucherError(err, 'voucher.promo-code.msg.applyError');
+        this.message.error(msg);
+        this.loadCatalog();
+        this.loadMyVouchers();
         this.cdr.markForCheck();
       }
     });

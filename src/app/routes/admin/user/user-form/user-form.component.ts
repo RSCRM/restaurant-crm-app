@@ -9,8 +9,9 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { UserResponse } from '../user.model';
 import { UserService } from '../user.service';
+import { RoleResponse, UserResponse } from '../user.model';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 interface ModalData {
   mode: 'create' | 'roles';
@@ -21,7 +22,14 @@ interface ModalData {
   selector: 'app-user-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzButtonModule, I18nPipe],
+  imports: [
+    ReactiveFormsModule,
+    NzFormModule,
+    NzInputModule,
+    NzButtonModule,
+    NzSpinModule,
+    I18nPipe
+  ],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.less'
 })
@@ -37,6 +45,9 @@ export class UserFormComponent implements OnInit {
   mode: 'create' | 'roles' = 'create';
   user: UserResponse | null = null;
   loading = false;
+  rolesLoading = false;
+  roles: RoleResponse[] = [];
+  selectedRoleIds: Set<string> = new Set();
 
   createForm = this.fb.group({
     username: this.fb.control('', [Validators.required, Validators.minLength(5), Validators.maxLength(50)]),
@@ -54,10 +65,44 @@ export class UserFormComponent implements OnInit {
     if (this.modalData?.mode === 'roles' && this.modalData.user) {
       this.mode = 'roles';
       this.user = this.modalData.user;
+      this.selectedRoleIds = new Set(this.user.roles.map(r => r.id));
       this.rolesForm.patchValue({
         roleIds: this.user.roles.map(r => r.id)
       });
+      this.loadRoles();
     }
+  }
+
+  loadRoles(): void {
+    this.rolesLoading = true;
+    this.cdr.markForCheck();
+
+    this.userService.getRoles().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.rolesLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe(roles => {
+      this.roles = roles;
+      this.cdr.markForCheck();
+    });
+  }
+
+  toggleRole(roleId: string): void {
+    if (this.selectedRoleIds.has(roleId)) {
+      this.selectedRoleIds.delete(roleId);
+    } else {
+      this.selectedRoleIds.add(roleId);
+    }
+    this.rolesForm.patchValue({
+      roleIds: Array.from(this.selectedRoleIds)
+    });
+  }
+
+  isRoleSelected(roleId: string): boolean {
+    return this.selectedRoleIds.has(roleId);
   }
 
   submit(): void {

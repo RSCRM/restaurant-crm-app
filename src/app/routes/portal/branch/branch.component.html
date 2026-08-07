@@ -74,12 +74,10 @@
             </button>
           }
 
+          <!-- Nut "Gan quan ly" da bi go cung voi openAssignManager() trong branch.component.ts:
+               no phu thuoc EmployeeSelectionModalComponent va EmployeeResponse.userId, ca hai
+               khong con sau khi employee module duoc viet lai theo API contract that. -->
           @if (canAssignManager()) {
-            <button nz-button nzType="link" type="button" (click)="openAssignManager(item)">
-              <span nz-icon nzType="user-switch" nzTheme="outline"></span>
-              {{ item.managerId ? ('branch.manager.replace' | i18n) : ('branch.manager.assign' | i18n) }}
-            </button>
-
             @if (item.managerId) {
               <button
                 nz-button

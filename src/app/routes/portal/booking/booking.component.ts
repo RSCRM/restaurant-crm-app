@@ -17,8 +17,10 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
+import { Subject, debounceTime } from 'rxjs';
+
 import { BookingFormComponent } from './booking-form/booking-form.component';
-import { BookingResponse, BookingStatus } from './booking.model';
+import { BookingResponse, BookingStatus, BookingSearchRequest } from './booking.model';
 import { BookingService } from './booking.service';
 import { selectContextToken } from '../../auth/store/auth.selectors';
 
@@ -43,76 +45,7 @@ import { selectContextToken } from '../../auth/store/auth.selectors';
     I18nPipe
   ],
   templateUrl: './booking.component.html',
-  styles: [
-    `
-      .countdown-active {
-        color: #fa8c16;
-        font-size: 12px;
-        font-weight: 500;
-        margin-top: 4px;
-        display: block;
-      }
-      .overdue-pulse {
-        color: #f5222d;
-        font-size: 12px;
-        font-weight: bold;
-        animation: pulse 1.5s infinite;
-        margin-top: 4px;
-        display: block;
-      }
-      @keyframes pulse {
-        0% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.3;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-      .toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 16px;
-      }
-      .toolbar-left {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .search-input {
-        width: 250px;
-      }
-      .filter-panel {
-        margin-bottom: 16px;
-        padding: 16px;
-        border: 1px solid #f0f0f0;
-        border-radius: 8px;
-        background: #fafafa;
-      }
-      .filter-badge {
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        margin-left: 4px;
-        border-radius: 50%;
-        background: #ff4d4f;
-      }
-      .price-range {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .price-range nz-input-number {
-        flex: 1;
-      }
-      .price-range-separator {
-        color: #8c8c8c;
-      }
-    `
-  ]
+  styleUrls: ['./booking.component.less']
 })
 export class BookingComponent implements OnInit, OnDestroy {
   private i18n = inject(ALAIN_I18N_TOKEN);
@@ -145,6 +78,7 @@ export class BookingComponent implements OnInit, OnDestroy {
   sortBy = '';
   sortDirection = '';
 
+  private searchSubject = new Subject<string>();
   private refreshIntervalId: ReturnType<typeof setInterval> | null = null;
 
   columns: STColumn[] = [];
@@ -230,7 +164,7 @@ export class BookingComponent implements OnInit, OnDestroy {
       },
       {
         title: this.i18n.fanyi('booking.column.actions'),
-        width: 220,
+        width: 260,
         fixed: 'right',
         render: 'actions'
       }
@@ -239,6 +173,13 @@ export class BookingComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initColumns();
+
+    this.searchSubject.pipe(debounceTime(100)).subscribe(val => {
+      this.searchPhone = val;
+      this.currentPage = 1;
+      this.loadData();
+    });
+
     this.store.select(selectContextToken).subscribe(token => {
       const payload = this.parseTokenPayload(token);
       if (payload) {
@@ -250,6 +191,13 @@ export class BookingComponent implements OnInit, OnDestroy {
         if (this.branchId) {
           this.loadData();
         }
+      } else {
+        this.branchId = null;
+        this.bookingsList = [];
+        this.displayBookings = [];
+        this.total = 0;
+        this.loading = false;
+        this.cdr.markForCheck();
       }
     });
 
@@ -264,8 +212,27 @@ export class BookingComponent implements OnInit, OnDestroy {
     }
   }
 
+  onSearchChange(value: string): void {
+    this.searchPhone = value;
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadData();
+  }
+
   loadData(): void {
-    if (!this.branchId) return;
+    if (!this.branchId) {
+      this.loading = false;
+      this.bookingsList = [];
+      this.displayBookings = [];
+      this.total = 0;
+      this.cdr.markForCheck();
+      return;
+    }
+
     this.loading = true;
     this.cdr.markForCheck();
 
@@ -274,11 +241,15 @@ export class BookingComponent implements OnInit, OnDestroy {
       size: this.pageSize
     };
 
-    const request$ = this.searchPhone.trim()
-      ? this.bookingService.getBookingsByCustomerPhone(this.searchPhone.trim(), pagingParams)
-      : this.bookingService.getBookingsByBranch(this.branchId, pagingParams);
+    const searchRequest: BookingSearchRequest = {
+      branchId: this.branchId,
+      searchKeyword: this.searchPhone.trim() || null,
+      status: this.filterStatus !== 'ALL' ? this.filterStatus : null,
+      minGuests: this.filterMinGuests,
+      maxGuests: this.filterMaxGuests
+    };
 
-    request$.subscribe({
+    this.bookingService.searchBookings(searchRequest, pagingParams).subscribe({
       next: res => {
         this.bookingsList = res.data;
         this.total = res.totalElement;
@@ -376,6 +347,22 @@ export class BookingComponent implements OnInit, OnDestroy {
       nzWidth: 700,
       nzFooter: null,
       nzData: null
+    });
+
+    modalRef.afterClose.subscribe(result => {
+      if (result) {
+        this.loadData();
+      }
+    });
+  }
+
+  openEditBooking(booking: BookingResponse): void {
+    const modalRef = this.modal.create({
+      nzTitle: undefined,
+      nzContent: BookingFormComponent,
+      nzWidth: 700,
+      nzFooter: null,
+      nzData: booking
     });
 
     modalRef.afterClose.subscribe(result => {
