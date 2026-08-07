@@ -26,7 +26,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-
+import { ALAIN_I18N_TOKEN } from '@delon/theme';
 import {
   CreateInventoryTransactionRequest,
   InventoryResponse,
@@ -61,7 +61,7 @@ export class InventoryTransactionFormComponent implements OnInit {
   private readonly message = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
-
+  private readonly i18n = inject(ALAIN_I18N_TOKEN);
   loading = false;
   submitting = false;
 
@@ -96,14 +96,13 @@ export class InventoryTransactionFormComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.inventoryService
-      .getInventories({
-        page: 1,
-        size: 1000
-      })
+      .getActiveInventories()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
-          this.message.error('app.inventory.transaction.loadError');
+          this.message.error(
+            this.i18n.fanyi('app.inventory.transaction.createError')
+          );
           return EMPTY;
         }),
         finalize(() => {
@@ -112,7 +111,8 @@ export class InventoryTransactionFormComponent implements OnInit {
         })
       )
       .subscribe(res => {
-        this.inventories = res.data;
+        this.inventories = res;
+        this.cdr.markForCheck();
       });
   }
 
@@ -140,7 +140,9 @@ export class InventoryTransactionFormComponent implements OnInit {
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
-          this.message.error('app.inventory.transaction.createError');
+          this.message.error(
+            this.i18n.fanyi('app.inventory.transaction.createError')
+          );
           return EMPTY;
         }),
         finalize(() => {

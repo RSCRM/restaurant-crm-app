@@ -1,7 +1,13 @@
+export enum InventoryCategoryStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE'
+}
+
 export enum InventoryStatus {
   GOOD = 'GOOD',
   LOW = 'LOW',
-  OUT_OF_STOCK = 'OUT_OF_STOCK'
+  OUT_OF_STOCK = 'OUT_OF_STOCK',
+  INACTIVE = 'INACTIVE'
 }
 
 export enum InventoryTransactionDirection {
@@ -29,6 +35,10 @@ export interface CreateInventoryCategoryRequest {
 export interface UpdateInventoryCategoryRequest {
   categoryName?: string;
   description?: string;
+}
+
+export interface UpdateInventoryCategoryStatusRequest {
+  status: InventoryCategoryStatus;
 }
 
 export interface CreateInventoryRequest {
@@ -65,6 +75,7 @@ export interface InventoryCategoryResponse {
   branchId: string;
   categoryName: string;
   description: string;
+  status: InventoryCategoryStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -74,7 +85,7 @@ export interface InventoryResponse {
   branchId: string;
   inventoryCategoryId: string;
   inventoryCategoryName: string;
-
+  inventoryCategoryStatus: InventoryCategoryStatus;
   inventoryName: string;
   unit: string;
   description: string;
