@@ -229,7 +229,13 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     }
 
     const lower = msg.toLowerCase();
-    if (msg === 'VOUCHER_INACTIVE' || lower.includes('inactive') || lower.includes('khóa') || lower.includes('tắt') || lower.includes('ngưng')) {
+    if (
+      msg === 'VOUCHER_INACTIVE' ||
+      lower.includes('inactive') ||
+      lower.includes('khóa') ||
+      lower.includes('tắt') ||
+      lower.includes('ngưng')
+    ) {
       return this.i18n.fanyi('voucher.msg.inactive');
     }
 

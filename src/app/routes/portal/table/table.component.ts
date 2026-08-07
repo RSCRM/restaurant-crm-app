@@ -351,7 +351,7 @@ export class TableComponent implements OnInit {
       const modalRef = this.modal.create({
         nzTitle: `Thanh toán ${table.tableNumber}`,
         nzContent: CheckoutModalComponent,
-        nzWidth: 640,
+        nzWidth: 1200,
         nzFooter: null
       });
       modalRef.getContentComponent().orderId = order.orderId;
@@ -383,7 +383,7 @@ export class TableComponent implements OnInit {
       const modalRef = this.modal.create({
         nzTitle: `Thêm món cho ${table.tableNumber}`,
         nzContent: AddItemFormComponent,
-        nzWidth: 1000,
+        nzWidth: 1200,
         nzFooter: null,
         nzData: { orderId: order.orderId, branchId: this.branchId },
         nzOnCancel: instance => {
@@ -408,7 +408,7 @@ export class TableComponent implements OnInit {
           const addModalRef = this.modal.create({
             nzTitle: `Thêm món cho ${table.tableNumber}`,
             nzContent: AddItemFormComponent,
-            nzWidth: 1000,
+            nzWidth: 1200,
             nzFooter: null,
             nzData: { orderId, branchId: this.branchId },
             nzOnCancel: instance => {

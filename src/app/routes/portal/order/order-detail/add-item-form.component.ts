@@ -12,19 +12,29 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { catchError, EMPTY, finalize, forkJoin } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 
 import { selectBranchId } from '../../../auth/store/auth.selectors';
 import { ProductResponse, ComboResponse, CategoryResponse } from '../../menu/menu.model';
 import { MenuService } from '../../menu/menu.service';
-import { OrderService } from '../order.service';
 import { OrderItemCookingStatusResponse } from '../order.model';
+import { OrderService } from '../order.service';
 
 @Component({
   selector: 'app-add-item-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, FormsModule, NzFormModule, NzInputModule, NzInputNumberModule, NzButtonModule, NzIconModule, NzSelectModule, I18nPipe],
+  imports: [
+    DecimalPipe,
+    FormsModule,
+    NzFormModule,
+    NzInputModule,
+    NzInputNumberModule,
+    NzButtonModule,
+    NzIconModule,
+    NzSelectModule,
+    I18nPipe
+  ],
   template: `
     <div class="modal-header">
       <div class="modal-title">{{ 'app.order.addItem.title' | i18n }}</div>
@@ -35,13 +45,7 @@ import { OrderItemCookingStatusResponse } from '../order.model';
         <!-- Left Column: Dish Grid -->
         <div class="form-column">
           <div class="dish-search-bar">
-            <input
-              nz-input
-              [(ngModel)]="searchKeyword"
-              (ngModelChange)="filterDishes()"
-              placeholder="Tìm món..."
-              class="search-input"
-            />
+            <input nz-input [(ngModel)]="searchKeyword" (ngModelChange)="filterDishes()" placeholder="Tìm món..." class="search-input" />
             <nz-select
               [(ngModel)]="selectedCategoryId"
               (ngModelChange)="filterDishes()"
@@ -53,6 +57,7 @@ import { OrderItemCookingStatusResponse } from '../order.model';
                 <nz-option [nzValue]="cat.id" [nzLabel]="cat.categoryName" />
               }
             </nz-select>
+            <button nz-button type="button" (click)="resetSearch()"> <span nz-icon nzType="reload"></span> Reset </button>
           </div>
 
           <div class="dish-grid">
@@ -60,14 +65,14 @@ import { OrderItemCookingStatusResponse } from '../order.model';
             @for (prod of filteredProducts; track prod.id) {
               <div class="dish-card" (click)="addProductToCart(prod)">
                 <div class="dish-name">{{ prod.productName }}</div>
-                <div class="dish-price">{{ prod.price | number:'1.0-0' }}đ</div>
+                <div class="dish-price">{{ prod.price | number: '1.0-0' }}đ</div>
               </div>
             }
             <!-- Combos -->
             @for (cb of filteredCombos; track cb.id) {
               <div class="dish-card combo-card" (click)="addComboToCart(cb)">
                 <div class="dish-name">{{ cb.comboName }}</div>
-                <div class="dish-price">{{ cb.price | number:'1.0-0' }}đ</div>
+                <div class="dish-price">{{ cb.price | number: '1.0-0' }}đ</div>
                 <div class="dish-badge">Combo</div>
               </div>
             }
@@ -139,7 +144,14 @@ import { OrderItemCookingStatusResponse } from '../order.model';
 
         @if (!isConfirmed) {
           <div class="modal-footer">
-            <button nz-button type="button" nzType="primary" [disabled]="newItems.length === 0" [nzLoading]="loading" (click)="confirmOrder()">
+            <button
+              nz-button
+              type="button"
+              nzType="primary"
+              [disabled]="newItems.length === 0"
+              [nzLoading]="loading"
+              (click)="confirmOrder()"
+            >
               <span nz-icon nzType="check"></span> Xác nhận gửi món
             </button>
           </div>
@@ -528,11 +540,15 @@ export class AddItemFormComponent implements OnInit {
         (!this.selectedCategoryId || p.categoryId === this.selectedCategoryId)
     );
     this.filteredCombos = this.combos.filter(
-      c =>
-        c.status === 'AVAILABLE' &&
-        (!keyword || c.comboName.toLowerCase().includes(keyword)) &&
-        !this.selectedCategoryId
+      c => c.status === 'AVAILABLE' && (!keyword || c.comboName.toLowerCase().includes(keyword)) && !this.selectedCategoryId
     );
+  }
+
+  resetSearch(): void {
+    this.searchKeyword = '';
+    this.selectedCategoryId = null;
+    this.filterDishes();
+    this.cdr.markForCheck();
   }
 
   addProductToCart(product: ProductResponse): void {
@@ -565,14 +581,14 @@ export class AddItemFormComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  decreaseQty(item: any): void {
+  decreaseQty(item: { quantity: number }): void {
     if (item.quantity > 1) {
       item.quantity -= 1;
       this.cdr.markForCheck();
     }
   }
 
-  increaseQty(item: any): void {
+  increaseQty(item: { quantity: number }): void {
     item.quantity += 1;
     this.cdr.markForCheck();
   }
@@ -623,12 +639,18 @@ export class AddItemFormComponent implements OnInit {
 
   getStatusTranslationKey(status: string): string {
     switch (status) {
-      case 'PENDING': return 'app.order.status.pending';
-      case 'IN_PROGRESS': return 'app.order.status.inProgress';
-      case 'READY_TO_SERVE': return 'app.order.status.readyToServe';
-      case 'SERVED': return 'app.order.status.served';
-      case 'CANCELLED': return 'app.order.status.cancelled';
-      default: return status;
+      case 'PENDING':
+        return 'app.order.status.pending';
+      case 'IN_PROGRESS':
+        return 'app.order.status.inProgress';
+      case 'READY_TO_SERVE':
+        return 'app.order.status.readyToServe';
+      case 'SERVED':
+        return 'app.order.status.served';
+      case 'CANCELLED':
+        return 'app.order.status.cancelled';
+      default:
+        return status;
     }
   }
 }

@@ -88,11 +88,7 @@ export class InventoryCategoryComponent implements OnInit {
 
     const request =
       this.searchKeyword.trim().length > 0
-        ? this.inventoryService.searchInventoryCategories(
-          this.searchKeyword.trim(),
-          this.currentPage,
-          this.pageSize
-        )
+        ? this.inventoryService.searchInventoryCategories(this.searchKeyword.trim(), this.currentPage, this.pageSize)
         : this.inventoryService.getInventoryCategories(params);
 
     request

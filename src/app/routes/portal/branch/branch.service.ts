@@ -42,9 +42,9 @@ export class BranchService {
     return this.http.get<ApiResponse<BranchManagerResponse>>(`${this.BRANCH_MANAGER_API}/${branchId}/manager`).pipe(map(res => res.data));
   }
 
-  assignManager(branchId: string, managerUserId: string): Observable<BranchManagerResponse> {
+  assignManager(branchId: string, managerEmployeeId: string): Observable<BranchManagerResponse> {
     return this.http
-      .put<ApiResponse<BranchManagerResponse>>(`${this.BRANCH_MANAGER_API}/${branchId}/manager`, { managerId: managerUserId })
+      .put<ApiResponse<BranchManagerResponse>>(`${this.BRANCH_MANAGER_API}/${branchId}/manager`, { managerId: managerEmployeeId })
       .pipe(map(res => res.data));
   }
 

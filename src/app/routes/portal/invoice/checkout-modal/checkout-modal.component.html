@@ -1,92 +1,179 @@
-<div style="padding: 8px 0">
-  <!-- Order ID -->
-  <div style="margin-bottom: 16px">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500"
-      >{{ 'checkout.label.orderId' | i18n }} <span style="color: red">*</span></label
-    >
-    <input
-      nz-input
-      [(ngModel)]="orderId"
-      (ngModelChange)="onOrderIdChange()"
-      (blur)="loadVouchers()"
-      [placeholder]="'checkout.placeholder.orderId' | i18n"
-      nzSize="large"
-    />
+<div class="checkout-modal-container">
+  <!-- Left column: Optional Form Inputs -->
+  <div class="form-column">
+    <!-- Order ID -->
+    <div class="form-item">
+      <label class="form-label"> {{ 'checkout.label.orderId' | i18n }} <span class="required">*</span> </label>
+      <input
+        nz-input
+        [(ngModel)]="orderId"
+        (ngModelChange)="onOrderIdChange()"
+        (blur)="loadVouchers()"
+        [placeholder]="'checkout.placeholder.orderId' | i18n"
+        nzSize="large"
+      />
+    </div>
+
+    <!-- Payment Method -->
+    <div class="form-item">
+      <label class="form-label"> {{ 'checkout.label.paymentMethod' | i18n }} <span class="required">*</span> </label>
+      <nz-select [(ngModel)]="paymentMethod" nzSize="large" style="width: 100%">
+        @for (method of paymentMethods; track method.value) {
+          <nz-option [nzValue]="method.value" [nzLabel]="method.label" />
+        }
+      </nz-select>
+    </div>
+
+    <nz-divider [nzText]="'checkout.divider.voucher' | i18n" nzOrientation="left" />
+
+    <!-- Option 1: Choose available customer vouchers -->
+    <div class="form-item">
+      <label class="form-label">{{ 'checkout.label.selectVoucher' | i18n }}</label>
+      <nz-select
+        [(ngModel)]="selectedVoucherId"
+        (ngModelChange)="onVoucherSelected()"
+        [nzDisabled]="!orderId"
+        style="width: 100%"
+        [nzPlaceHolder]="'checkout.placeholder.selectVoucher' | i18n"
+      >
+        <nz-option nzValue="" [nzLabel]="'checkout.option.noVoucher' | i18n" />
+        @for (v of applicableVouchers; track v.customerVoucherId) {
+          <nz-option [nzValue]="v.customerVoucherId" [nzLabel]="v.title + (v.isApplicable ? '' : ' (Không đủ ĐK: ' + v.reason + ')')" />
+        }
+      </nz-select>
+    </div>
+
+    <!-- Option 2: Voucher Code -->
+    <div class="form-item">
+      <label class="form-label">{{ 'checkout.label.voucherCode' | i18n }}</label>
+      <input
+        nz-input
+        [(ngModel)]="voucherCode"
+        (ngModelChange)="onVoucherCodeInput()"
+        [placeholder]="'checkout.placeholder.voucherCode' | i18n"
+      />
+    </div>
+
+    <nz-divider [nzText]="'checkout.divider.loyalty' | i18n" nzOrientation="left" />
+
+    <!-- Loyalty Points -->
+    <div class="form-item">
+      <label class="form-label">{{ 'checkout.label.loyaltyPhone' | i18n }}</label>
+      <input nz-input [(ngModel)]="loyaltyPhone" [placeholder]="'checkout.placeholder.loyaltyPhone' | i18n" />
+    </div>
+    <div class="form-item">
+      <label class="form-label">{{ 'checkout.label.loyaltyPoints' | i18n }}</label>
+      <input nz-input [(ngModel)]="loyaltyPoints" type="number" [placeholder]="'checkout.placeholder.loyaltyPoints' | i18n" />
+    </div>
+
+    <nz-divider />
+
+    <!-- Note -->
+    <div class="form-item">
+      <label class="form-label">{{ 'checkout.label.note' | i18n }}</label>
+      <textarea
+        nz-input
+        [(ngModel)]="note"
+        [placeholder]="'checkout.placeholder.note' | i18n"
+        [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+      ></textarea>
+    </div>
   </div>
 
-  <!-- Payment Method -->
-  <div style="margin-bottom: 16px">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500"
-      >{{ 'checkout.label.paymentMethod' | i18n }} <span style="color: red">*</span></label
-    >
-    <nz-select [(ngModel)]="paymentMethod" nzSize="large" style="width: 100%">
-      @for (method of paymentMethods; track method.value) {
-        <nz-option [nzValue]="method.value" [nzLabel]="method.label" />
-      }
-    </nz-select>
+  <!-- Right column: Bill Details & Summary -->
+  <div class="bill-column">
+    @if (orderLoading) {
+      <div class="loading-container">
+        <nz-spin nzSimple [nzSize]="'large'" />
+      </div>
+    } @else if (order) {
+      <h3 class="bill-title">Thông Tin Hóa Đơn</h3>
+
+      <div class="bill-summary-card">
+        <div class="summary-row">
+          <span class="summary-label">Mã Đơn Hàng (Order Code):</span>
+          <span class="summary-value"
+            ><strong>{{ order.orderCode }}</strong></span
+          >
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Bàn ăn:</span>
+          <span class="summary-value">{{ order.tableId ? 'Bàn ' + order.tableId : '-' }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Trạng thái:</span>
+          <span class="summary-value">
+            <nz-tag nzColor="orange">{{ order.status }}</nz-tag>
+          </span>
+        </div>
+        <nz-divider class="summary-divider" />
+        <div class="summary-row">
+          <span class="summary-label">Tổng tạm tính:</span>
+          <span class="summary-value">{{ order.subtotal | number: '1.0-0' }}đ</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Giảm giá:</span>
+          <span class="summary-value discount-value">-{{ order.discountAmount | number: '1.0-0' }}đ</span>
+        </div>
+        <nz-divider class="summary-divider" />
+        <div class="summary-row total-row">
+          <span class="summary-label">TỔNG THANH TOÁN:</span>
+          <span class="summary-value total-value">{{ order.totalAmount | number: '1.0-0' }}đ</span>
+        </div>
+      </div>
+
+      <h4 class="items-title">Danh Sách Món Ăn ({{ order.items?.length || 0 }})</h4>
+      <div class="bill-items-list">
+        <nz-table
+          #itemsTable
+          [nzData]="order.items"
+          [nzSize]="'small'"
+          [nzShowPagination]="false"
+          [nzBordered]="true"
+          class="checkout-items-table"
+        >
+          <thead>
+            <tr>
+              <th width="55%">Tên món</th>
+              <th width="15%" class="text-center">SL</th>
+              <th width="30%">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of itemsTable.data; track item.orderItemId) {
+              <tr>
+                <td>
+                  <div class="item-name-cell">
+                    <strong>{{ item.itemName }}</strong>
+                    @if (item.note) {
+                      <div class="item-note-subtext">Ghi chú: {{ item.note }}</div>
+                    }
+                  </div>
+                </td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td>
+                  <nz-tag [nzColor]="item.status === 'SERVED' ? 'green' : item.status === 'READY_TO_SERVE' ? 'orange' : 'blue'">
+                    {{ item.status }}
+                  </nz-tag>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </nz-table>
+      </div>
+    } @else {
+      <div class="empty-bill-container">
+        <span nz-icon nzType="info-circle" class="empty-bill-icon"></span>
+        <p class="empty-bill-text">Vui lòng nhập hoặc chọn Order ID hợp lệ để hiển thị hóa đơn chi tiết.</p>
+      </div>
+    }
   </div>
+</div>
 
-  <nz-divider [nzText]="'checkout.divider.voucher' | i18n" nzOrientation="left" />
-
-  <!-- Option 1: Choose available customer vouchers -->
-  <div style="margin-bottom: 16px">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500">{{ 'checkout.label.selectVoucher' | i18n }}</label>
-    <nz-select
-      [(ngModel)]="selectedVoucherId"
-      (ngModelChange)="onVoucherSelected()"
-      [nzDisabled]="!orderId"
-      style="width: 100%"
-      [nzPlaceHolder]="'checkout.placeholder.selectVoucher' | i18n"
-    >
-      <nz-option nzValue="" [nzLabel]="'checkout.option.noVoucher' | i18n" />
-      @for (v of applicableVouchers; track v.customerVoucherId) {
-        <nz-option [nzValue]="v.customerVoucherId" [nzLabel]="v.title + (v.isApplicable ? '' : ' (Không đủ ĐK: ' + v.reason + ')')" />
-      }
-    </nz-select>
-  </div>
-
-  <!-- Option 2: Voucher Code -->
-  <div style="margin-bottom: 16px">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500">{{ 'checkout.label.voucherCode' | i18n }}</label>
-    <input
-      nz-input
-      [(ngModel)]="voucherCode"
-      (ngModelChange)="onVoucherCodeInput()"
-      [placeholder]="'checkout.placeholder.voucherCode' | i18n"
-    />
-  </div>
-
-  <nz-divider [nzText]="'checkout.divider.loyalty' | i18n" nzOrientation="left" />
-
-  <!-- Loyalty Points -->
-  <div style="margin-bottom: 16px">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500">{{ 'checkout.label.loyaltyPhone' | i18n }}</label>
-    <input nz-input [(ngModel)]="loyaltyPhone" [placeholder]="'checkout.placeholder.loyaltyPhone' | i18n" />
-  </div>
-  <div style="margin-bottom: 16px">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500">{{ 'checkout.label.loyaltyPoints' | i18n }}</label>
-    <input nz-input [(ngModel)]="loyaltyPoints" type="number" [placeholder]="'checkout.placeholder.loyaltyPoints' | i18n" />
-  </div>
-
-  <nz-divider />
-
-  <!-- Note -->
-  <div style="margin-bottom: 16px">
-    <label style="display: block; margin-bottom: 4px; font-weight: 500">{{ 'checkout.label.note' | i18n }}</label>
-    <textarea
-      nz-input
-      [(ngModel)]="note"
-      [placeholder]="'checkout.placeholder.note' | i18n"
-      [nzAutosize]="{ minRows: 2, maxRows: 4 }"
-    ></textarea>
-  </div>
-
-  <!-- Actions -->
-  <div style="display: flex; justify-content: flex-end; gap: 8px">
-    <button nz-button nzType="default" (click)="onCancel()">{{ 'checkout.btn.cancel' | i18n }}</button>
-    <button nz-button nzType="primary" nzSize="large" [nzLoading]="loading" (click)="onCheckout()">
-      <span nz-icon nzType="check-circle"></span>
-      {{ 'checkout.btn.confirm' | i18n }}
-    </button>
-  </div>
+<div class="modal-footer">
+  <button nz-button nzType="default" (click)="onCancel()">{{ 'checkout.btn.cancel' | i18n }}</button>
+  <button nz-button nzType="primary" [nzLoading]="loading" (click)="onCheckout()">
+    <span nz-icon nzType="check-circle"></span>
+    {{ 'checkout.btn.confirm' | i18n }}
+  </button>
 </div>

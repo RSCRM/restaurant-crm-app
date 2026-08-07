@@ -7,11 +7,11 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { UserService } from '../user.service';
 import { RoleResponse, UserResponse } from '../user.model';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { UserService } from '../user.service';
 
 interface ModalData {
   mode: 'create' | 'roles';
@@ -22,14 +22,7 @@ interface ModalData {
   selector: 'app-user-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzButtonModule,
-    NzSpinModule,
-    I18nPipe
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzButtonModule, NzSpinModule, I18nPipe],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.less'
 })
@@ -47,7 +40,7 @@ export class UserFormComponent implements OnInit {
   loading = false;
   rolesLoading = false;
   roles: RoleResponse[] = [];
-  selectedRoleIds: Set<string> = new Set();
+  selectedRoleIds = new Set<string>();
 
   createForm = this.fb.group({
     username: this.fb.control('', [Validators.required, Validators.minLength(5), Validators.maxLength(50)]),
@@ -77,17 +70,20 @@ export class UserFormComponent implements OnInit {
     this.rolesLoading = true;
     this.cdr.markForCheck();
 
-    this.userService.getRoles().pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => EMPTY),
-      finalize(() => {
-        this.rolesLoading = false;
+    this.userService
+      .getRoles()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => EMPTY),
+        finalize(() => {
+          this.rolesLoading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(roles => {
+        this.roles = roles;
         this.cdr.markForCheck();
-      })
-    ).subscribe(roles => {
-      this.roles = roles;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   toggleRole(roleId: string): void {

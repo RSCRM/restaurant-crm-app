@@ -1134,5 +1134,21 @@
   "error.USER_USERNAME_ALREADY_EXISTS": "Tên đăng nhập đã tồn tại.",
   "error.USER_PHONE_ALREADY_EXISTS": "Số điện thoại đã được sử dụng.",
   "error.EMAIL_ALREADY_EXISTS": "Email đã được sử dụng.",
-  "error.ORGANIZATION_BRANCH_NOT_FOUND": "Không tìm thấy chi nhánh."
+  "error.ORGANIZATION_BRANCH_NOT_FOUND": "Không tìm thấy chi nhánh.",
+  "branch.manager.current": "Quản lý hiện tại",
+  "branch.manager.empty": "Chưa có quản lý",
+  "branch.manager.assign": "Gán quản lý",
+  "branch.manager.replace": "Thay quản lý",
+  "branch.manager.remove": "Gỡ quản lý",
+  "branch.manager.selectPlaceholder": "Chọn nhân viên có vai trò quản lý",
+  "branch.manager.confirmRemove": "Xác nhận gỡ quản lý khỏi chi nhánh?",
+  "branch.manager.assignSuccess": "Gán quản lý thành công",
+  "branch.manager.replaceSuccess": "Thay quản lý thành công",
+  "branch.manager.removeSuccess": "Gỡ quản lý thành công",
+  "branch.manager.errors.notFound": "Không tìm thấy quản lý phù hợp",
+  "branch.manager.errors.inactive": "Nhân viên quản lý chưa hoạt động",
+  "branch.manager.errors.invalidRequest": "Vui lòng chọn quản lý",
+  "branch.manager.errors.invalidBranch": "Nhân viên không thuộc chi nhánh này",
+  "branch.manager.errors.invalidRole": "Nhân viên phải có vai trò MANAGER",
+  "branch.manager.errors.expired": "Nhân viên đã kết thúc làm việc"
 }

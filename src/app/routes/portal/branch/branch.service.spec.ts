@@ -115,4 +115,13 @@ describe('BranchService', () => {
       }
     });
   });
+
+  it('assigns a manager by employee id', () => {
+    service.assignManager('branch-1', 'employee-1').subscribe();
+
+    const req = http.expectOne('/api/v1/personal/branches/branch-1/manager');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ managerId: 'employee-1' });
+    req.flush({ success: true, data: {} });
+  });
 });

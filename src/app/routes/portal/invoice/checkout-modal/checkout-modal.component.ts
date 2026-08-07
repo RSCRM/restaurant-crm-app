@@ -1,15 +1,22 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
+import { OrderCookingStatusResponse } from '../../order/order.model';
+import { OrderService } from '../../order/order.service';
 import { PaymentMethod, CustomerVoucherApplicableResponse } from '../invoice.model';
 import { InvoiceService } from '../invoice.service';
 
@@ -17,11 +24,28 @@ import { InvoiceService } from '../invoice.service';
   selector: 'app-checkout-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, NzButtonModule, NzInputModule, NzSelectModule, NzDividerModule, NzIconModule, I18nPipe],
-  templateUrl: './checkout-modal.component.html'
+  imports: [
+    CommonModule,
+    DecimalPipe,
+    FormsModule,
+    NzButtonModule,
+    NzCardModule,
+    NzDescriptionsModule,
+    NzDividerModule,
+    NzIconModule,
+    NzInputModule,
+    NzSelectModule,
+    NzSpinModule,
+    NzTableModule,
+    NzTagModule,
+    I18nPipe
+  ],
+  templateUrl: './checkout-modal.component.html',
+  styleUrl: './checkout-modal.component.less'
 })
-export class CheckoutModalComponent {
+export class CheckoutModalComponent implements OnInit {
   private invoiceService = inject(InvoiceService);
+  private orderService = inject(OrderService);
   private modalRef = inject(NzModalRef);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
@@ -40,6 +64,10 @@ export class CheckoutModalComponent {
 
   paymentMethods: Array<{ value: PaymentMethod; label: string }> = [];
 
+  // Order Details State
+  order: OrderCookingStatusResponse | null = null;
+  orderLoading = false;
+
   constructor() {
     this.paymentMethods = [
       { value: PaymentMethod.CASH, label: this.i18n.fanyi('checkout.payment.cash') },
@@ -48,13 +76,41 @@ export class CheckoutModalComponent {
     ];
   }
 
+  ngOnInit(): void {
+    if (this.orderId) {
+      this.loadOrderDetails();
+      this.loadVouchers();
+    }
+  }
+
   onOrderIdChange(): void {
     if (this.orderId && this.orderId.trim().length >= 10) {
+      this.loadOrderDetails();
       this.loadVouchers();
     } else {
       this.applicableVouchers = [];
       this.selectedVoucherId = '';
+      this.order = null;
+      this.cdr.markForCheck();
     }
+  }
+
+  loadOrderDetails(): void {
+    if (!this.orderId.trim()) return;
+    this.orderLoading = true;
+    this.cdr.markForCheck();
+    this.orderService.getCookingStatus(this.orderId.trim()).subscribe({
+      next: res => {
+        this.order = res;
+        this.orderLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.order = null;
+        this.orderLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   loadVouchers(): void {

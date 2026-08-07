@@ -1238,5 +1238,21 @@
   "error.USER_USERNAME_ALREADY_EXISTS": "Username already exists.",
   "error.USER_PHONE_ALREADY_EXISTS": "Phone number is already in use.",
   "error.EMAIL_ALREADY_EXISTS": "Email is already in use.",
-  "error.ORGANIZATION_BRANCH_NOT_FOUND": "Branch not found."
+  "error.ORGANIZATION_BRANCH_NOT_FOUND": "Branch not found.",
+  "branch.manager.current": "Current manager",
+  "branch.manager.empty": "No manager assigned",
+  "branch.manager.assign": "Assign manager",
+  "branch.manager.replace": "Replace manager",
+  "branch.manager.remove": "Remove manager",
+  "branch.manager.selectPlaceholder": "Select an employee with the manager role",
+  "branch.manager.confirmRemove": "Remove this branch manager?",
+  "branch.manager.assignSuccess": "Manager assigned successfully",
+  "branch.manager.replaceSuccess": "Manager replaced successfully",
+  "branch.manager.removeSuccess": "Manager removed successfully",
+  "branch.manager.errors.notFound": "No eligible manager found",
+  "branch.manager.errors.inactive": "The manager employee is inactive",
+  "branch.manager.errors.invalidRequest": "Please select a manager",
+  "branch.manager.errors.invalidBranch": "The employee does not belong to this branch",
+  "branch.manager.errors.invalidRole": "The employee must have the MANAGER role",
+  "branch.manager.errors.expired": "The employee's employment has ended"
 }

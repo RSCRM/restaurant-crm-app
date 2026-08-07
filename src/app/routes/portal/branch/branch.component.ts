@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { I18NService } from '@core';
 import { PageHeaderModule } from '@delon/abc/page-header';
@@ -14,6 +15,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { EMPTY, catchError, distinctUntilChanged, finalize } from 'rxjs';
 
@@ -21,6 +23,8 @@ import { BranchDetailComponent } from './branch-detail/branch-detail.component';
 import { BranchFormComponent } from './branch-form/branch-form.component';
 import { BranchManagerResponse, OrganizationBranchResponse, OrganizationBranchStatus } from './branch.model';
 import { BranchService } from './branch.service';
+import { EmployeeResponse, EmployeeStatus } from '../employee/employee.model';
+import { EmployeeService } from '../employee/employee.service';
 import { selectPermissions, selectSelectedContext } from '../../auth/store/auth.selectors';
 import { SelectedContext } from '../../auth/store/auth.state';
 
@@ -30,6 +34,7 @@ import { SelectedContext } from '../../auth/store/auth.state';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     PageHeaderModule,
+    FormsModule,
     I18nPipe,
     NzAlertModule,
     NzButtonModule,
@@ -37,6 +42,7 @@ import { SelectedContext } from '../../auth/store/auth.state';
     NzIconModule,
     NzPopconfirmModule,
     NzSkeletonModule,
+    NzSelectModule,
     NzTagModule,
     STModule
   ],
@@ -44,8 +50,11 @@ import { SelectedContext } from '../../auth/store/auth.state';
   styleUrl: './branch.component.less'
 })
 export class BranchComponent implements OnInit {
+  @ViewChild('managerPickerTpl', { static: true }) managerPickerTpl!: TemplateRef<void>;
+
   private store = inject(Store);
   private branchService = inject(BranchService);
+  private employeeService = inject(EmployeeService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
@@ -61,6 +70,8 @@ export class BranchComponent implements OnInit {
   loading = false;
   firstLoaded = false;
   errorMessageKey: string | null = null;
+  managerCandidates: EmployeeResponse[] = [];
+  selectedManagerId: string | null = null;
 
   columns: STColumn[] = [
     { title: this.translate('branch.branchName'), render: 'branchName', width: 240 },
@@ -240,11 +251,36 @@ export class BranchComponent implements OnInit {
       });
   }
 
-  // openAssignManager() da bi go: no dua tren EmployeeSelectionModalComponent va truong
-  // EmployeeResponse.userId, ca hai deu khong con sau khi employee module duoc viet lai theo
-  // API contract that (EmployeeResponse khong co userId). Can dung lai bang mot employee picker
-  // moi truoc khi bat lai nut "Gan quan ly" trong branch.component.html.
-  // Phuong thuc assignManager() ben duoi duoc giu nguyen de noi lai khi co picker.
+  openAssignManager(branch: OrganizationBranchResponse): void {
+    this.loading = true;
+    this.employeeService
+      .listEmployees()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe({
+        next: employees => {
+          this.managerCandidates = employees.filter(
+            employee => employee.branchId === branch.id && employee.status === EmployeeStatus.ACTIVE && employee.orgRoleName === 'MANAGER'
+          );
+          this.selectedManagerId = branch.managerId ?? null;
+          this.modal.create({
+            nzTitle: this.translate(branch.managerId ? 'branch.manager.replace' : 'branch.manager.assign'),
+            nzContent: this.managerPickerTpl,
+            nzOnOk: () => {
+              if (!this.selectedManagerId) return false;
+              this.assignManager(branch, this.selectedManagerId);
+              return true;
+            }
+          });
+        },
+        error: (error: HttpErrorResponse) => this.message.error(this.translate(this.getManagerErrorKey(error)))
+      });
+  }
 
   removeManager(branch: OrganizationBranchResponse): void {
     this.loading = true;
@@ -300,10 +336,10 @@ export class BranchComponent implements OnInit {
     return branch.managerName || branch.managerUsername || null;
   }
 
-  private assignManager(branch: OrganizationBranchResponse, managerUserId: string): void {
+  private assignManager(branch: OrganizationBranchResponse, managerEmployeeId: string): void {
     this.loading = true;
     this.branchService
-      .assignManager(branch.id, managerUserId)
+      .assignManager(branch.id, managerEmployeeId)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError((error: HttpErrorResponse) => {

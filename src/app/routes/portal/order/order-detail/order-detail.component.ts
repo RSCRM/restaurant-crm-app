@@ -156,7 +156,7 @@ export class OrderDetailComponent implements OnInit {
     const modalRef = this.modal.create({
       nzTitle: undefined,
       nzContent: AddItemFormComponent,
-      nzWidth: 1000,
+      nzWidth: 1200,
       nzFooter: null,
       nzData: { orderId: this.orderId },
       nzOnCancel: instance => {

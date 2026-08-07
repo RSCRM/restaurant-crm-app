@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -17,7 +17,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { CheckoutModalComponent } from './checkout-modal/checkout-modal.component';
-import { CheckoutRequest, InvoiceResponse, InvoiceStatus, PaymentMethod } from './invoice.model';
+import { InvoiceResponse, InvoiceStatus, PaymentMethod } from './invoice.model';
 import { InvoiceService } from './invoice.service';
 
 @Component({
@@ -42,7 +42,7 @@ import { InvoiceService } from './invoice.service';
   ],
   templateUrl: './invoice.component.html'
 })
-export class InvoiceComponent implements OnInit {
+export class InvoiceComponent {
   private invoiceService = inject(InvoiceService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
@@ -51,8 +51,6 @@ export class InvoiceComponent implements OnInit {
   invoiceId = '';
   currentInvoice: InvoiceResponse | null = null;
   loading = false;
-
-  ngOnInit(): void {}
 
   lookupInvoice(): void {
     if (!this.invoiceId.trim()) {
@@ -80,7 +78,7 @@ export class InvoiceComponent implements OnInit {
     const modalRef = this.modal.create({
       nzTitle: 'Thanh Toán & Xuất Hóa Đơn',
       nzContent: CheckoutModalComponent,
-      nzWidth: 640,
+      nzWidth: 1200,
       nzFooter: null
     });
     modalRef.afterClose.subscribe(result => {
