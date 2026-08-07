@@ -31,16 +31,13 @@
       [loading]="loading"
       [page]="{
         show: true,
-        showSize: true
-      }"
-      [scroll]="{
-        x: '1420px'
+        showSize: true,
+        front: false
       }"
       (change)="onSTChange($event)"
     >
       <ng-template st-row="branchName" let-item>
         <strong>{{ item.branchName || ('common.emptyValue' | i18n) }}</strong>
-        <div class="branch-cell-subtext">{{ item.id }}</div>
       </ng-template>
 
       <ng-template st-row="status" let-item>
@@ -67,32 +64,11 @@
             {{ 'branch.actions.view' | i18n }}
           </button>
 
-          @if (canManageBranch()) {
-            <button nz-button nzType="link" type="button" (click)="openEdit(item)">
-              <span nz-icon nzType="edit" nzTheme="outline"></span>
-              {{ 'branch.actions.edit' | i18n }}
-            </button>
-          }
-
           @if (canAssignManager()) {
-            <button nz-button nzType="link" type="button" (click)="openAssignManager(item)">
+            <button nz-button nzType="link" type="button" (click)="openManagerModal(item)">
               <span nz-icon nzType="user-switch" nzTheme="outline"></span>
-              {{ item.managerId ? ('branch.manager.replace' | i18n) : ('branch.manager.assign' | i18n) }}
+              {{ 'branch.manager.modify' | i18n }}
             </button>
-
-            @if (item.managerId) {
-              <button
-                nz-button
-                nzType="link"
-                type="button"
-                nz-popconfirm
-                [nzPopconfirmTitle]="'branch.manager.confirmRemove' | i18n"
-                (nzOnConfirm)="removeManager(item)"
-              >
-                <span nz-icon nzType="user-delete" nzTheme="outline"></span>
-                {{ 'branch.manager.remove' | i18n }}
-              </button>
-            }
           }
 
           @if (canManageBranch()) {

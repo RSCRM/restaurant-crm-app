@@ -29,6 +29,9 @@ export interface OrganizationBranchResponse {
 export interface BranchManagerResponse {
   branchId: string;
   branchName: string;
+  branchAddress?: string | null;
+  branchPhone?: string | null;
+  branchStatus?: string | null;
   employeeId: string | null;
   managerId?: string | null;
   userId: string | null;

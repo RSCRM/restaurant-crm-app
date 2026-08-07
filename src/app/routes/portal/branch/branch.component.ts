@@ -17,14 +17,13 @@ import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { EMPTY, catchError, distinctUntilChanged, finalize } from 'rxjs';
 
-import { BranchDetailComponent } from './branch-detail/branch-detail.component';
+import { BranchDetailComponent, BranchDetailModalResult } from './branch-detail/branch-detail.component';
 import { BranchFormComponent } from './branch-form/branch-form.component';
-import { BranchManagerResponse, OrganizationBranchResponse, OrganizationBranchStatus } from './branch.model';
+import { BranchManagerComponent } from './branch-manager/branch-manager.component';
+import { OrganizationBranchResponse, OrganizationBranchStatus } from './branch.model';
 import { BranchService } from './branch.service';
 import { selectPermissions, selectSelectedContext } from '../../auth/store/auth.selectors';
 import { SelectedContext } from '../../auth/store/auth.state';
-import { EmployeeSelectionModalComponent } from '../employee/employee-selection-modal/employee-selection-modal.component';
-import { EmployeeResponse } from '../employee/employee.model';
 
 @Component({
   selector: 'app-branch',
@@ -70,7 +69,7 @@ export class BranchComponent implements OnInit {
     { title: this.translate('branch.branchPhone'), index: 'phone', width: 150 },
     { title: this.translate('branch.status.title'), render: 'status', width: 140 },
     { title: this.translate('branch.manager.current'), render: 'manager', width: 260 },
-    { title: this.translate('employee.fields.actions'), render: 'actions', width: 360, fixed: 'right' }
+    { title: this.translate('employee.fields.actions'), render: 'actions', width: 220 }
   ];
 
   ngOnInit(): void {
@@ -211,12 +210,18 @@ export class BranchComponent implements OnInit {
         })
       )
       .subscribe(detail => {
-        this.modal.create({
+        const modalRef = this.modal.create({
           nzTitle: this.translate('branch.detail.title'),
           nzContent: BranchDetailComponent,
           nzWidth: 640,
           nzFooter: null,
-          nzData: detail
+          nzData: { branch: detail, canEdit: this.canManageBranch() }
+        });
+
+        modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result?: BranchDetailModalResult) => {
+          if (result?.action === 'edit') {
+            this.openEdit(result.branch);
+          }
         });
       });
   }
@@ -242,57 +247,18 @@ export class BranchComponent implements OnInit {
       });
   }
 
-  openAssignManager(branch: OrganizationBranchResponse): void {
+  openManagerModal(branch: OrganizationBranchResponse): void {
     const modalRef = this.modal.create({
-      nzTitle: this.translate('branch.manager.assign'),
-      nzContent: EmployeeSelectionModalComponent,
-      nzWidth: 'min(1200px, calc(100vw - 32px))',
+      nzTitle: undefined,
+      nzContent: BranchManagerComponent,
+      nzWidth: 480,
       nzFooter: null,
-      nzBodyStyle: {
-        padding: '16px 24px 0',
-        maxHeight: 'calc(100vh - 180px)',
-        overflow: 'auto'
-      },
-      nzData: {
-        organizationId: branch.organizationId,
-        branchId: branch.id,
-        role: 'MANAGER',
-        status: 'ACTIVE'
-      }
+      nzData: { branch }
     });
 
-    modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((employee?: EmployeeResponse) => {
-      if (!employee) return;
-
-      const managerUserId = employee.userId;
-      if (!managerUserId) {
-        this.message.error(this.translate('branch.manager.errors.notFound'));
-        return;
-      }
-
-      this.assignManager(branch, managerUserId);
+    modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((changed?: boolean) => {
+      if (changed) this.loadData();
     });
-  }
-
-  removeManager(branch: OrganizationBranchResponse): void {
-    this.loading = true;
-    this.branchService
-      .removeManager(branch.id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError((error: HttpErrorResponse) => {
-          this.message.error(this.translate(this.getManagerErrorKey(error)));
-          return EMPTY;
-        }),
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe(() => {
-        this.message.success(this.translate('branch.manager.removeSuccess'));
-        this.loadData();
-      });
   }
 
   canManageBranch(): boolean {
@@ -300,7 +266,7 @@ export class BranchComponent implements OnInit {
   }
 
   canAssignManager(): boolean {
-    return this.hasPermission('BRANCH_MANAGER_ASSIGN');
+    return true;
   }
 
   hasPermission(permission: string): boolean {
@@ -328,55 +294,11 @@ export class BranchComponent implements OnInit {
     return branch.managerName || branch.managerUsername || null;
   }
 
-  private assignManager(branch: OrganizationBranchResponse, managerUserId: string): void {
-    this.loading = true;
-    this.branchService
-      .assignManager(branch.id, managerUserId)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError((error: HttpErrorResponse) => {
-          this.message.error(this.translate(this.getManagerErrorKey(error)));
-          return EMPTY;
-        }),
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe((manager: BranchManagerResponse) => {
-        this.message.success(this.translate(branch.managerId ? 'branch.manager.replaceSuccess' : 'branch.manager.assignSuccess'));
-        branch.managerId = manager.employeeId ?? manager.managerId ?? null;
-        branch.managerUserId = manager.userId ?? manager.managerUserId ?? null;
-        branch.managerName = manager.managerName ?? manager.username ?? null;
-        branch.managerUsername = manager.username ?? null;
-        branch.managerEmail = manager.email ?? null;
-        this.loadData();
-      });
-  }
-
   private getErrorKey(error: HttpErrorResponse): string {
     if (error.status === 0) return 'branch.errors.backendConnection';
     const code = this.extractErrorCode(error);
     if (code === 'BRANCH_1000' || code === 'BRANCH_1004') return 'branch.errors.branchNotFound';
     return 'branch.errors.load';
-  }
-
-  private getManagerErrorKey(error: HttpErrorResponse): string {
-    const code = this.extractErrorCode(error);
-    switch (code) {
-      case 'BRANCH_MANAGER_1002':
-        return 'branch.manager.errors.inactive';
-      case 'BRANCH_MANAGER_1003':
-        return 'branch.manager.errors.invalidRequest';
-      case 'BRANCH_MANAGER_1004':
-        return 'branch.manager.errors.invalidBranch';
-      case 'BRANCH_MANAGER_1005':
-        return 'branch.manager.errors.invalidRole';
-      case 'BRANCH_MANAGER_1006':
-        return 'branch.manager.errors.expired';
-      default:
-        return 'branch.manager.errors.notFound';
-    }
   }
 
   private extractErrorCode(error: HttpErrorResponse): string | null {

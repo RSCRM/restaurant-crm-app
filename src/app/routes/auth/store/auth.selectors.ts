@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
-import { AuthState } from './auth.state';
+import { AuthState, SelectedContext } from './auth.state';
 
 export const selectAuthState = createFeatureSelector<AuthState>('auth');
 
@@ -87,5 +87,31 @@ export const selectIsOwnerContext = createSelector(selectContextToken, token => 
     return !payload.employeeId;
   } catch {
     return false;
+  }
+});
+
+export const selectSelectedContext = createSelector(selectContextToken, token => {
+  if (!token) return null;
+  try {
+    const base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) base64 += '=';
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => `%${`00${c.charCodeAt(0).toString(16)}`.slice(-2)}`)
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (typeof payload.organizationId !== 'string') return null;
+    const context: SelectedContext = {
+      organizationId: payload.organizationId,
+      branchId: typeof payload.branchId === 'string' ? payload.branchId : null,
+      role: typeof payload.orgRole === 'string' ? payload.orgRole : null,
+      dataScope: typeof payload.dataScope === 'string' ? payload.dataScope : null
+    };
+    return context;
+  } catch {
+    return null;
   }
 });

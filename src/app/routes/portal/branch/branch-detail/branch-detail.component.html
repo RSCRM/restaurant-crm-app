@@ -38,5 +38,11 @@
 
   <div class="branch-detail-actions">
     <button nz-button type="button" (click)="close()">{{ 'common.cancel' | i18n }}</button>
+    @if (canEdit) {
+      <button nz-button nzType="primary" type="button" (click)="edit()">
+        <span nz-icon nzType="edit" nzTheme="outline"></span>
+        {{ 'branch.actions.edit' | i18n }}
+      </button>
+    }
   </div>
 </div>

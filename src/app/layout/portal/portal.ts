@@ -205,6 +205,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
               }
             ]
           },
+          { text: 'Chi nhánh', i18n: 'menu.portal.branch', link: '/portal/branch', disabled: !hasContext },
           { text: 'Nhân viên', i18n: 'menu.portal.employee', link: '/portal/employee', disabled: !hasContext },
           { text: 'Hóa đơn', i18n: 'menu.portal.invoice', link: '/portal/invoice', disabled: !hasContext },
           { text: 'Khách hàng', i18n: 'menu.portal.customer', link: '/portal/customer', disabled: !hasContext },
