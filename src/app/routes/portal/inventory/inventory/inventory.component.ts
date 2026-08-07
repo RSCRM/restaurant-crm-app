@@ -1,25 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  OnInit,
-  ViewChild,
-  inject
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { EMPTY, catchError, finalize } from 'rxjs';
-
-import {
-  STChange,
-  STColumn,
-  STComponent,
-  STModule
-} from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
+import { STChange, STColumn, STComponent, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
-
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -32,15 +16,11 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { EMPTY, catchError, finalize } from 'rxjs';
 
-import {
-  InventoryCategoryResponse,
-  InventoryResponse,
-  InventorySearchRequest,
-  InventoryStatus
-} from '../inventory.model';
-import { InventoryService } from '../inventory.service';
 import { InventoryFormComponent } from '../inventory-form/inventory-form.component';
+import { InventoryCategoryResponse, InventoryResponse, InventorySearchRequest, InventoryStatus } from '../inventory.model';
+import { InventoryService } from '../inventory.service';
 @Component({
   selector: 'app-inventory',
   standalone: true,
@@ -191,11 +171,7 @@ export class InventoryComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.inventoryService
-      .searchInventories(
-        this.filter,
-        this.currentPage,
-        this.pageSize
-      )
+      .searchInventories(this.filter, this.currentPage, this.pageSize)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
@@ -245,12 +221,7 @@ export class InventoryComponent implements OnInit {
   }
 
   get hasActiveFilter(): boolean {
-    return Object.values(this.filter).some(
-      value =>
-        value !== null &&
-        value !== undefined &&
-        value !== ''
-    );
+    return Object.values(this.filter).some(value => value !== null && value !== undefined && value !== '');
   }
 
   openCreate(): void {

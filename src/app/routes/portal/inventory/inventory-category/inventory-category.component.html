@@ -5,10 +5,7 @@
   <div class="toolbar">
     <div class="toolbar-left">
       <nz-input-group [nzPrefix]="prefixSearch" style="width: 280px">
-        <input
-          nz-input
-          [placeholder]="'app.inventory.category.searchPlaceholder' | i18n"
-        />
+        <input nz-input [placeholder]="'app.inventory.category.searchPlaceholder' | i18n" />
       </nz-input-group>
 
       <ng-template #prefixSearch>
@@ -32,7 +29,6 @@
     </button>
   </div>
 
-
   <!-- Category Table -->
   <st
     #st
@@ -49,6 +45,5 @@
     }"
     [scroll]="{ x: '900px' }"
     (change)="onSTChange($event)"
-  >
-  </st>
+  />
 </nz-card>

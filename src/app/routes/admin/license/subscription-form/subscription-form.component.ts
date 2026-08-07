@@ -1,33 +1,25 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { I18nPipe } from '@delon/theme';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { catchError, debounceTime, EMPTY, finalize, Subject, switchMap } from 'rxjs';
 
-import { LicenseService } from '../license.service';
-import { OrganizationService } from '../../organization/organization.service';
 import { OrganizationResponse } from '../../organization/organization.model';
+import { OrganizationService } from '../../organization/organization.service';
+import { LicenseService } from '../license.service';
 
 @Component({
   selector: 'app-subscription-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzDatePickerModule,
-    NzSpinModule,
-    NzButtonModule,
-    I18nPipe
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzDatePickerModule, NzSpinModule, NzButtonModule, I18nPipe],
   templateUrl: './subscription-form.component.html',
   styleUrl: './subscription-form.component.less'
 })
@@ -54,42 +46,44 @@ export class SubscriptionFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadOrganizations();
 
-    this.search$.pipe(
-      takeUntilDestroyed(this.destroyRef),
-      debounceTime(300),
-      switchMap(keyword => {
-        this.orgLoading = true;
+    this.search$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        debounceTime(300),
+        switchMap(keyword => {
+          this.orgLoading = true;
+          this.cdr.markForCheck();
+          return this.orgService.searchOrganizationsWithoutActiveSubscription(keyword ? { organizationName: keyword } : {}, 1, 30).pipe(
+            finalize(() => {
+              this.orgLoading = false;
+              this.cdr.markForCheck();
+            })
+          );
+        })
+      )
+      .subscribe(res => {
+        this.organizations = res.data;
         this.cdr.markForCheck();
-        return this.orgService.searchOrganizationsWithoutActiveSubscription(
-          keyword ? { organizationName: keyword } : {},
-          1, 30
-        ).pipe(
-          finalize(() => {
-            this.orgLoading = false;
-            this.cdr.markForCheck();
-          })
-        );
-      })
-    ).subscribe(res => {
-      this.organizations = res.data;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   loadOrganizations(): void {
     this.orgLoading = true;
     this.cdr.markForCheck();
-    this.orgService.searchOrganizationsWithoutActiveSubscription({}, 1, 30).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => EMPTY),
-      finalize(() => {
-        this.orgLoading = false;
+    this.orgService
+      .searchOrganizationsWithoutActiveSubscription({}, 1, 30)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => EMPTY),
+        finalize(() => {
+          this.orgLoading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(res => {
+        this.organizations = res.data;
         this.cdr.markForCheck();
-      })
-    ).subscribe(res => {
-      this.organizations = res.data;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   onSearch(keyword: string): void {
@@ -107,24 +101,27 @@ export class SubscriptionFormComponent implements OnInit {
     this.cdr.markForCheck();
     const raw = this.form.getRawValue();
 
-    this.licenseService.grantSubscription({
-      organizationId: raw.organizationId,
-      licenseId: this.licenseId,
-      startDate: raw.startDate ? raw.startDate.toISOString().split('T')[0] : undefined
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Cấp subscription thất bại');
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
+    this.licenseService
+      .grantSubscription({
+        organizationId: raw.organizationId,
+        licenseId: this.licenseId,
+        startDate: raw.startDate ? raw.startDate.toISOString().split('T')[0] : undefined
       })
-    ).subscribe(() => {
-      this.message.success('Cấp subscription thành công');
-      this.modalRef.destroy(true);
-    });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Cấp subscription thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Cấp subscription thành công');
+        this.modalRef.destroy(true);
+      });
   }
 
   close(): void {

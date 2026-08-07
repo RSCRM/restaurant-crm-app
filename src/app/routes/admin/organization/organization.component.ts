@@ -2,6 +2,9 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inje
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -13,14 +16,11 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { I18nPipe } from '@delon/theme';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { OrganizationFormComponent } from './organization-form/organization-form.component';
-import { OrganizationService } from './organization.service';
 import { OrganizationResponse, OrganizationSearchRequest, OrganizationStatus, PagingResponse } from './organization.model';
+import { OrganizationService } from './organization.service';
 
 @Component({
   selector: 'app-organization',
@@ -120,26 +120,25 @@ export class OrganizationComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.orgService.searchOrganizations(
-      this.filter,
-      this.currentPage,
-      this.pageSize
-    ).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.data = [];
-        this.total = 0;
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
+    this.orgService
+      .searchOrganizations(this.filter, this.currentPage, this.pageSize)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.data = [];
+          this.total = 0;
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((res: PagingResponse<OrganizationResponse>) => {
+        this.data = res.data;
+        this.total = res.totalElement;
         this.cdr.markForCheck();
-      })
-    ).subscribe((res: PagingResponse<OrganizationResponse>) => {
-      this.data = res.data;
-      this.total = res.totalElement;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   onSTChange(e: STChange): void {

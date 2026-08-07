@@ -1,53 +1,26 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, finalize } from 'rxjs';
-
 import { FormsModule } from '@angular/forms';
-
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
-
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { EMPTY, catchError, finalize } from 'rxjs';
 
-import {
-  InventoryCategoryResponse,
-  PagingResponse,
-  PagingParams
-} from '../inventory.model';
-import { InventoryService } from '../inventory.service';
 import { InventoryCategoryFormComponent } from '../inventory-category-form/inventory-category-form.component';
+import { InventoryCategoryResponse, PagingResponse, PagingParams } from '../inventory.model';
+import { InventoryService } from '../inventory.service';
 
 @Component({
   selector: 'app-inventory-category',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    FormsModule,
-
-    PageHeaderModule,
-    STModule,
-
-    NzCardModule,
-    NzButtonModule,
-    NzInputModule,
-    NzIconModule,
-    NzModalModule,
-
-    I18nPipe
-  ],
+  imports: [FormsModule, PageHeaderModule, STModule, NzCardModule, NzButtonModule, NzInputModule, NzIconModule, NzModalModule, I18nPipe],
   templateUrl: './inventory-category.component.html',
   styleUrl: './inventory-category.component.less'
 })

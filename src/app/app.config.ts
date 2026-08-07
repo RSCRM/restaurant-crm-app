@@ -17,9 +17,6 @@ import {
   RouterFeatures,
   withViewTransitions
 } from '@angular/router';
-import { provideEffects } from '@ngrx/effects';
-import { provideStore, Store } from '@ngrx/store';
-import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { I18NService, defaultInterceptor, provideStartup } from '@core';
 import { provideCellWidgets } from '@delon/abc/cell';
 import { provideSTWidgets } from '@delon/abc/st';
@@ -28,6 +25,9 @@ import { provideSFConfig } from '@delon/form';
 import { AlainProvideLang, provideAlain, vi_VN as delonLang } from '@delon/theme';
 import { AlainConfig } from '@delon/util/config';
 import { environment } from '@env/environment';
+import { provideEffects } from '@ngrx/effects';
+import { provideStore, Store } from '@ngrx/store';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { CELL_WIDGETS, SF_WIDGETS, ST_WIDGETS } from '@shared';
 import { vi as dateLang } from 'date-fns/locale';
 import { NzConfig, provideNzConfig } from 'ng-zorro-antd/core/config';

@@ -20,10 +20,7 @@
         style="width: 180px"
       >
         @for (type of transactionTypes; track type) {
-          <nz-option
-            [nzValue]="type"
-            [nzLabel]="'app.inventory.transaction.type.' + type.toLowerCase() | i18n">
-          </nz-option>
+          <nz-option [nzValue]="type" [nzLabel]="'app.inventory.transaction.type.' + type.toLowerCase() | i18n" />
         }
       </nz-select>
 
@@ -33,15 +30,9 @@
         [nzPlaceHolder]="'app.inventory.transaction.direction' | i18n"
         style="width: 160px"
       >
-        <nz-option
-          nzValue="IN"
-          [nzLabel]="'app.inventory.transaction.direction.in' | i18n">
-        </nz-option>
+        <nz-option nzValue="IN" [nzLabel]="'app.inventory.transaction.direction.in' | i18n" />
 
-        <nz-option
-          nzValue="OUT"
-          [nzLabel]="'app.inventory.transaction.direction.out' | i18n">
-        </nz-option>
+        <nz-option nzValue="OUT" [nzLabel]="'app.inventory.transaction.direction.out' | i18n" />
       </nz-select>
 
       <button nz-button nzType="primary" (click)="search()">
@@ -74,18 +65,16 @@
     }"
     (change)="onSTChange($event)"
   >
-
     <ng-template st-row="direction" let-item>
       <nz-tag [nzColor]="item.transactionDirection === 'IN' ? 'success' : 'error'">
-        {{ ('app.inventory.transaction.direction.' + item.transactionDirection.toLowerCase()) | i18n }}
+        {{ 'app.inventory.transaction.direction.' + item.transactionDirection.toLowerCase() | i18n }}
       </nz-tag>
     </ng-template>
 
     <ng-template st-row="type" let-item>
       <nz-tag nzColor="blue">
-        {{ ('app.inventory.transaction.type.' + item.transactionType.toLowerCase()) | i18n }}
+        {{ 'app.inventory.transaction.type.' + item.transactionType.toLowerCase() | i18n }}
       </nz-tag>
     </ng-template>
-
   </st>
 </nz-card>

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { I18nPipe } from '@delon/theme';
 
-import { EmployeeResponse } from '../employee.model';
 import { EmployeeRoleBadgeComponent } from '../employee-role-badge/employee-role-badge.component';
 import { EmployeeStatusBadgeComponent } from '../employee-status-badge/employee-status-badge.component';
+import { EmployeeResponse } from '../employee.model';
 
 @Component({
   selector: 'app-employee-card',

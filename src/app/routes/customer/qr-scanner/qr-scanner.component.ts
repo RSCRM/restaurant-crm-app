@@ -83,21 +83,54 @@ export class QrScannerComponent implements AfterViewInit, OnDestroy {
 
     const fileScanner = new Html5Qrcode('qr-file-temp');
 
-    fileScanner
-      .scanFile(file, true)
-      .then((decodedText: string) => {
-        console.log('📁 [FILE SCAN LOG] Đã đọc thành công mã QR từ tệp ảnh:', decodedText);
-        this.ngZone.run(() => {
-          this.message.success('⚡ Đã đọc mã QR từ tệp ảnh!');
-          this.handleQrResult(decodedText);
-        });
-      })
-      .catch(() => {
-        this.ngZone.run(() => {
-          this.message.error('Không tìm thấy mã QR trong tệp ảnh này.');
-          this.cdr.markForCheck();
-        });
+    try {
+      // Luôn resize về 800px trước — ảnh quá to sẽ bị thu nhỏ, ảnh quá nhỏ sẽ phóng to
+      const resizedFile = await this.resizeQrFile(file, 800);
+      let decodedText: string;
+      try {
+        decodedText = await fileScanner.scanFile(resizedFile, false);
+      } catch {
+        // Nếu resize vẫn fail → thử file gốc
+        decodedText = await fileScanner.scanFile(file, false);
+      }
+      console.log('📁 [FILE SCAN LOG] Đã đọc thành công mã QR từ tệp ảnh:', decodedText);
+      this.ngZone.run(() => {
+        this.message.success('⚡ Đã đọc mã QR từ tệp ảnh!');
+        this.handleQrResult(decodedText);
       });
+    } catch {
+      this.ngZone.run(() => {
+        this.message.error('Không tìm thấy mã QR trong tệp ảnh này.');
+        this.cdr.markForCheck();
+      });
+    } finally {
+      input.value = '';
+      fileScanner.clear();
+    }
+  }
+
+  /**
+   * Resize ảnh QR về kích thước tối ưu để thư viện decode được.
+   * Ảnh quá lớn sẽ bị thu nhỏ, ảnh quá nhỏ sẽ được phóng to.
+   */
+  private async resizeQrFile(file: File, targetSize = 800): Promise<File> {
+    const image = await createImageBitmap(file);
+    try {
+      const minEdge = Math.min(image.width, image.height);
+      const scale = targetSize / minEdge;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
+      const context = canvas.getContext('2d')!;
+      context.imageSmoothingEnabled = false;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(value => (value ? resolve(value) : reject(new Error('Cannot resize QR image'))), 'image/png')
+      );
+      return new File([blob], file.name, { type: 'image/png' });
+    } finally {
+      image.close();
+    }
   }
 
   async stopScanner(): Promise<void> {
@@ -106,7 +139,9 @@ export class QrScannerComponent implements AfterViewInit, OnDestroy {
       try {
         await this.html5QrCode.stop();
         this.html5QrCode.clear();
-      } catch {}
+      } catch {
+        // Ignore error
+      }
     }
   }
 
@@ -130,7 +165,7 @@ export class QrScannerComponent implements AfterViewInit, OnDestroy {
 
     // 3. Nếu là mã QR không liên quan (VD: link Google Play, Wifi, web bên ngoài)
     this.message.warning('Mã QR này không phải là mã QR Bàn của Nhà hàng! Vui lòng quét đúng mã QR dán trên bàn.');
-    
+
     // Tự động bật lại Scanner sau 2 giây để khách quét lại
     setTimeout(() => {
       this.startScanner();

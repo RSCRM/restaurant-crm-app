@@ -1,13 +1,13 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { I18nPipe, MenuService, SettingsService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { Store } from '@ngrx/store';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
 
 import { AuthActions } from '../../routes/auth/store/auth.actions';
 import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
@@ -15,16 +15,7 @@ import { selectAuthUser } from '../../routes/auth/store/auth.selectors';
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [
-    AsyncPipe,
-    RouterOutlet,
-    LayoutDefaultModule,
-    NzIconModule,
-    NzDropDownModule,
-    NzMenuModule,
-    NzAvatarModule,
-    I18nPipe
-  ],
+  imports: [AsyncPipe, RouterOutlet, LayoutDefaultModule, NzIconModule, NzDropDownModule, NzMenuModule, NzAvatarModule, I18nPipe],
   templateUrl: './admin.component.html'
 })
 export class LayoutAdmin implements OnInit {

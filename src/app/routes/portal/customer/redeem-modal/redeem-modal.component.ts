@@ -96,13 +96,17 @@ export class RedeemModalComponent implements OnInit {
       return;
     }
 
-    const titleAction = this.mode === 'redeem'
-      ? this.i18n.fanyi('redeem-modal.confirm.title.redeem')
-      : this.i18n.fanyi('redeem-modal.confirm.title.give');
+    const titleAction =
+      this.mode === 'redeem' ? this.i18n.fanyi('redeem-modal.confirm.title.redeem') : this.i18n.fanyi('redeem-modal.confirm.title.give');
 
-    const confirmMsg = this.mode === 'redeem'
-      ? this.i18n.fanyi('redeem-modal.confirm.content.redeem', { points: voucher.pointsRequired, phone: this.customerPhone, title: voucher.title })
-      : this.i18n.fanyi('redeem-modal.confirm.content.give', { phone: this.customerPhone, title: voucher.title });
+    const confirmMsg =
+      this.mode === 'redeem'
+        ? this.i18n.fanyi('redeem-modal.confirm.content.redeem', {
+            points: voucher.pointsRequired,
+            phone: this.customerPhone,
+            title: voucher.title
+          })
+        : this.i18n.fanyi('redeem-modal.confirm.content.give', { phone: this.customerPhone, title: voucher.title });
 
     this.modalService.confirm({
       nzTitle: titleAction,

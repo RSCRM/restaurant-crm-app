@@ -1,33 +1,24 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { I18nPipe } from '@delon/theme';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { UserService } from '../user.service';
 import { UserResponse } from '../user.model';
+import { UserService } from '../user.service';
 
 @Component({
   selector: 'app-user-detail',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    PageHeaderModule,
-    NzCardModule,
-    NzButtonModule,
-    NzIconModule,
-    NzTagModule,
-    NzDescriptionsModule,
-    NzSpinModule,
-    I18nPipe
-  ],
+  imports: [PageHeaderModule, NzCardModule, NzButtonModule, NzIconModule, NzTagModule, NzDescriptionsModule, NzSpinModule, I18nPipe],
   templateUrl: './user-detail.component.html',
   styleUrl: './user-detail.component.less'
 })
@@ -50,37 +41,48 @@ export class UserDetailComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.userService.getUserById(id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.user = null;
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
+    this.userService
+      .getUserById(id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.user = null;
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((res: UserResponse) => {
+        this.user = res;
         this.cdr.markForCheck();
-      })
-    ).subscribe((res: UserResponse) => {
-      this.user = res;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'success';
-      case 'BLOCKED': return 'warning';
-      case 'DELETED': return 'error';
-      default: return 'default';
+      case 'ACTIVE':
+        return 'success';
+      case 'BLOCKED':
+        return 'warning';
+      case 'DELETED':
+        return 'error';
+      default:
+        return 'default';
     }
   }
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'app.user.status.active';
-      case 'BLOCKED': return 'app.user.status.blocked';
-      case 'DELETED': return 'app.user.status.deleted';
-      default: return status;
+      case 'ACTIVE':
+        return 'app.user.status.active';
+      case 'BLOCKED':
+        return 'app.user.status.blocked';
+      case 'DELETED':
+        return 'app.user.status.deleted';
+      default:
+        return status;
     }
   }
 

@@ -182,7 +182,6 @@ export class BookingFormComponent implements OnInit {
     const bufferStart = targetStart - 3 * 60 * 60 * 1000; // Block 3h before to avoid overlap with previous diners
 
     this.tablesWithAvailability = this.allTables.map(table => {
-
       // 2. Check overlap with existing bookings on the same table
       const overlappingBooking = this.allBookings.find(booking => {
         if (booking.tableId !== table.id) return false;

@@ -2,6 +2,9 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inje
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { I18nPipe } from '@delon/theme';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
@@ -10,16 +13,13 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzAlertModule } from 'ng-zorro-antd/alert';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { I18nPipe } from '@delon/theme';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { OrderService } from './order.service';
-import { OrderCookingStatusResponse, OrderItemStatus, OrderStatus } from './order.model';
 import { OrderFormComponent } from './order-form/order-form.component';
+import { OrderCookingStatusResponse, OrderItemStatus, OrderStatus } from './order.model';
+import { OrderService } from './order.service';
 
 @Component({
   selector: 'app-order',
@@ -64,48 +64,65 @@ export class OrderComponent {
     this.error = '';
     this.cdr.markForCheck();
 
-    const obs = this.searchMode === 'orderId'
-      ? this.orderService.getCookingStatus(this.searchValue.trim())
-      : this.orderService.getActiveOrderCookingStatusByTable(this.searchValue.trim());
+    const obs =
+      this.searchMode === 'orderId'
+        ? this.orderService.getCookingStatus(this.searchValue.trim())
+        : this.orderService.getActiveOrderCookingStatusByTable(this.searchValue.trim());
 
-    obs.pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.order = null;
-        this.error = 'Không tìm thấy đơn hàng';
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
+    obs
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.order = null;
+          this.error = 'Không tìm thấy đơn hàng';
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(res => {
+        this.order = res;
         this.cdr.markForCheck();
-      })
-    ).subscribe((res) => {
-      this.order = res;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   getStatusColor(status: OrderStatus | OrderItemStatus): string {
     switch (status) {
-      case 'PENDING': return 'default';
-      case 'IN_PROGRESS': return 'processing';
-      case 'READY_TO_SERVE': return 'warning';
-      case 'SERVED': return 'success';
-      case 'PAID': return 'success';
-      case 'CANCELLED': return 'error';
-      default: return 'default';
+      case 'PENDING':
+        return 'default';
+      case 'IN_PROGRESS':
+        return 'processing';
+      case 'READY_TO_SERVE':
+        return 'warning';
+      case 'SERVED':
+        return 'success';
+      case 'PAID':
+        return 'success';
+      case 'CANCELLED':
+        return 'error';
+      default:
+        return 'default';
     }
   }
 
   getStatusText(status: OrderStatus | OrderItemStatus): string {
     switch (status) {
-      case 'PENDING': return 'app.order.status.pending';
-      case 'IN_PROGRESS': return 'app.order.status.inProgress';
-      case 'READY_TO_SERVE': return 'app.order.status.readyToServe';
-      case 'SERVED': return 'app.order.status.served';
-      case 'PAID': return 'app.order.status.paid';
-      case 'CANCELLED': return 'app.order.status.cancelled';
-      default: return status;
+      case 'PENDING':
+        return 'app.order.status.pending';
+      case 'IN_PROGRESS':
+        return 'app.order.status.inProgress';
+      case 'READY_TO_SERVE':
+        return 'app.order.status.readyToServe';
+      case 'SERVED':
+        return 'app.order.status.served';
+      case 'PAID':
+        return 'app.order.status.paid';
+      case 'CANCELLED':
+        return 'app.order.status.cancelled';
+      default:
+        return status;
     }
   }
 

@@ -29,17 +29,17 @@ describe('findTableContext', () => {
 });
 
 describe('isBookingDue', () => {
-  it('becomes actionable five minutes before the booking time', () => {
+  it('becomes actionable at the booking time', () => {
     const now = Date.parse('2026-08-04T08:00:00Z');
-    expect(isBookingDue('2026-08-04T08:05:00Z', now)).toBe(true);
-    expect(isBookingDue('2026-08-04T08:05:01Z', now)).toBe(false);
+    expect(isBookingDue('2026-08-04T08:00:00Z', now)).toBe(true);
+    expect(isBookingDue('2026-08-04T08:00:01Z', now)).toBe(false);
   });
 });
 
 describe('isBookingLocked', () => {
-  it('locks the table thirty minutes before the booking time', () => {
+  it('locks the table fifteen minutes before the booking time', () => {
     const now = Date.parse('2026-08-04T08:00:00Z');
-    expect(isBookingLocked('2026-08-04T08:30:00Z', now)).toBe(true);
-    expect(isBookingLocked('2026-08-04T08:30:01Z', now)).toBe(false);
+    expect(isBookingLocked('2026-08-04T08:15:00Z', now)).toBe(true);
+    expect(isBookingLocked('2026-08-04T08:15:01Z', now)).toBe(false);
   });
 });

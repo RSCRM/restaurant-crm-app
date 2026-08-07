@@ -1,8 +1,8 @@
 <page-header [title]="'Quản lý Hóa đơn'" />
 <nz-card>
   <!-- Search & Actions Bar -->
-  <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
-    <nz-input-group nzSearch [nzAddOnAfter]="searchBtn" style="max-width: 400px;">
+  <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center">
+    <nz-input-group nzSearch [nzAddOnAfter]="searchBtn" style="max-width: 400px">
       <input nz-input [(ngModel)]="invoiceId" placeholder="Nhập Mã Hóa Đơn hoặc Invoice ID" (keyup.enter)="lookupInvoice()" />
     </nz-input-group>
     <ng-template #searchBtn>
@@ -17,7 +17,7 @@
   </div>
 
   @if (loading) {
-    <div style="text-align: center; padding: 40px;"><nz-spin nzSize="large"></nz-spin></div>
+    <div style="text-align: center; padding: 40px"><nz-spin nzSize="large" /></div>
   }
 
   <!-- Invoice Detail -->
@@ -36,11 +36,11 @@
       <nz-descriptions-item nzTitle="Tạm tính">{{ formatPrice(currentInvoice.subtotal) }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="Giảm giá">{{ formatPrice(currentInvoice.discountAmount) }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="Tổng thanh toán" [nzSpan]="2">
-        <strong style="font-size: 18px; color: #f5222d;">{{ formatPrice(currentInvoice.totalAmount) }}</strong>
+        <strong style="font-size: 18px; color: #f5222d">{{ formatPrice(currentInvoice.totalAmount) }}</strong>
       </nz-descriptions-item>
     </nz-descriptions>
 
-    <nz-divider nzText="Danh sách Món ăn"></nz-divider>
+    <nz-divider nzText="Danh sách Món ăn" />
 
     <nz-table #itemTable [nzData]="currentInvoice.items" nzSize="small" [nzShowPagination]="false" nzBordered>
       <thead>
@@ -69,6 +69,6 @@
   }
 
   @if (!currentInvoice && !loading) {
-    <nz-empty nzNotFoundContent="Nhập mã hóa đơn để tra cứu hoặc bấm 'Thanh Toán Đơn Hàng' để tạo mới."></nz-empty>
+    <nz-empty nzNotFoundContent="Nhập mã hóa đơn để tra cứu hoặc bấm 'Thanh Toán Đơn Hàng' để tạo mới." />
   }
 </nz-card>

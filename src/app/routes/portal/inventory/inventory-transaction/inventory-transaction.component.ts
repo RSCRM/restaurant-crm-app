@@ -1,33 +1,20 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, finalize } from 'rxjs';
-
 import { FormsModule } from '@angular/forms';
-
-import {
-  STChange,
-  STColumn,
-  STModule
-} from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
+import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
-
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { EMPTY, catchError, finalize } from 'rxjs';
 
+import { InventoryTransactionFormComponent } from '../inventory-transaction-form/inventory-transaction-form.component';
 import {
   InventoryTransactionDirection,
   InventoryTransactionResponse,
@@ -36,7 +23,6 @@ import {
   PagingResponse
 } from '../inventory.model';
 import { InventoryService } from '../inventory.service';
-import { InventoryTransactionFormComponent } from '../inventory-transaction-form/inventory-transaction-form.component';
 
 @Component({
   selector: 'app-inventory-transaction',
@@ -79,9 +65,7 @@ export class InventoryTransactionComponent implements OnInit {
   filter: InventoryTransactionSearchRequest = {};
 
   readonly transactionTypes = Object.values(InventoryTransactionType);
-  readonly transactionDirections = Object.values(
-    InventoryTransactionDirection
-  );
+  readonly transactionDirections = Object.values(InventoryTransactionDirection);
 
   columns: STColumn[] = [
     {
@@ -131,11 +115,7 @@ export class InventoryTransactionComponent implements OnInit {
     this.cdr.markForCheck();
 
     this.inventoryService
-      .searchTransactions(
-        this.filter,
-        this.currentPage,
-        this.pageSize
-      )
+      .searchTransactions(this.filter, this.currentPage, this.pageSize)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {

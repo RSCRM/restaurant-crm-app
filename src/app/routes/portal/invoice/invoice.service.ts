@@ -2,8 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { ApiResponse } from '../../auth/models/auth.model';
 import { CheckoutRequest, InvoiceResponse, CustomerVoucherApplicableResponse } from './invoice.model';
+import { ApiResponse } from '../../auth/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class InvoiceService {
@@ -12,15 +12,11 @@ export class InvoiceService {
   private readonly API = '/api/v1/erp/invoices';
 
   getInvoiceDetails(id: string): Observable<InvoiceResponse> {
-    return this.http
-      .get<ApiResponse<InvoiceResponse>>(`${this.API}/${id}`)
-      .pipe(map(res => res.data));
+    return this.http.get<ApiResponse<InvoiceResponse>>(`${this.API}/${id}`).pipe(map(res => res.data));
   }
 
   checkout(request: CheckoutRequest): Observable<InvoiceResponse> {
-    return this.http
-      .post<ApiResponse<InvoiceResponse>>(`${this.API}/checkout`, request)
-      .pipe(map(res => res.data));
+    return this.http.post<ApiResponse<InvoiceResponse>>(`${this.API}/checkout`, request).pipe(map(res => res.data));
   }
 
   getApplicableVouchers(orderId: string): Observable<CustomerVoucherApplicableResponse[]> {
@@ -36,8 +32,6 @@ export class InvoiceService {
   }
 
   removeVoucher(orderId: string): Observable<void> {
-    return this.http
-      .post<ApiResponse<any>>(`/api/v1/erp/orders/${orderId}/remove-voucher`, null)
-      .pipe(map(() => undefined));
+    return this.http.post<ApiResponse<any>>(`/api/v1/erp/orders/${orderId}/remove-voucher`, null).pipe(map(() => undefined));
   }
 }

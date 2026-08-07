@@ -1,5 +1,6 @@
 import { Directive, inject, Input, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Store } from '@ngrx/store';
+
 import { selectHasPermission } from '../../routes/auth/store/auth.selectors';
 
 @Directive({ selector: '[appHasPermission]', standalone: true })

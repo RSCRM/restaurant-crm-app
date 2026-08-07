@@ -5,26 +5,17 @@
   <nz-form-item>
     <nz-form-label [nzRequired]="true">{{ 'app.form.orgId.label' | i18n }}</nz-form-label>
     <nz-form-control [nzErrorTip]="'app.error.orgId.required' | i18n">
-      <input
-        nz-input
-        [placeholder]="'app.form.orgId.placeholder' | i18n"
-        (input)="onSearch(searchInput.value)"
-        #searchInput
-      />
+      <input nz-input [placeholder]="'app.form.orgId.placeholder' | i18n" (input)="onSearch(searchInput.value)" #searchInput />
       <div class="org-listbox">
         @if (orgLoading) {
           <div class="org-listbox-loading">
-            <nz-spin nzSimple></nz-spin>
+            <nz-spin nzSimple />
           </div>
         } @else if (organizations.length === 0) {
           <div class="org-listbox-empty">Không có tổ chức nào</div>
         } @else {
           @for (org of organizations; track org.id) {
-            <div
-              class="org-item"
-              [class.selected]="form.getRawValue().organizationId === org.id"
-              (click)="selectOrg(org.id)"
-            >
+            <div class="org-item" [class.selected]="form.getRawValue().organizationId === org.id" (click)="selectOrg(org.id)">
               <div class="org-item-header">
                 <span class="radio-dot" [class.checked]="form.getRawValue().organizationId === org.id"></span>
                 <span class="org-name">{{ org.organizationName }}</span>
@@ -50,7 +41,7 @@
   <nz-form-item>
     <nz-form-label>{{ 'app.form.startDate.label' | i18n }}</nz-form-label>
     <nz-form-control>
-      <nz-date-picker formControlName="startDate" class="full-width" [nzPlaceHolder]="'app.form.startDate.placeholder' | i18n"></nz-date-picker>
+      <nz-date-picker formControlName="startDate" class="full-width" [nzPlaceHolder]="'app.form.startDate.placeholder' | i18n" />
     </nz-form-control>
   </nz-form-item>
 

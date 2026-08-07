@@ -1,24 +1,24 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PageHeaderModule } from '@delon/abc/page-header';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzDividerModule } from 'ng-zorro-antd/divider';
-import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { CommonModule } from '@angular/common';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
-import { InvoiceService } from './invoice.service';
-import { CheckoutRequest, InvoiceResponse, InvoiceStatus, PaymentMethod } from './invoice.model';
 import { CheckoutModalComponent } from './checkout-modal/checkout-modal.component';
+import { CheckoutRequest, InvoiceResponse, InvoiceStatus, PaymentMethod } from './invoice.model';
+import { InvoiceService } from './invoice.service';
 
 @Component({
   selector: 'app-invoice',
@@ -110,6 +110,6 @@ export class InvoiceComponent implements OnInit {
   }
 
   formatPrice(val: number): string {
-    return val?.toLocaleString('vi-VN') + ' ₫';
+    return `${val?.toLocaleString('vi-VN')} ₫`;
   }
 }

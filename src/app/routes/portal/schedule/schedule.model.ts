@@ -2,6 +2,7 @@ export interface PersonalScheduleResponse {
   id: string;
   employeeId: string;
   employeeName: string;
+  employeeFullName: string;
   branchId: string;
   branchName: string;
   workDate: string;
@@ -13,11 +14,13 @@ export interface PersonalScheduleResponse {
 export interface ScheduleEmployeeResponse {
   id: string;
   name: string;
+  fullName: string;
+  email: string;
   branchName: string;
 }
 
 export interface ScheduleRangeCreationRequest {
-  employeeId: string;
+  employeeIds: string[];
   from: string;
   to: string;
   startTime: string;

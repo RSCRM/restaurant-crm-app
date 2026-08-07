@@ -1,22 +1,8 @@
 import { CommonModule } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
-import { EMPTY, catchError, finalize } from 'rxjs';
-
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nPipe } from '@delon/theme';
-
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -26,6 +12,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { EMPTY, catchError, finalize } from 'rxjs';
 
 import {
   CreateInventoryTransactionRequest,
@@ -72,18 +59,9 @@ export class InventoryTransactionFormComponent implements OnInit {
 
   form = this.fb.group({
     inventoryId: this.fb.control('', Validators.required),
-    transactionType: this.fb.control<InventoryTransactionType>(
-      InventoryTransactionType.PURCHASE,
-      Validators.required
-    ),
-    transactionDirection: this.fb.control<InventoryTransactionDirection>(
-      InventoryTransactionDirection.IN,
-      Validators.required
-    ),
-    quantity: this.fb.control(1, [
-      Validators.required,
-      Validators.min(0.001)
-    ]),
+    transactionType: this.fb.control<InventoryTransactionType>(InventoryTransactionType.PURCHASE, Validators.required),
+    transactionDirection: this.fb.control<InventoryTransactionDirection>(InventoryTransactionDirection.IN, Validators.required),
+    quantity: this.fb.control(1, [Validators.required, Validators.min(0.001)]),
     note: this.fb.control('')
   });
 

@@ -52,7 +52,14 @@
             {{ isBulkGivingActive ? ('customer.action.cancel-bulk' | i18n) : ('customer.action.bulk-give' | i18n) }}
           </button>
 
-          <button type="button" *ngIf="isBulkGivingActive" nz-button nzType="primary" [disabled]="selectedCustomerIds.length === 0" (click)="openBulkGiftVoucherModal()">
+          <button
+            type="button"
+            *ngIf="isBulkGivingActive"
+            nz-button
+            nzType="primary"
+            [disabled]="selectedCustomerIds.length === 0"
+            (click)="openBulkGiftVoucherModal()"
+          >
             {{ 'customer.action.give-count' | i18n: { count: selectedCustomerIds.length } }}
           </button>
         </div>
@@ -68,9 +75,27 @@
                 <nz-form-label>{{ 'customer.column.points' | i18n }}</nz-form-label>
                 <nz-form-control>
                   <div class="price-range">
-                    <nz-input-number [(ngModel)]="filterMinPoints" name="filterMinPoints" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n" (ngModelChange)="loadMemberCustomers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterMinPoints"
+                      name="filterMinPoints"
+                      [nzMin]="0"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.from' | i18n"
+                      (ngModelChange)="loadMemberCustomers()"
+                      style="width: 100%"
+                    />
                     <span class="price-range-separator">-</span>
-                    <nz-input-number [(ngModel)]="filterMaxPoints" name="filterMaxPoints" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n" (ngModelChange)="loadMemberCustomers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterMaxPoints"
+                      name="filterMaxPoints"
+                      [nzMin]="0"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.to' | i18n"
+                      (ngModelChange)="loadMemberCustomers()"
+                      style="width: 100%"
+                    />
                   </div>
                 </nz-form-control>
               </nz-form-item>
@@ -82,9 +107,27 @@
                 <nz-form-label>{{ 'customer.column.lifetime-points' | i18n }}</nz-form-label>
                 <nz-form-control>
                   <div class="price-range">
-                    <nz-input-number [(ngModel)]="filterMinLifetimePoints" name="filterMinLifetimePoints" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n" (ngModelChange)="loadMemberCustomers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterMinLifetimePoints"
+                      name="filterMinLifetimePoints"
+                      [nzMin]="0"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.from' | i18n"
+                      (ngModelChange)="loadMemberCustomers()"
+                      style="width: 100%"
+                    />
                     <span class="price-range-separator">-</span>
-                    <nz-input-number [(ngModel)]="filterMaxLifetimePoints" name="filterMaxLifetimePoints" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n" (ngModelChange)="loadMemberCustomers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterMaxLifetimePoints"
+                      name="filterMaxLifetimePoints"
+                      [nzMin]="0"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.to' | i18n"
+                      (ngModelChange)="loadMemberCustomers()"
+                      style="width: 100%"
+                    />
                   </div>
                 </nz-form-control>
               </nz-form-item>
@@ -101,7 +144,10 @@
               <span nz-icon nzType="team" nzTheme="outline" style="margin-right: 8px; color: #1890ff"></span>
               {{ 'customer.member-list.title' | i18n }}
             </h4>
-            <span style="font-size: 13px; color: #8c8c8c">{{ 'customer.member-list.total' | i18n }} <strong>{{ memberCustomerTotal }}</strong> {{ 'customer.member-list.customers' | i18n }}</span>
+            <span style="font-size: 13px; color: #8c8c8c"
+              >{{ 'customer.member-list.total' | i18n }} <strong>{{ memberCustomerTotal }}</strong>
+              {{ 'customer.member-list.customers' | i18n }}</span
+            >
           </div>
 
           <st
@@ -228,10 +274,18 @@
                   <div style="display: flex; justify-content: space-between; align-items: flex-start">
                     <h4 style="margin: 0; font-weight: bold; color: #1890ff">
                       {{ cv.voucher?.title }}
-                      <nz-tag *ngIf="cv.voucher?.voucherCode" nzColor="blue" style="margin-left: 8px">Code: {{ cv.voucher?.voucherCode }}</nz-tag>
+                      <nz-tag *ngIf="cv.voucher?.voucherCode" nzColor="blue" style="margin-left: 8px"
+                        >Code: {{ cv.voucher?.voucherCode }}</nz-tag
+                      >
                     </h4>
                     <nz-tag [nzColor]="cv.status === 'AVAILABLE' ? 'success' : cv.status === 'USED' ? 'default' : 'error'">
-                      {{ cv.status === 'AVAILABLE' ? ('voucher.status.available' | i18n) : cv.status === 'USED' ? ('voucher.status.used' | i18n) : ('voucher.status.expired' | i18n) }}
+                      {{
+                        cv.status === 'AVAILABLE'
+                          ? ('voucher.status.available' | i18n)
+                          : cv.status === 'USED'
+                            ? ('voucher.status.used' | i18n)
+                            : ('voucher.status.expired' | i18n)
+                      }}
                     </nz-tag>
                   </div>
 
@@ -246,12 +300,14 @@
                       • Mã Seri: <strong style="color: #1890ff">{{ cv.voucherSn }}</strong>
                     </div>
                     <div>
-                      • {{ 'voucher.expiry' | i18n }} 
+                      • {{ 'voucher.expiry' | i18n }}
                       <strong *ngIf="cv.voucher?.startAt || cv.voucher?.endAt">
                         {{ cv.voucher?.startAt | date: 'yyyy-MM-dd HH:mm' }} - {{ cv.voucher?.endAt | date: 'yyyy-MM-dd HH:mm' }}
                       </strong>
                       <strong *ngIf="!cv.voucher?.startAt && !cv.voucher?.endAt">
-                        {{ cv.voucher?.expiredAt ? (cv.voucher?.expiredAt | date: 'yyyy-MM-dd HH:mm') : ('voucher.status.no-expiry' | i18n) }}
+                        {{
+                          cv.voucher?.expiredAt ? (cv.voucher?.expiredAt | date: 'yyyy-MM-dd HH:mm') : ('voucher.status.no-expiry' | i18n)
+                        }}
                       </strong>
                     </div>
                   </div>
@@ -345,9 +401,29 @@
                 <nz-form-label>{{ 'customer.sys-voucher.col.discountPercent' | i18n }}</nz-form-label>
                 <nz-form-control>
                   <div class="price-range">
-                    <nz-input-number [(ngModel)]="filterMinDiscount" name="filterMinDiscount" [nzMin]="0" [nzMax]="100" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n" (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterMinDiscount"
+                      name="filterMinDiscount"
+                      [nzMin]="0"
+                      [nzMax]="100"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.from' | i18n"
+                      (ngModelChange)="filterSystemVouchers()"
+                      style="width: 100%"
+                    />
                     <span class="price-range-separator">-</span>
-                    <nz-input-number [(ngModel)]="filterMaxDiscount" name="filterMaxDiscount" [nzMin]="0" [nzMax]="100" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n" (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterMaxDiscount"
+                      name="filterMaxDiscount"
+                      [nzMin]="0"
+                      [nzMax]="100"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.to' | i18n"
+                      (ngModelChange)="filterSystemVouchers()"
+                      style="width: 100%"
+                    />
                   </div>
                 </nz-form-control>
               </nz-form-item>
@@ -359,9 +435,27 @@
                 <nz-form-label>{{ 'customer.sys-voucher.col.pointsRequired' | i18n }}</nz-form-label>
                 <nz-form-control>
                   <div class="price-range">
-                    <nz-input-number [(ngModel)]="filterVoucherMinPoints" name="filterVoucherMinPoints" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n" (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterVoucherMinPoints"
+                      name="filterVoucherMinPoints"
+                      [nzMin]="0"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.from' | i18n"
+                      (ngModelChange)="filterSystemVouchers()"
+                      style="width: 100%"
+                    />
                     <span class="price-range-separator">-</span>
-                    <nz-input-number [(ngModel)]="filterVoucherMaxPoints" name="filterVoucherMaxPoints" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n" (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                    <nz-input-number
+                      [(ngModel)]="filterVoucherMaxPoints"
+                      name="filterVoucherMaxPoints"
+                      [nzMin]="0"
+                      [nzStep]="1"
+                      [nzPrecision]="0"
+                      [nzPlaceHolder]="'customer.filter.to' | i18n"
+                      (ngModelChange)="filterSystemVouchers()"
+                      style="width: 100%"
+                    />
                   </div>
                 </nz-form-control>
               </nz-form-item>
@@ -406,7 +500,9 @@
 
         <!-- Custom render for Actions -->
         <ng-template st-row="actions" let-item>
-          <button nz-button nzType="link" (click)="openEditVoucherModal(item)"><span nz-icon nzType="edit"></span>{{ 'customer.voucher.action.edit' | i18n }}</button>
+          <button nz-button nzType="link" (click)="openEditVoucherModal(item)"
+            ><span nz-icon nzType="edit"></span>{{ 'customer.voucher.action.edit' | i18n }}</button
+          >
         </ng-template>
       </st>
     </nz-card>
@@ -415,16 +511,20 @@
 
 <!-- Modal Template for Bulk Gift Voucher -->
 <ng-template #bulkGiveModalTpl>
-  <div style="padding: 8px 0;">
-    <p style="margin-bottom: 12px; color: #595959; font-size: 14px;" [innerHTML]="bulkGiveDescText"></p>
-    <nz-select [(ngModel)]="selectedBulkVoucherId" style="width: 100%;" nzSize="large" [nzPlaceHolder]="'customer.placeholder.selectVoucher' | i18n">
+  <div style="padding: 8px 0">
+    <p style="margin-bottom: 12px; color: #595959; font-size: 14px" [innerHTML]="bulkGiveDescText"></p>
+    <nz-select
+      [(ngModel)]="selectedBulkVoucherId"
+      style="width: 100%"
+      nzSize="large"
+      [nzPlaceHolder]="'customer.placeholder.selectVoucher' | i18n"
+    >
       @for (v of availableBulkVouchers; track v.id) {
         <nz-option
           [nzValue]="v.id"
           [nzLabel]="v.title + ' (Giảm ' + v.discountPercent + '%) - ' + (v.pointsRequired ? v.pointsRequired + ' điểm' : 'Miễn phí')"
-        ></nz-option>
+        />
       }
     </nz-select>
   </div>
 </ng-template>
-

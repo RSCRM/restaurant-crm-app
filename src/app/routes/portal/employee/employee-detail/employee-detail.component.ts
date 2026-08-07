@@ -7,9 +7,9 @@ import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { EmployeeCardComponent } from '../employee-card/employee-card.component';
-import { EmployeeResponse } from '../employee.model';
 import { EmployeeRoleBadgeComponent } from '../employee-role-badge/employee-role-badge.component';
 import { EmployeeStatusBadgeComponent } from '../employee-status-badge/employee-status-badge.component';
+import { EmployeeResponse } from '../employee.model';
 
 @Component({
   selector: 'app-employee-detail',

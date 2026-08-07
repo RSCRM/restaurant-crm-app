@@ -3,13 +3,8 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-left">
-      <nz-input-group [nzPrefix]="prefixSearch" style="width: 250px;">
-        <input
-          nz-input
-          [placeholder]="'app.license.searchPlaceholder' | i18n"
-          [(ngModel)]="filter.name"
-          (keyup.enter)="search()"
-        />
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 250px">
+        <input nz-input [placeholder]="'app.license.searchPlaceholder' | i18n" [(ngModel)]="filter.name" (keyup.enter)="search()" />
       </nz-input-group>
       <ng-template #prefixSearch>
         <span nz-icon nzType="search" nzTheme="outline"></span>
@@ -52,12 +47,9 @@
               <nz-form-item>
                 <nz-form-label>{{ 'app.license.filter.status' | i18n }}</nz-form-label>
                 <nz-form-control>
-                  <nz-select
-                    [(ngModel)]="filter.status"
-                    style="width: 100%;"
-                  >
+                  <nz-select [(ngModel)]="filter.status" style="width: 100%">
                     @for (opt of statusOptions; track opt.value) {
-                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
                     }
                   </nz-select>
                 </nz-form-control>
@@ -67,12 +59,9 @@
               <nz-form-item>
                 <nz-form-label>{{ 'app.license.filter.billingCycle' | i18n }}</nz-form-label>
                 <nz-form-control>
-                  <nz-select
-                    [(ngModel)]="filter.billingCycle"
-                    style="width: 100%;"
-                  >
+                  <nz-select [(ngModel)]="filter.billingCycle" style="width: 100%">
                     @for (opt of billingCycleOptions; track opt.value) {
-                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
                     }
                   </nz-select>
                 </nz-form-control>
@@ -92,8 +81,8 @@
                     [nzStep]="100000"
                     [nzFormatter]="priceFormatter"
                     [nzPlaceHolder]="'app.license.filter.priceFrom' | i18n"
-                    style="width: 100%;"
-                  ></nz-input-number>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -107,8 +96,8 @@
                     [nzStep]="100000"
                     [nzFormatter]="priceFormatter"
                     [nzPlaceHolder]="'app.license.filter.priceTo' | i18n"
-                    style="width: 100%;"
-                  ></nz-input-number>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -117,7 +106,7 @@
       </div>
 
       <!-- Row 2: Group 3 (Max Branch From + To) | Group 4 (Max Employee From + To) -->
-      <div nz-row [nzGutter]="[16, 0]" style="margin-top: 8px;">
+      <div nz-row [nzGutter]="[16, 0]" style="margin-top: 8px">
         <div nz-col [nzSpan]="12">
           <div nz-row [nzGutter]="[16, 0]">
             <div nz-col [nzSpan]="12">
@@ -128,8 +117,8 @@
                     [(ngModel)]="filter.maxBranchFrom"
                     [nzMin]="0"
                     [nzPlaceHolder]="'app.license.filter.maxBranchFrom' | i18n"
-                    style="width: 100%;"
-                  ></nz-input-number>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -141,8 +130,8 @@
                     [(ngModel)]="filter.maxBranchTo"
                     [nzMin]="0"
                     [nzPlaceHolder]="'app.license.filter.maxBranchTo' | i18n"
-                    style="width: 100%;"
-                  ></nz-input-number>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -158,8 +147,8 @@
                     [(ngModel)]="filter.maxEmployeeFrom"
                     [nzMin]="0"
                     [nzPlaceHolder]="'app.license.filter.maxEmployeeFrom' | i18n"
-                    style="width: 100%;"
-                  ></nz-input-number>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -171,8 +160,8 @@
                     [(ngModel)]="filter.maxEmployeeTo"
                     [nzMin]="0"
                     [nzPlaceHolder]="'app.license.filter.maxEmployeeTo' | i18n"
-                    style="width: 100%;"
-                  ></nz-input-number>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -181,7 +170,7 @@
       </div>
 
       <!-- Row 3: Group 5 (Created From + To) -->
-      <div nz-row [nzGutter]="[16, 0]" style="margin-top: 8px;">
+      <div nz-row [nzGutter]="[16, 0]" style="margin-top: 8px">
         <div nz-col [nzSpan]="12">
           <div nz-row [nzGutter]="[16, 0]">
             <div nz-col [nzSpan]="12">
@@ -191,8 +180,8 @@
                   <nz-date-picker
                     [(ngModel)]="filter.createdAtFrom"
                     [nzPlaceHolder]="'app.license.filter.createdAtFrom' | i18n"
-                    style="width: 100%;"
-                  ></nz-date-picker>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -203,8 +192,8 @@
                   <nz-date-picker
                     [(ngModel)]="filter.createdAtTo"
                     [nzPlaceHolder]="'app.license.filter.createdAtTo' | i18n"
-                    style="width: 100%;"
-                  ></nz-date-picker>
+                    style="width: 100%"
+                  />
                 </nz-form-control>
               </nz-form-item>
             </div>

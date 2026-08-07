@@ -90,6 +90,11 @@
                           <span nz-icon nzType="eye"></span>
                         </a>
                       }
+                      @if (table.status === 'OCCUPIED') {
+                        <button nz-button nzType="text" nz-tooltip nzTooltipTitle="Xem chi tiết đơn hàng" (click)="viewOrderDetails(table)">
+                          <span nz-icon nzType="file-text"></span>
+                        </button>
+                      }
                       @if (canUpdateTable || canDeleteTable) {
                         <button
                           nz-button
@@ -123,7 +128,7 @@
                 <div class="card-actions">
                   @if (transferSource?.id === table.id) {
                     <button nz-button nzDanger nzBlock (click)="cancelTransfer()" class="btn-full"> Hủy chuyển </button>
-                  } @else if (table.status === 'AVAILABLE' && !bookingLockedFor(table.id)) {
+                  } @else if ((table.status === 'AVAILABLE' || table.status === 'RESERVED') && !bookingLockedFor(table.id)) {
                     <button
                       nz-button
                       nzType="primary"
@@ -135,13 +140,24 @@
                       <span nz-icon [nzType]="transferSource ? 'swap' : 'user-add'"></span>
                       {{ transferSource ? 'Chuyển đến' : ('table.register.action' | i18n) }}
                     </button>
-                  } @else if (table.status === 'AVAILABLE' && !bookingDueFor(table.id)) {
-                    <button nz-button nzBlock disabled class="btn-full"> <span nz-icon nzType="lock"></span> Bàn đã khóa </button>
+                  } @else if (
+                    (table.status === 'AVAILABLE' || table.status === 'RESERVED') &&
+                    !bookingDueFor(table.id) &&
+                    !showActionsTableIds.has(table.id)
+                  ) {
+                    <button nz-button nzBlock (click)="showActionsForTable(table.id)" class="btn-full">
+                      <span nz-icon nzType="lock"></span> Bàn đã khóa
+                    </button>
                   } @else if (table.status === 'OCCUPIED') {
-                    <div class="action-group">
-                      <button nz-button (click)="startTransfer(table)" class="btn-transfer">
-                        <span nz-icon nzType="swap"></span> Chuyển bàn
-                      </button>
+                    <div class="occupied-actions">
+                      <div class="action-row">
+                        <button nz-button (click)="startTransfer(table)" class="btn-transfer">
+                          <span nz-icon nzType="swap"></span> Chuyển bàn
+                        </button>
+                        <button nz-button (click)="openOrder(table)" class="btn-order">
+                          <span nz-icon nzType="shopping-cart"></span> Order
+                        </button>
+                      </div>
                       <button
                         nz-button
                         nzType="primary"
@@ -153,9 +169,11 @@
                         <span nz-icon nzType="dollar"></span> Thanh toán
                       </button>
                     </div>
+                  } @else if (table.status === 'RESERVED') {
+                    <span class="booking-pending">Chờ đến giờ nhận khách</span>
                   }
 
-                  @if (!transferSource && bookingDueFor(table.id)) {
+                  @if (!transferSource && (bookingDueFor(table.id) || showActionsTableIds.has(table.id))) {
                     <div class="action-group booking-actions">
                       <button
                         nz-button
@@ -274,8 +292,16 @@
 
 <ng-template #tableFooter>
   <div class="table-modal-footer">
-    @if (editingTable?.status === 'AVAILABLE' && canDeleteTable) {
-      <button nz-button nzDanger [nzLoading]="deletingTableId === editingTable?.id" (click)="confirmDeleteTable()">
+    @if (editingTable && canDeleteTable) {
+      <button
+        nz-button
+        nzDanger
+        [disabled]="editingTable.status !== 'AVAILABLE'"
+        [nzLoading]="deletingTableId === editingTable.id"
+        (click)="confirmDeleteTable()"
+        nz-tooltip
+        [nzTooltipTitle]="editingTable.status !== 'AVAILABLE' ? 'Chỉ có thể xóa bàn khi bàn ở trạng thái Trống' : null"
+      >
         <span nz-icon nzType="delete"></span> Xóa bàn
       </button>
     }

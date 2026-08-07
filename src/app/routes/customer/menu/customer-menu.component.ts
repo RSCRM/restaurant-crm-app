@@ -1,37 +1,39 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzBadgeModule } from 'ng-zorro-antd/badge';
-import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
+import { CustomerMenuResponse, MenuCategoryResponse, MenuProductResponse, GroupCartResponse, MenuComboResponse } from '../customer.model';
 import { CustomerService } from '../customer.service';
-import {
-  CustomerMenuResponse,
-  MenuCategoryResponse,
-  MenuProductResponse,
-  GroupCartResponse,
-  MenuComboResponse
-} from '../customer.model';
 
 @Component({
   selector: 'app-customer-menu',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule, FormsModule,
-    NzButtonModule, NzCardModule, NzBadgeModule, NzTagModule,
-    NzIconModule, NzInputNumberModule, NzSpinModule, NzEmptyModule,
-    NzTabsModule, NzDividerModule
+    CommonModule,
+    FormsModule,
+    NzButtonModule,
+    NzCardModule,
+    NzBadgeModule,
+    NzTagModule,
+    NzIconModule,
+    NzInputNumberModule,
+    NzSpinModule,
+    NzEmptyModule,
+    NzTabsModule,
+    NzDividerModule
   ],
   templateUrl: './customer-menu.component.html',
   styleUrls: ['./customer-menu.component.less']
@@ -174,6 +176,6 @@ export class CustomerMenuComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
-    return price?.toLocaleString('vi-VN') + ' ₫';
+    return `${price?.toLocaleString('vi-VN')} ₫`;
   }
 }

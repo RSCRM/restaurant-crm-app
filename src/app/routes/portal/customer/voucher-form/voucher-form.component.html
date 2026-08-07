@@ -14,8 +14,7 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="24">{{ 'voucher-form.label.description' | i18n }}</nz-form-label>
       <nz-form-control>
-        <textarea nz-input formControlName="description" rows="2"
-          [placeholder]="'voucher-form.placeholder.description' | i18n"></textarea>
+        <textarea nz-input formControlName="description" rows="2" [placeholder]="'voucher-form.placeholder.description' | i18n"></textarea>
       </nz-form-control>
     </nz-form-item>
 
@@ -24,8 +23,7 @@
         <nz-form-item>
           <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.discount' | i18n }}</nz-form-label>
           <nz-form-control [nzErrorTip]="'voucher-form.error.discount' | i18n">
-            <nz-input-number formControlName="discountPercent" [nzMin]="1" [nzMax]="100" [nzStep]="1"
-              style="width: 100%" />
+            <nz-input-number formControlName="discountPercent" [nzMin]="1" [nzMax]="100" [nzStep]="1" style="width: 100%" />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -54,8 +52,12 @@
         <nz-form-item>
           <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.startAt' | i18n }}</nz-form-label>
           <nz-form-control [nzErrorTip]="'voucher-form.error.startAt' | i18n">
-            <nz-date-picker formControlName="startAt" [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="yyyy-MM-dd HH:mm"
-              style="width: 100%" />
+            <nz-date-picker
+              formControlName="startAt"
+              [nzShowTime]="{ nzFormat: 'HH:mm' }"
+              nzFormat="yyyy-MM-dd HH:mm"
+              style="width: 100%"
+            />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -64,8 +66,7 @@
         <nz-form-item>
           <nz-form-label nzRequired [nzSpan]="24">{{ 'voucher-form.label.endAt' | i18n }}</nz-form-label>
           <nz-form-control [nzErrorTip]="endAtErrorTpl">
-            <nz-date-picker formControlName="endAt" [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="yyyy-MM-dd HH:mm"
-              style="width: 100%" />
+            <nz-date-picker formControlName="endAt" [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="yyyy-MM-dd HH:mm" style="width: 100%" />
             <ng-template #endAtErrorTpl let-control>
               <ng-container *ngIf="control.hasError('dateRangeInvalid')">
                 {{ 'voucher-form.error.dateRangeInvalid' | i18n }}
@@ -111,14 +112,18 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="24">{{ 'voucher-form.label.isActive' | i18n }}</nz-form-label>
       <nz-form-control>
-        <nz-switch formControlName="isActive" [nzCheckedChildren]="'voucher-form.switch.on' | i18n"
-          [nzUnCheckedChildren]="'voucher-form.switch.off' | i18n" />
+        <nz-switch
+          formControlName="isActive"
+          [nzCheckedChildren]="'voucher-form.switch.on' | i18n"
+          [nzUnCheckedChildren]="'voucher-form.switch.off' | i18n"
+        />
       </nz-form-control>
     </nz-form-item>
 
     <div style="margin-top: 24px; text-align: right">
-      <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting"
-        style="margin-right: 8px"> {{ 'voucher-form.btn.cancel' | i18n }} </button>
+      <button nz-button nzType="default" type="button" (click)="cancel()" [disabled]="submitting" style="margin-right: 8px">
+        {{ 'voucher-form.btn.cancel' | i18n }}
+      </button>
       <button nz-button nzType="primary" type="submit" [nzLoading]="submitting" [disabled]="form.invalid">
         {{ (isEdit ? 'voucher-form.btn.save' : 'voucher-form.btn.create') | i18n }}
       </button>

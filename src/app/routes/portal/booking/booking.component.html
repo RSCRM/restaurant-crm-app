@@ -75,9 +75,27 @@
             <nz-form-label>{{ 'booking.column.guests' | i18n }}</nz-form-label>
             <nz-form-control>
               <div class="price-range">
-                <nz-input-number [(ngModel)]="filterMinGuests" name="filterMinGuests" [nzMin]="1" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n" (ngModelChange)="filterData()" style="width: 100%" />
+                <nz-input-number
+                  [(ngModel)]="filterMinGuests"
+                  name="filterMinGuests"
+                  [nzMin]="1"
+                  [nzStep]="1"
+                  [nzPrecision]="0"
+                  [nzPlaceHolder]="'customer.filter.from' | i18n"
+                  (ngModelChange)="filterData()"
+                  style="width: 100%"
+                />
                 <span class="price-range-separator">-</span>
-                <nz-input-number [(ngModel)]="filterMaxGuests" name="filterMaxGuests" [nzMin]="1" [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n" (ngModelChange)="filterData()" style="width: 100%" />
+                <nz-input-number
+                  [(ngModel)]="filterMaxGuests"
+                  name="filterMaxGuests"
+                  [nzMin]="1"
+                  [nzStep]="1"
+                  [nzPrecision]="0"
+                  [nzPlaceHolder]="'customer.filter.to' | i18n"
+                  (ngModelChange)="filterData()"
+                  style="width: 100%"
+                />
               </div>
             </nz-form-control>
           </nz-form-item>

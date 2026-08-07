@@ -16,7 +16,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { finalize, Subscription } from 'rxjs';
+import { finalize, Observable, Subscription } from 'rxjs';
 
 import { PersonalScheduleResponse, ScheduleEmployeeResponse } from './schedule.model';
 import { ScheduleService } from './schedule.service';
@@ -64,7 +64,7 @@ export class ScheduleComponent implements OnInit {
   creating = false;
   createVisible = false;
   createDateRange: Date[] = [new Date(), new Date()];
-  createForm = { employeeId: '', startTime: '08:00', endTime: '16:00' };
+  createForm = { employeeIds: [] as string[], startTime: '08:00', endTime: '16:00', note: '' };
   managerMode = false;
   columns: STColumn[] = [];
   private loadSubscription?: Subscription;
@@ -97,42 +97,82 @@ export class ScheduleComponent implements OnInit {
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     this.selectedDate = null;
+    this.selectedEmployeeId = null;
     this.load(monday, sunday);
   }
 
-  load(from = this.selectedDate, to = from): void {
-    if (!from || !to) return;
+  reloadAll(): void {
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    this.selectedDate = null;
+    this.selectedEmployeeId = null;
+    this.load(startOfMonth, endOfMonth);
+  }
+
+  load(from?: Date | null, to?: Date | null): void {
+    let effectiveFrom = from !== undefined ? from : this.selectedDate;
+    let effectiveTo = to !== undefined ? to : effectiveFrom;
+
+    // Nếu không có ngày → tự động lấy tuần hiện tại
+    if (!effectiveFrom || !effectiveTo) {
+      const today = new Date();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      effectiveFrom = monday;
+      effectiveTo = sunday;
+    }
 
     this.loadSubscription?.unsubscribe();
     this.loading = true;
-    const fromDate = this.formatDate(from);
-    const toDate = this.formatDate(to);
-    const request$ = this.managerMode
-      ? this.service.getManagedSchedules(fromDate, toDate)
-      : this.service.getPersonalSchedule(fromDate, toDate);
-    this.loadSubscription = request$
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe({
-        next: schedules => {
-          this.allSchedules = schedules;
-          this.employees = Array.from(
-            new Map(schedules.map(schedule => [schedule.employeeId, { id: schedule.employeeId, name: schedule.employeeName }])).values()
-          );
-          if (this.selectedEmployeeId && !this.employees.some(employee => employee.id === this.selectedEmployeeId)) {
-            this.selectedEmployeeId = null;
+    this.cdr.markForCheck();
+
+    try {
+      const fromDate = this.formatDate(effectiveFrom);
+      const toDate = this.formatDate(effectiveTo);
+
+      let request$: Observable<PersonalScheduleResponse[]>;
+      if (!this.managerMode) {
+        request$ = this.service.getPersonalSchedule(fromDate, toDate);
+      } else if (this.selectedEmployeeId) {
+        // Có chọn nhân viên cụ thể → gọi API lấy lịch riêng nhân viên đó
+        request$ = this.service.getStaffSchedule(this.selectedEmployeeId, fromDate, toDate);
+      } else {
+        // Không chọn nhân viên → lấy tất cả
+        request$ = this.service.getManagedSchedules(fromDate, toDate);
+      }
+
+      this.loadSubscription = request$
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(() => {
+            this.loading = false;
+            this.cdr.markForCheck();
+          })
+        )
+        .subscribe({
+          next: schedules => {
+            this.allSchedules = schedules;
+            this.schedules = schedules;
+            this.employees = Array.from(
+              new Map(schedules.map(schedule => [schedule.employeeId, { id: schedule.employeeId, name: schedule.employeeName }])).values()
+            );
+            this.loading = false;
+            this.cdr.markForCheck();
+          },
+          error: () => {
+            this.loading = false;
+            this.message.error(this.i18n.fanyi('schedule.load-failed'));
+            this.cdr.markForCheck();
           }
-          this.filterByEmployee();
-        },
-        error: () => {
-          this.message.error(this.i18n.fanyi('schedule.load-failed'));
-        }
-      });
+        });
+    } catch (e) {
+      console.error(e);
+      this.loading = false;
+      this.cdr.markForCheck();
+    }
   }
 
   filterByEmployee(): void {
@@ -142,16 +182,38 @@ export class ScheduleComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  employeeFilterOption = (input: string, option: { nzValue: string; nzLabel: string | number | null }): boolean => {
+    const search = input.toLowerCase();
+    const label = option.nzLabel ? String(option.nzLabel).toLowerCase() : '';
+    if (label.includes(search)) return true;
+    const employee = this.managedEmployees.find(e => e.id === option.nzValue);
+    if (employee) {
+      return (
+        employee.name.toLowerCase().includes(search) ||
+        (employee.fullName && employee.fullName.toLowerCase().includes(search)) ||
+        (employee.email && employee.email.toLowerCase().includes(search)) ||
+        false
+      );
+    }
+    return false;
+  };
+
   openCreate(): void {
     const date = this.selectedDate ?? new Date();
     this.createDateRange = [date, date];
-    this.createForm = { employeeId: '', startTime: '08:00', endTime: '16:00' };
+    this.createForm = { employeeIds: [], startTime: '08:00', endTime: '16:00', note: '' };
     this.createVisible = true;
   }
 
   createSchedules(): void {
     const [from, to] = this.createDateRange;
-    if (!this.createForm.employeeId || !from || !to || this.createForm.startTime >= this.createForm.endTime) {
+    if (
+      !this.createForm.employeeIds ||
+      this.createForm.employeeIds.length === 0 ||
+      !from ||
+      !to ||
+      this.createForm.startTime >= this.createForm.endTime
+    ) {
       this.message.warning(this.i18n.fanyi('schedule.create-invalid'));
       return;
     }
@@ -172,7 +234,16 @@ export class ScheduleComponent implements OnInit {
         next: schedules => {
           this.creating = false;
           this.createVisible = false;
-          this.message.success(this.i18n.fanyi('schedule.create-success', { count: schedules.length }));
+          const days = Math.round((to.getTime() - from.getTime()) / 86_400_000) + 1;
+          const totalRequested = days * this.createForm.employeeIds.length;
+
+          if (schedules.length === 0) {
+            this.message.warning('Tất cả ngày và nhân viên được chọn đều đã có lịch làm việc!');
+          } else if (schedules.length < totalRequested) {
+            this.message.success(`Đã tạo thành công ${schedules.length} lịch làm việc (bỏ qua các ca trùng lịch)`);
+          } else {
+            this.message.success(this.i18n.fanyi('schedule.create-success', { count: schedules.length }));
+          }
           this.load();
         },
         error: error => {
@@ -192,7 +263,12 @@ export class ScheduleComponent implements OnInit {
 
   private updateColumns(): void {
     this.columns = [
-      ...(this.managerMode ? [{ title: this.i18n.fanyi('schedule.employee'), index: 'employeeName' }] : []),
+      ...(this.managerMode
+        ? [
+            { title: this.i18n.fanyi('schedule.employee-code'), index: 'employeeName' },
+            { title: this.i18n.fanyi('schedule.employee-name'), index: 'employeeFullName' }
+          ]
+        : []),
       { title: this.i18n.fanyi('schedule.date'), render: 'date', width: 120 },
       { title: this.i18n.fanyi('schedule.time'), render: 'time', width: 150 },
       { title: this.i18n.fanyi('schedule.branch'), index: 'branchName' },
@@ -215,16 +291,30 @@ export class ScheduleComponent implements OnInit {
       });
   }
 
-  private formatDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  private formatDate(date: Date | string): string {
+    if (!date) return '';
+    if (typeof date === 'string') {
+      return date.split('T')[0];
+    }
+    try {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch {
+      return '';
+    }
   }
 
-  private toDate(date: string, time: string): Date {
-    const [year, month, day] = date.split('-').map(Number);
-    const [hour, minute, second = 0] = time.split(':').map(Number);
-    return new Date(year, month - 1, day, hour, minute, second);
+  private toDate(date: string | null | undefined, time: string | null | undefined): Date {
+    if (!date) return new Date();
+    const timeStr = time || '00:00:00';
+    try {
+      const [year, month, day] = date.split('-').map(Number);
+      const [hour, minute, second = 0] = timeStr.split(':').map(Number);
+      return new Date(year, month - 1, day, hour, minute, second);
+    } catch {
+      return new Date();
+    }
   }
 }

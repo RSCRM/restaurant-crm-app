@@ -69,24 +69,16 @@ export const routes: Routes = [
       { path: '', redirectTo: 'inventory', pathMatch: 'full' },
       {
         path: 'inventory-category',
-        loadComponent: () =>
-          import('./inventory/inventory-category/inventory-category.component').then(
-            m => m.InventoryCategoryComponent
-          )
+        loadComponent: () => import('./inventory/inventory-category/inventory-category.component').then(m => m.InventoryCategoryComponent)
       },
       {
         path: 'inventory',
-        loadComponent: () =>
-          import('./inventory/inventory/inventory.component').then(
-            m => m.InventoryComponent
-          )
+        loadComponent: () => import('./inventory/inventory/inventory.component').then(m => m.InventoryComponent)
       },
       {
         path: 'inventory-transaction',
         loadComponent: () =>
-          import('./inventory/inventory-transaction/inventory-transaction.component').then(
-            m => m.InventoryTransactionComponent
-          )
+          import('./inventory/inventory-transaction/inventory-transaction.component').then(m => m.InventoryTransactionComponent)
       }
     ]
   },

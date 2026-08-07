@@ -271,6 +271,39 @@
   padding: 32px;
 }
 
+.occupied-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+
+    button {
+      flex: 1;
+      height: 36px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .btn-pay {
+    width: 100%;
+    height: 36px;
+    border-radius: 4px;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 576px) {
   .card-filters {
     .filter-input,

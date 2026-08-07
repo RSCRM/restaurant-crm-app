@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STModule, STChange } from '@delon/abc/st';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -10,17 +11,16 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
 import { BookingFormComponent } from './booking-form/booking-form.component';
 import { BookingResponse, BookingStatus } from './booking.model';
 import { BookingService } from './booking.service';
 import { selectContextToken } from '../../auth/store/auth.selectors';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 
 @Component({
   selector: 'app-booking',
@@ -326,9 +326,7 @@ export class BookingComponent implements OnInit, OnDestroy {
         if (typeof valA === 'number' && typeof valB === 'number') {
           return isAsc ? valA - valB : valB - valA;
         }
-        return isAsc
-          ? String(valA).localeCompare(String(valB))
-          : String(valB).localeCompare(String(valA));
+        return isAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
       });
     }
 
@@ -364,7 +362,7 @@ export class BookingComponent implements OnInit, OnDestroy {
       const col = e.sort.column;
       const indexStr = (Array.isArray(col.index) ? col.index[0] : (col.index as string)) || '';
       const sortDir = e.sort.map ? e.sort.map[indexStr] : undefined;
-      
+
       this.sortBy = sortDir ? indexStr : '';
       this.sortDirection = sortDir === 'ascend' ? 'ASC' : sortDir === 'descend' ? 'DESC' : '';
       this.filterData();
@@ -411,7 +409,11 @@ export class BookingComponent implements OnInit, OnDestroy {
             if (status === BookingStatus.SEATED) {
               this.message.success(this.i18n.fanyi('booking.success.seated'));
             } else {
-              this.message.success(status === BookingStatus.CANCELLED ? this.i18n.fanyi('booking.success.cancel') : this.i18n.fanyi('booking.success.update-status'));
+              this.message.success(
+                status === BookingStatus.CANCELLED
+                  ? this.i18n.fanyi('booking.success.cancel')
+                  : this.i18n.fanyi('booking.success.update-status')
+              );
             }
             this.loadData();
           },

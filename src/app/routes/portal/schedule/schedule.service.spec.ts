@@ -32,7 +32,7 @@ describe('ScheduleService', () => {
 
     service
       .createSchedules({
-        employeeId: 'chef-1',
+        employeeIds: ['chef-1'],
         from: '2026-08-21',
         to: '2026-08-25',
         startTime: '08:00',

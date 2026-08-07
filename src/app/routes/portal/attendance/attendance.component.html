@@ -37,13 +37,17 @@
         <div style="margin-bottom: 16px; display: flex; gap: 8px">
           <nz-select
             [(ngModel)]="selectedEmployeeId"
-            (ngModelChange)="onEmployeeSelected()"
-            style="width: 260px"
+            style="width: 280px"
+            nzShowSearch
+            [nzFilterOption]="employeeFilterOption"
             [nzAllowClear]="true"
             [nzPlaceHolder]="'attendance.all-employees' | i18n"
           >
             @for (employee of branchList; track employee.employeeId) {
-              <nz-option [nzValue]="employee.employeeId" [nzLabel]="employee.employeeName" />
+              <nz-option
+                [nzValue]="employee.employeeId"
+                [nzLabel]="employee.username + ' - ' + employee.employeeName + ' - ' + (employee.email || '')"
+              />
             }
           </nz-select>
           <nz-date-picker [(ngModel)]="employeeHistoryDate" [nzPlaceHolder]="'attendance.select-date' | i18n" />

@@ -1,31 +1,31 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { OrganizationService } from '../organization.service';
 import { OrganizationResponse } from '../organization.model';
+import { OrganizationService } from '../organization.service';
 import { GrantSubscriptionFormComponent } from './grant-subscription-form/grant-subscription-form.component';
-import { LicenseService } from '../../license/license.service';
 import { SubscriptionResponse, SubscriptionStatus } from '../../license/license.model';
+import { LicenseService } from '../../license/license.service';
 
 @Component({
   selector: 'app-organization-detail',
@@ -91,7 +91,7 @@ export class OrganizationDetailComponent implements OnInit {
     { label: 'Yearly', value: 'YEARLY' }
   ];
 
-  priceFormatter = (value: number) => value != null ? `${value.toLocaleString('vi-VN')} ₫` : '';
+  priceFormatter = (value: number) => (value != null ? `${value.toLocaleString('vi-VN')} ₫` : '');
 
   subColumns: STColumn[] = [
     { title: { i18n: 'app.license.code' }, index: 'license.code', width: 120 },
@@ -136,43 +136,44 @@ export class OrganizationDetailComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.orgService.getOrganizationById(id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.organization = null;
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
+    this.orgService
+      .getOrganizationById(id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.organization = null;
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((res: OrganizationResponse) => {
+        this.organization = res;
         this.cdr.markForCheck();
-      })
-    ).subscribe((res: OrganizationResponse) => {
-      this.organization = res;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   loadSubscriptions(): void {
     this.subLoading = true;
     this.cdr.markForCheck();
 
-    this.orgService.searchSubscriptions(
-      this.orgId,
-      this.filter,
-      this.subCurrentPage,
-      this.subPageSize
-    ).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => EMPTY),
-      finalize(() => {
-        this.subLoading = false;
+    this.orgService
+      .searchSubscriptions(this.orgId, this.filter, this.subCurrentPage, this.subPageSize)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => EMPTY),
+        finalize(() => {
+          this.subLoading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(res => {
+        this.subscriptions = res.data;
+        this.subTotal = res.totalElement;
         this.cdr.markForCheck();
-      })
-    ).subscribe(res => {
-      this.subscriptions = res.data;
-      this.subTotal = res.totalElement;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   onSubSTChange(e: STChange): void {
@@ -209,29 +210,35 @@ export class OrganizationDetailComponent implements OnInit {
   }
 
   renewSubscription(id: string): void {
-    this.licenseService.renewSubscription(id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Gia hạn subscription thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Gia hạn subscription thành công');
-      this.loadSubscriptions();
-    });
+    this.licenseService
+      .renewSubscription(id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Gia hạn subscription thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Gia hạn subscription thành công');
+        this.loadSubscriptions();
+      });
   }
 
   revokeSubscription(id: string): void {
-    this.licenseService.revokeSubscription(id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Thu hồi subscription thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Thu hồi subscription thành công');
-      this.loadSubscriptions();
-    });
+    this.licenseService
+      .revokeSubscription(id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Thu hồi subscription thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Thu hồi subscription thành công');
+        this.loadSubscriptions();
+      });
   }
 
   openGrantSubscription(): void {
@@ -251,37 +258,53 @@ export class OrganizationDetailComponent implements OnInit {
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'success';
-      case 'INACTIVE': return 'warning';
-      case 'SUSPENDED': return 'error';
-      default: return 'default';
+      case 'ACTIVE':
+        return 'success';
+      case 'INACTIVE':
+        return 'warning';
+      case 'SUSPENDED':
+        return 'error';
+      default:
+        return 'default';
     }
   }
 
   getSubStatusColor(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'success';
-      case 'EXPIRED': return 'warning';
-      case 'REVOKED': return 'error';
-      default: return 'default';
+      case 'ACTIVE':
+        return 'success';
+      case 'EXPIRED':
+        return 'warning';
+      case 'REVOKED':
+        return 'error';
+      default:
+        return 'default';
     }
   }
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'app.organization.status.active';
-      case 'INACTIVE': return 'app.organization.status.inactive';
-      case 'SUSPENDED': return 'app.organization.status.suspended';
-      default: return status;
+      case 'ACTIVE':
+        return 'app.organization.status.active';
+      case 'INACTIVE':
+        return 'app.organization.status.inactive';
+      case 'SUSPENDED':
+        return 'app.organization.status.suspended';
+      default:
+        return status;
     }
   }
 
   getSubStatusText(status: string): string {
     switch (status) {
-      case 'ACTIVE': return 'app.license.status.active';
-      case 'EXPIRED': return 'app.subscription.status.expired';
-      case 'REVOKED': return 'app.subscription.status.revoked';
-      default: return status;
+      case 'ACTIVE':
+        return 'app.license.status.active';
+      case 'EXPIRED':
+        return 'app.subscription.status.expired';
+      case 'REVOKED':
+        return 'app.subscription.status.revoked';
+      default:
+        return status;
     }
   }
 

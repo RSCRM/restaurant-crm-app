@@ -1,32 +1,23 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzDividerModule } from 'ng-zorro-antd/divider';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzModalRef } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
-
-import { InvoiceService } from '../invoice.service';
-import { PaymentMethod, CustomerVoucherApplicableResponse } from '../invoice.model';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+
+import { PaymentMethod, CustomerVoucherApplicableResponse } from '../invoice.model';
+import { InvoiceService } from '../invoice.service';
 
 @Component({
   selector: 'app-checkout-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    FormsModule,
-    NzButtonModule,
-    NzInputModule,
-    NzSelectModule,
-    NzDividerModule,
-    NzIconModule,
-    I18nPipe
-  ],
+  imports: [CommonModule, FormsModule, NzButtonModule, NzInputModule, NzSelectModule, NzDividerModule, NzIconModule, I18nPipe],
   templateUrl: './checkout-modal.component.html'
 })
 export class CheckoutModalComponent {
@@ -47,7 +38,7 @@ export class CheckoutModalComponent {
   applicableVouchers: CustomerVoucherApplicableResponse[] = [];
   selectedVoucherId = '';
 
-  paymentMethods: { value: PaymentMethod; label: string }[] = [];
+  paymentMethods: Array<{ value: PaymentMethod; label: string }> = [];
 
   constructor() {
     this.paymentMethods = [
@@ -101,22 +92,24 @@ export class CheckoutModalComponent {
     this.loading = true;
 
     const proceedCheckout = () => {
-      this.invoiceService.checkout({
-        orderId: this.orderId.trim(),
-        paymentMethod: this.paymentMethod,
-        note: this.note.trim() || undefined,
-        voucherCode: this.voucherCode.trim() || undefined
-      }).subscribe({
-        next: invoice => {
-          this.loading = false;
-          this.modalRef.close(invoice);
-        },
-        error: err => {
-          this.loading = false;
-          this.message.error(err?.error?.errorMessage || this.i18n.fanyi('checkout.msg.checkoutError'));
-          this.cdr.markForCheck();
-        }
-      });
+      this.invoiceService
+        .checkout({
+          orderId: this.orderId.trim(),
+          paymentMethod: this.paymentMethod,
+          note: this.note.trim() || undefined,
+          voucherCode: this.voucherCode.trim() || undefined
+        })
+        .subscribe({
+          next: invoice => {
+            this.loading = false;
+            this.modalRef.close(invoice);
+          },
+          error: err => {
+            this.loading = false;
+            this.message.error(err?.error?.errorMessage || this.i18n.fanyi('checkout.msg.checkoutError'));
+            this.cdr.markForCheck();
+          }
+        });
     };
 
     if (this.selectedVoucherId) {

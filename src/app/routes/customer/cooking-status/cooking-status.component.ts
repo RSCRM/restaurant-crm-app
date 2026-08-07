@@ -1,24 +1,23 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzProgressModule } from 'ng-zorro-antd/progress';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzEmptyModule } from 'ng-zorro-antd/empty';
-import { NzResultModule } from 'ng-zorro-antd/result';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { interval, Subscription } from 'rxjs';
-
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzProgressModule } from 'ng-zorro-antd/progress';
+import { NzResultModule } from 'ng-zorro-antd/result';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { interval, Subscription } from 'rxjs';
 
-import { CustomerService } from '../customer.service';
 import {
   CustomerOrderTrackingResponse,
   CustomerOrderTrackingItemResponse,
@@ -26,8 +25,7 @@ import {
   OrderItemStatus,
   CustomerVoucherApplicableResponse
 } from '../customer.model';
-
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
+import { CustomerService } from '../customer.service';
 
 @Component({
   selector: 'app-cooking-status',
@@ -37,9 +35,18 @@ import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
     CommonModule,
     FormsModule,
     NzInputModule,
-    NzButtonModule, NzCardModule, NzProgressModule, NzTagModule,
-    NzIconModule, NzSpinModule, NzEmptyModule, NzResultModule, NzDividerModule,
-    NzModalModule, NzTabsModule, I18nPipe
+    NzButtonModule,
+    NzCardModule,
+    NzProgressModule,
+    NzTagModule,
+    NzIconModule,
+    NzSpinModule,
+    NzEmptyModule,
+    NzResultModule,
+    NzDividerModule,
+    NzModalModule,
+    NzTabsModule,
+    I18nPipe
   ],
   templateUrl: './cooking-status.component.html',
   styleUrls: ['./cooking-status.component.less']
@@ -152,7 +159,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     return map[stage] || stage;
   }
 
-  openVoucherModal(showAll: boolean = false): void {
+  openVoucherModal(showAll = false): void {
     this.showAllVouchers = showAll;
     this.selectedTabIndex = 0;
     this.voucherModalVisible = true;
@@ -283,9 +290,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
 
     // 1. Check if the customer already owns this promo code voucher in their wallet (e.g. from previous step)
-    const alreadyOwnedVoucher = this.allMyVouchers.find(v =>
-      v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase()
-    );
+    const alreadyOwnedVoucher = this.allMyVouchers.find(v => v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase());
 
     if (alreadyOwnedVoucher) {
       // Already owned, apply directly without redeeming
@@ -298,7 +303,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
           this.enteredCode = '';
           this.loadStatus();
         },
-        error: (err) => {
+        error: err => {
           this.codeLoading = false;
           this.voucherLoading = false;
           this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.applyError'));
@@ -309,9 +314,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
     }
 
     // 2. If not owned yet, search in catalog for code-based voucher (v.voucherCode === code)
-    const matchedVoucher = this.catalogVouchers.find(v =>
-      v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase()
-    );
+    const matchedVoucher = this.catalogVouchers.find(v => v.voucherCode && v.voucherCode.toLowerCase() === code.toLowerCase());
 
     if (!matchedVoucher) {
       this.codeLoading = false;
@@ -323,7 +326,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
 
     // Redeem code voucher (0 points)
     this.customerService.redeemVoucher(matchedVoucher.customerVoucherId).subscribe({
-      next: (customerVoucherId) => {
+      next: customerVoucherId => {
         // Apply newly redeemed customer voucher to order
         this.customerService.applyVoucher(customerVoucherId).subscribe({
           next: () => {
@@ -334,7 +337,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
             this.enteredCode = '';
             this.loadStatus();
           },
-          error: (err) => {
+          error: err => {
             this.codeLoading = false;
             this.voucherLoading = false;
             this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.applyError'));
@@ -342,7 +345,7 @@ export class CookingStatusComponent implements OnInit, OnDestroy {
           }
         });
       },
-      error: (err) => {
+      error: err => {
         this.codeLoading = false;
         this.voucherLoading = false;
         this.message.error(err?.error?.errorMessage || this.i18n.fanyi('voucher.promo-code.msg.unavailable'));

@@ -220,7 +220,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       { title: this.i18n.fanyi('attendance.status'), render: 'status', className: 'text-left' }
     ];
     this.branchColumns = [
-      { title: this.i18n.fanyi('attendance.employee'), index: 'employeeName', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.employee-code'), index: 'username', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.employee-name'), index: 'employeeName', className: 'text-left' },
       { title: this.i18n.fanyi('attendance.workDate'), index: 'workDate', type: 'date', dateFormat: 'dd/MM/yyyy', className: 'text-left' },
       {
         title: this.i18n.fanyi('attendance.scheduledStart'),
@@ -242,7 +243,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       { title: this.i18n.fanyi('attendance.status'), render: 'branchStatus', className: 'text-left' }
     ];
     this.branchHistoryColumns = [
-      { title: this.i18n.fanyi('attendance.employee'), index: 'employeeName', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.employee-code'), index: 'username', className: 'text-left' },
+      { title: this.i18n.fanyi('attendance.employee-name'), index: 'employeeName', className: 'text-left' },
       ...this.columns
     ];
   }
@@ -605,11 +607,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       experimentalFeatures: { useBarCodeDetectorIfSupported: true }
     });
     try {
+      // Luôn resize về kích thước tối ưu (không quá lớn, không quá nhỏ)
+      const resizedFile = await this.resizeQrFile(file, 800);
       let value: string;
       try {
-        value = await fileScanner.scanFile(file, false);
+        value = await fileScanner.scanFile(resizedFile, false);
       } catch {
-        value = await fileScanner.scanFile(await this.enlargeQrFile(file), false);
+        // Nếu resize 800px vẫn fail → thử với file gốc
+        value = await fileScanner.scanFile(file, false);
       }
       this.handleScannedAttendance(value);
     } catch {
@@ -621,13 +626,21 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     }
   }
 
-  private async enlargeQrFile(file: File): Promise<File> {
+  /**
+   * Resize ảnh QR về kích thước tối ưu để thư viện decode được.
+   * Ảnh quá lớn sẽ bị thu nhỏ, ảnh quá nhỏ sẽ được phóng to.
+   *
+   * @param file File ảnh gốc
+   * @param targetSize Kích thước mong muốn cho cạnh ngắn nhất (px), mặc định 800
+   */
+  private async resizeQrFile(file: File, targetSize = 800): Promise<File> {
     const image = await createImageBitmap(file);
     try {
-      const scale = Math.max(1, Math.ceil(900 / Math.min(image.width, image.height)));
+      const minEdge = Math.min(image.width, image.height);
+      const scale = targetSize / minEdge;
       const canvas = document.createElement('canvas');
-      canvas.width = image.width * scale;
-      canvas.height = image.height * scale;
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
       const context = canvas.getContext('2d')!;
       context.imageSmoothingEnabled = false;
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -694,4 +707,10 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       this.checkIn();
     }
   }
+
+  employeeFilterOption = (input: string, option: { nzValue: string; nzLabel: string | number | null }): boolean => {
+    const search = input.toLowerCase();
+    const label = option.nzLabel ? String(option.nzLabel).toLowerCase() : '';
+    return label.includes(search);
+  };
 }
