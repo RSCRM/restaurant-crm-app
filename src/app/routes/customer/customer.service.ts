@@ -129,6 +129,10 @@ export class CustomerService {
     return this.http.post<ApiResponse<void>>(`/api/v1/customer/loyalty/vouchers/${customerVoucherId}/apply`, {}, { headers: this.sessionHeaders() }).pipe(map(() => void 0));
   }
 
+  applyVoucherCode(voucherCode: string): Observable<void> {
+    return this.http.post<ApiResponse<void>>(`/api/v1/customer/loyalty/vouchers/code/apply?voucherCode=${encodeURIComponent(voucherCode)}`, {}, { headers: this.sessionHeaders() }).pipe(map(() => void 0));
+  }
+
   removeVoucher(): Observable<void> {
     return this.http.post<ApiResponse<void>>('/api/v1/customer/loyalty/vouchers/remove', {}, { headers: this.sessionHeaders() }).pipe(map(() => void 0));
   }

@@ -63,4 +63,16 @@ export class BookingService {
   updateBookingStatus(id: string, request: UpdateBookingStatusRequest): Observable<BookingResponse> {
     return this.http.patch<ApiResponse<BookingResponse>>(`${this.API}/${id}/status`, request).pipe(map(res => res.data));
   }
+
+  searchBookings(searchRequest: any, params: PagingParams): Observable<PagingResponse<BookingResponse>> {
+    const httpParams = new HttpParams().set('page', params.page.toString()).set('size', params.size.toString());
+
+    return this.http
+      .post<ApiResponse<PagingResponse<BookingResponse>>>(`${this.API}/search`, searchRequest, { params: httpParams })
+      .pipe(map(res => res.data));
+  }
+
+  updateBooking(id: string, request: any): Observable<BookingResponse> {
+    return this.http.put<ApiResponse<BookingResponse>>(`${this.API}/${id}`, request).pipe(map(res => res.data));
+  }
 }
