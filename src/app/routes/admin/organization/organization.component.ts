@@ -78,7 +78,7 @@ export class OrganizationComponent implements OnInit {
 
   // Enum options for status select
   statusOptions = [
-    { label: 'Tất cả', value: null },
+    { label: 'All', value: null },
     { label: 'Active', value: OrganizationStatus.ACTIVE },
     { label: 'Inactive', value: OrganizationStatus.INACTIVE },
     { label: 'Suspended', value: OrganizationStatus.SUSPENDED }
@@ -133,7 +133,7 @@ export class OrganizationComponent implements OnInit {
         this.cdr.markForCheck();
         return this.userService.searchUsers(
           keyword ? { username: keyword } : {},
-          1, 3
+          1, 5
         ).pipe(
           finalize(() => {
             this.usersLoading = false;
@@ -150,7 +150,7 @@ export class OrganizationComponent implements OnInit {
   loadUsers(): void {
     this.usersLoading = true;
     this.cdr.markForCheck();
-    this.userService.searchUsers({}, 1, 3).pipe(
+    this.userService.searchUsers({}, 1, 5).pipe(
       takeUntilDestroyed(this.destroyRef),
       catchError(() => EMPTY),
       finalize(() => {

@@ -5,6 +5,7 @@ import { Observable, map } from 'rxjs';
 
 import { ApiResponse } from '../../auth/models/auth.model';
 import {
+  BranchSearchRequest,
   CreateOrganizationRequest,
   OrganizationResponse,
   OrganizationSearchRequest,
@@ -12,6 +13,7 @@ import {
   UpdateOrganizationRequest
 } from './organization.model';
 import { SubscriptionResponse } from '../license/license.model';
+import { OrganizationBranchResponse } from '../../portal/branch/branch.model';
 
 const API = environment.api['apiPrefix'];
 
@@ -73,6 +75,25 @@ export class OrganizationService {
   updateOrganization(id: string, request: UpdateOrganizationRequest): Observable<OrganizationResponse> {
     return this.http
       .patch<ApiResponse<OrganizationResponse>>(`${this.ORG_API}/${id}`, request)
+      .pipe(map(res => res.data));
+  }
+
+  searchBranches(
+    orgId: string,
+    filter: BranchSearchRequest = {},
+    page = 1,
+    size = 10,
+    direction = 'DESC',
+    field = 'createdAt'
+  ): Observable<PagingResponse<OrganizationBranchResponse>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('direction', direction)
+      .set('field', field);
+
+    return this.http
+      .post<ApiResponse<PagingResponse<OrganizationBranchResponse>>>(`${this.ORG_API}/${orgId}/branches/search`, filter, { params })
       .pipe(map(res => res.data));
   }
 
