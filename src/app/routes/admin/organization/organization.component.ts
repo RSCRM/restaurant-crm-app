@@ -2,9 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inje
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
-import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -15,12 +12,18 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { catchError, EMPTY, finalize } from 'rxjs';
+import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { I18nPipe } from '@delon/theme';
+import { catchError, EMPTY, finalize, Subject, debounceTime, switchMap } from 'rxjs';
 
 import { OrganizationFormComponent } from './organization-form/organization-form.component';
-import { OrganizationResponse, OrganizationSearchRequest, OrganizationStatus, PagingResponse } from './organization.model';
 import { OrganizationService } from './organization.service';
+import { OrganizationResponse, OrganizationSearchRequest, OrganizationStatus, PagingResponse } from './organization.model';
+import { UserService } from '../user/user.service';
+import { UserResponse } from '../user/user.model';
 
 @Component({
   selector: 'app-organization',
@@ -37,6 +40,7 @@ import { OrganizationService } from './organization.service';
     NzGridModule,
     NzInputModule,
     NzSelectModule,
+    NzSpinModule,
     FormsModule,
     STModule,
     I18nPipe
@@ -48,6 +52,7 @@ export class OrganizationComponent implements OnInit {
   @ViewChild('st') st!: STComponent;
 
   private orgService = inject(OrganizationService);
+  private userService = inject(UserService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private router = inject(Router);
@@ -66,9 +71,14 @@ export class OrganizationComponent implements OnInit {
   showFilter = false;
   searchValue = '';
 
+  // Owner dropdown
+  users: UserResponse[] = [];
+  usersLoading = false;
+  private userSearch$ = new Subject<string>();
+
   // Enum options for status select
   statusOptions = [
-    { label: 'Tất cả', value: null },
+    { label: 'All', value: null },
     { label: 'Active', value: OrganizationStatus.ACTIVE },
     { label: 'Inactive', value: OrganizationStatus.INACTIVE },
     { label: 'Suspended', value: OrganizationStatus.SUSPENDED }
@@ -114,31 +124,73 @@ export class OrganizationComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+
+    this.userSearch$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      debounceTime(300),
+      switchMap(keyword => {
+        this.usersLoading = true;
+        this.cdr.markForCheck();
+        return this.userService.searchUsers(
+          keyword ? { username: keyword } : {},
+          1, 5
+        ).pipe(
+          finalize(() => {
+            this.usersLoading = false;
+            this.cdr.markForCheck();
+          })
+        );
+      })
+    ).subscribe(res => {
+      this.users = res.data;
+      this.cdr.markForCheck();
+    });
+  }
+
+  loadUsers(): void {
+    this.usersLoading = true;
+    this.cdr.markForCheck();
+    this.userService.searchUsers({}, 1, 5).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.usersLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe(res => {
+      this.users = res.data;
+      this.cdr.markForCheck();
+    });
+  }
+
+  onUserSearch(keyword: string): void {
+    this.userSearch$.next(keyword);
   }
 
   loadData(): void {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.orgService
-      .searchOrganizations(this.filter, this.currentPage, this.pageSize)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.data = [];
-          this.total = 0;
-          return EMPTY;
-        }),
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe((res: PagingResponse<OrganizationResponse>) => {
-        this.data = res.data;
-        this.total = res.totalElement;
+    this.orgService.searchOrganizations(
+      this.filter,
+      this.currentPage,
+      this.pageSize
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.data = [];
+        this.total = 0;
+        return EMPTY;
+      }),
+      finalize(() => {
+        this.loading = false;
         this.cdr.markForCheck();
-      });
+      })
+    ).subscribe((res: PagingResponse<OrganizationResponse>) => {
+      this.data = res.data;
+      this.total = res.totalElement;
+      this.cdr.markForCheck();
+    });
   }
 
   onSTChange(e: STChange): void {
@@ -170,6 +222,9 @@ export class OrganizationComponent implements OnInit {
 
   toggleFilter(): void {
     this.showFilter = !this.showFilter;
+    if (this.showFilter && this.users.length === 0) {
+      this.loadUsers();
+    }
   }
 
   get hasActiveFilter(): boolean {

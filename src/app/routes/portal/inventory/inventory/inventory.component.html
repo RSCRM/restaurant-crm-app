@@ -192,11 +192,25 @@
           @case ('OUT_OF_STOCK') {
             {{ 'app.inventory.status.outOfStock' | i18n }}
           }
+          @case ('INACTIVE') {
+            {{ 'app.inventory.status.inactive' | i18n }}
+          }
           @default {
             {{ item.status }}
           }
         }
       </nz-tag>
+    </ng-template>
+    <ng-template st-row="statusSwitch" let-item>
+  <span
+    class="switch-wrapper"
+    (click)="confirmToggle(item)"
+  >
+    <nz-switch
+      class="status-switch"
+      [ngModel]="item.status !== inventoryStatus.INACTIVE">
+    </nz-switch>
+  </span>
     </ng-template>
   </st>
 </nz-card>

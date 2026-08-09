@@ -1,9 +1,25 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  OnInit,
+  ViewChild,
+  inject
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { EMPTY, catchError, finalize } from 'rxjs';
+
+import {
+  STChange,
+  STColumn,
+  STComponent,
+  STModule
+} from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
-import { STChange, STColumn, STComponent, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -16,11 +32,18 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { EMPTY, catchError, finalize } from 'rxjs';
 
-import { InventoryFormComponent } from '../inventory-form/inventory-form.component';
-import { InventoryCategoryResponse, InventoryResponse, InventorySearchRequest, InventoryStatus } from '../inventory.model';
+import {
+  InventoryCategoryResponse,
+  InventoryCategoryStatus,
+  InventoryResponse,
+  InventorySearchRequest,
+  InventoryStatus
+} from '../inventory.model';
 import { InventoryService } from '../inventory.service';
+import { InventoryFormComponent } from '../inventory-form/inventory-form.component';
+import { NzSwitchComponent } from 'ng-zorro-antd/switch';
+import { ALAIN_I18N_TOKEN } from '@delon/theme';
 @Component({
   selector: 'app-inventory',
   standalone: true,
@@ -41,7 +64,8 @@ import { InventoryService } from '../inventory.service';
     NzSelectModule,
 
     STModule,
-    I18nPipe
+    I18nPipe,
+    NzSwitchComponent
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.less'
@@ -54,6 +78,8 @@ export class InventoryComponent implements OnInit {
   private readonly message = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly i18n = inject(ALAIN_I18N_TOKEN);
+  readonly inventoryStatus = InventoryStatus;
 
   data: InventoryResponse[] = [];
 
@@ -85,6 +111,10 @@ export class InventoryComponent implements OnInit {
     {
       label: 'app.inventory.status.outOfStock',
       value: InventoryStatus.OUT_OF_STOCK
+    },
+    {
+      label: 'app.inventory.status.inactive',
+      value: InventoryStatus.INACTIVE
     }
   ];
 
@@ -133,6 +163,11 @@ export class InventoryComponent implements OnInit {
           click: item => this.openEdit(item)
         }
       ]
+    },
+    {
+      title: { i18n: 'app.inventory.enabled' },
+      render: 'statusSwitch',
+      width: 100
     }
   ];
 
@@ -222,6 +257,56 @@ export class InventoryComponent implements OnInit {
 
   get hasActiveFilter(): boolean {
     return Object.values(this.filter).some(value => value !== null && value !== undefined && value !== '');
+  }
+
+  confirmToggle(item: InventoryResponse): void {
+    const enable = item.status === InventoryStatus.INACTIVE;
+
+    if (
+      enable &&
+      item.inventoryCategoryStatus === InventoryCategoryStatus.INACTIVE
+    ) {
+      this.modal.info({
+        nzTitle: this.i18n.fanyi('app.inventory.confirm.title'),
+        nzContent: this.i18n.fanyi(
+          'app.inventory.categoryInactive'
+        ),
+        nzOkText: "OK"
+      });
+
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: this.i18n.fanyi('app.inventory.confirm.title'),
+      nzContent: this.i18n.fanyi(
+        enable
+          ? 'app.inventory.enableConfirm'
+          : 'app.inventory.disableConfirm'
+      ),
+      nzOnOk: () => this.updateStatus(item)
+    });
+  }
+
+  private updateStatus(item: InventoryResponse): void {
+    this.inventoryService
+      .updateInventoryStatus(item.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error(
+            this.i18n.fanyi('app.inventory.updateStatusFailed')
+          );
+          return EMPTY;
+        })
+      )
+      .subscribe(updated => {
+        item.status = updated.status;
+        this.message.success(
+          this.i18n.fanyi('app.inventory.updateStatusSuccess')
+        );
+        this.cdr.markForCheck();
+      });
   }
 
   openCreate(): void {

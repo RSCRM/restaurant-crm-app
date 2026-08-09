@@ -42,6 +42,12 @@ export interface OrganizationResponse {
 
 // === Search/Filter DTO ===
 
+export interface BranchSearchRequest {
+  branchName?: string;
+  phone?: string;
+  status?: string;
+}
+
 export interface OrganizationSearchRequest {
   email?: string;
   organizationName?: string;

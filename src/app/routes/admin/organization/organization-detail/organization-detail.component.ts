@@ -1,31 +1,32 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalService } from 'ng-zorro-antd/modal';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { OrganizationResponse } from '../organization.model';
 import { OrganizationService } from '../organization.service';
+import { OrganizationResponse } from '../organization.model';
 import { GrantSubscriptionFormComponent } from './grant-subscription-form/grant-subscription-form.component';
-import { SubscriptionResponse, SubscriptionStatus } from '../../license/license.model';
 import { LicenseService } from '../../license/license.service';
+import { SubscriptionResponse, SubscriptionStatus } from '../../license/license.model';
+import { OrganizationBranchResponse, OrganizationBranchStatus } from '../../../portal/branch/branch.model';
 
 @Component({
   selector: 'app-organization-detail',
@@ -66,6 +67,32 @@ export class OrganizationDetailComponent implements OnInit {
   orgId = '';
   loading = true;
 
+  // Branches
+  branches: OrganizationBranchResponse[] = [];
+  branchTotal = 0;
+  branchPageSize = 10;
+  branchCurrentPage = 1;
+  branchLoading = false;
+  branchShowFilter = false;
+  branchHasActiveFilter = false;
+  branchSearchValue = '';
+  branchFilter: Record<string, any> = {};
+
+  branchStatusOptions = [
+    { label: 'Tất cả', value: null },
+    { label: 'Active', value: 'ACTIVE' },
+    { label: 'Inactive', value: 'INACTIVE' },
+    { label: 'Closed', value: 'CLOSED' }
+  ];
+
+  branchColumns: STColumn[] = [
+    { title: { i18n: 'app.organization.branch.col.name' }, index: 'branchName', width: 200 },
+    { title: { i18n: 'app.organization.branch.col.address' }, index: 'address', width: 220 },
+    { title: { i18n: 'app.organization.branch.col.phone' }, index: 'phone', width: 140 },
+    { title: { i18n: 'app.organization.branch.col.status' }, render: 'branchStatus', width: 120 },
+    { title: { i18n: 'app.organization.branch.col.createdAt' }, index: 'createdAt', width: 150, type: 'date' }
+  ];
+
   // Subscription history
   subscriptions: SubscriptionResponse[] = [];
   subTotal = 0;
@@ -91,7 +118,7 @@ export class OrganizationDetailComponent implements OnInit {
     { label: 'Yearly', value: 'YEARLY' }
   ];
 
-  priceFormatter = (value: number) => (value != null ? `${value.toLocaleString('vi-VN')} ₫` : '');
+  priceFormatter = (value: number) => value != null ? `${value.toLocaleString('vi-VN')} ₫` : '';
 
   subColumns: STColumn[] = [
     { title: { i18n: 'app.license.code' }, index: 'license.code', width: 120 },
@@ -129,51 +156,129 @@ export class OrganizationDetailComponent implements OnInit {
   ngOnInit(): void {
     this.orgId = this.route.snapshot.paramMap.get('id') || '';
     this.loadOrganization(this.orgId);
+    this.loadBranches();
     this.loadSubscriptions();
+  }
+
+  // ── Branches ──
+
+  loadBranches(): void {
+    this.branchLoading = true;
+    this.cdr.markForCheck();
+
+    this.orgService.searchBranches(
+      this.orgId,
+      this.branchFilter,
+      this.branchCurrentPage,
+      this.branchPageSize
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.branchLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe(res => {
+      this.branches = res.data;
+      this.branchTotal = res.totalElement;
+      this.cdr.markForCheck();
+    });
+  }
+
+  onBranchSTChange(e: STChange): void {
+    if (e.type === 'pi' || e.type === 'ps') {
+      this.branchCurrentPage = e.pi!;
+      this.branchPageSize = e.ps!;
+      this.loadBranches();
+    }
+  }
+
+  branchToggleFilter(): void {
+    this.branchShowFilter = !this.branchShowFilter;
+  }
+
+  branchSearch(): void {
+    if (this.branchSearchValue) {
+      this.branchFilter['branchName'] = this.branchSearchValue;
+    } else {
+      delete this.branchFilter['branchName'];
+    }
+    this.branchHasActiveFilter = Object.values(this.branchFilter).some(v => v != null && v !== '');
+    this.branchCurrentPage = 1;
+    this.loadBranches();
+  }
+
+  branchClearFilter(): void {
+    this.branchFilter = {};
+    this.branchSearchValue = '';
+    this.branchHasActiveFilter = false;
+    this.branchCurrentPage = 1;
+    this.loadBranches();
+  }
+
+  getBranchStatusColor(status: OrganizationBranchStatus | null | undefined): string {
+    switch (status) {
+      case OrganizationBranchStatus.ACTIVE: return 'success';
+      case OrganizationBranchStatus.INACTIVE: return 'warning';
+      case OrganizationBranchStatus.CLOSED: return 'error';
+      default: return 'default';
+    }
+  }
+
+  getBranchStatusText(status: OrganizationBranchStatus | null | undefined): string {
+    switch (status) {
+      case OrganizationBranchStatus.ACTIVE: return 'app.organization.branch.status.active';
+      case OrganizationBranchStatus.INACTIVE: return 'app.organization.branch.status.inactive';
+      case OrganizationBranchStatus.CLOSED: return 'app.organization.branch.status.closed';
+      default: return 'common.emptyValue';
+    }
+  }
+
+  getManagerDisplay(branch: OrganizationBranchResponse): string {
+    return branch.managerName || branch.managerUsername || branch.managerEmail || '';
   }
 
   private loadOrganization(id: string): void {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.orgService
-      .getOrganizationById(id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.organization = null;
-          return EMPTY;
-        }),
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe((res: OrganizationResponse) => {
-        this.organization = res;
+    this.orgService.getOrganizationById(id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.organization = null;
+        return EMPTY;
+      }),
+      finalize(() => {
+        this.loading = false;
         this.cdr.markForCheck();
-      });
+      })
+    ).subscribe((res: OrganizationResponse) => {
+      this.organization = res;
+      this.cdr.markForCheck();
+    });
   }
 
   loadSubscriptions(): void {
     this.subLoading = true;
     this.cdr.markForCheck();
 
-    this.orgService
-      .searchSubscriptions(this.orgId, this.filter, this.subCurrentPage, this.subPageSize)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => EMPTY),
-        finalize(() => {
-          this.subLoading = false;
-          this.cdr.markForCheck();
-        })
-      )
-      .subscribe(res => {
-        this.subscriptions = res.data;
-        this.subTotal = res.totalElement;
+    this.orgService.searchSubscriptions(
+      this.orgId,
+      this.filter,
+      this.subCurrentPage,
+      this.subPageSize
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.subLoading = false;
         this.cdr.markForCheck();
-      });
+      })
+    ).subscribe(res => {
+      this.subscriptions = res.data;
+      this.subTotal = res.totalElement;
+      this.cdr.markForCheck();
+    });
   }
 
   onSubSTChange(e: STChange): void {
@@ -210,35 +315,29 @@ export class OrganizationDetailComponent implements OnInit {
   }
 
   renewSubscription(id: string): void {
-    this.licenseService
-      .renewSubscription(id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Gia hạn subscription thất bại');
-          return EMPTY;
-        })
-      )
-      .subscribe(() => {
-        this.message.success('Gia hạn subscription thành công');
-        this.loadSubscriptions();
-      });
+    this.licenseService.renewSubscription(id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Gia hạn subscription thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Gia hạn subscription thành công');
+      this.loadSubscriptions();
+    });
   }
 
   revokeSubscription(id: string): void {
-    this.licenseService
-      .revokeSubscription(id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Thu hồi subscription thất bại');
-          return EMPTY;
-        })
-      )
-      .subscribe(() => {
-        this.message.success('Thu hồi subscription thành công');
-        this.loadSubscriptions();
-      });
+    this.licenseService.revokeSubscription(id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => {
+        this.message.error('Thu hồi subscription thất bại');
+        return EMPTY;
+      })
+    ).subscribe(() => {
+      this.message.success('Thu hồi subscription thành công');
+      this.loadSubscriptions();
+    });
   }
 
   openGrantSubscription(): void {
@@ -258,53 +357,37 @@ export class OrganizationDetailComponent implements OnInit {
 
   getStatusColor(status: string): string {
     switch (status) {
-      case 'ACTIVE':
-        return 'success';
-      case 'INACTIVE':
-        return 'warning';
-      case 'SUSPENDED':
-        return 'error';
-      default:
-        return 'default';
+      case 'ACTIVE': return 'success';
+      case 'INACTIVE': return 'warning';
+      case 'SUSPENDED': return 'error';
+      default: return 'default';
     }
   }
 
   getSubStatusColor(status: string): string {
     switch (status) {
-      case 'ACTIVE':
-        return 'success';
-      case 'EXPIRED':
-        return 'warning';
-      case 'REVOKED':
-        return 'error';
-      default:
-        return 'default';
+      case 'ACTIVE': return 'success';
+      case 'EXPIRED': return 'warning';
+      case 'REVOKED': return 'error';
+      default: return 'default';
     }
   }
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'ACTIVE':
-        return 'app.organization.status.active';
-      case 'INACTIVE':
-        return 'app.organization.status.inactive';
-      case 'SUSPENDED':
-        return 'app.organization.status.suspended';
-      default:
-        return status;
+      case 'ACTIVE': return 'app.organization.status.active';
+      case 'INACTIVE': return 'app.organization.status.inactive';
+      case 'SUSPENDED': return 'app.organization.status.suspended';
+      default: return status;
     }
   }
 
   getSubStatusText(status: string): string {
     switch (status) {
-      case 'ACTIVE':
-        return 'app.license.status.active';
-      case 'EXPIRED':
-        return 'app.subscription.status.expired';
-      case 'REVOKED':
-        return 'app.subscription.status.revoked';
-      default:
-        return status;
+      case 'ACTIVE': return 'app.license.status.active';
+      case 'EXPIRED': return 'app.subscription.status.expired';
+      case 'REVOKED': return 'app.subscription.status.revoked';
+      default: return status;
     }
   }
 

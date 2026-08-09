@@ -20,7 +20,7 @@
           [nzLoading]="userLoading"
           [nzPlaceHolder]="'app.organization.form.ownerIdPlaceholder' | i18n"
           [nzOptionHeightPx]="48"
-          [nzDropdownStyle]="{ 'max-height': '240px' }"
+          [nzDropdownStyle]="{ 'max-height': '320px', 'overflow-y': 'auto' }"
           (nzOnSearch)="onUserSearch($event)"
           style="width: 100%"
         >

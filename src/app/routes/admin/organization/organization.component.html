@@ -3,8 +3,13 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-left">
-      <nz-input-group [nzPrefix]="prefixSearch" style="width: 250px">
-        <input nz-input [placeholder]="'app.organization.searchPlaceholder' | i18n" [(ngModel)]="searchValue" (keyup.enter)="search()" />
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 250px;">
+        <input
+          nz-input
+          [placeholder]="'app.organization.searchPlaceholder' | i18n"
+          [(ngModel)]="searchValue"
+          (keyup.enter)="search()"
+        />
       </nz-input-group>
       <ng-template #prefixSearch>
         <span nz-icon nzType="search" nzTheme="outline"></span>
@@ -46,9 +51,12 @@
               <nz-form-item>
                 <nz-form-label>{{ 'app.organization.filter.status' | i18n }}</nz-form-label>
                 <nz-form-control>
-                  <nz-select [(ngModel)]="filter.status" style="width: 100%">
+                  <nz-select
+                    [(ngModel)]="filter.status"
+                    style="width: 100%;"
+                  >
                     @for (opt of statusOptions; track opt.value) {
-                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
+                      <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
                     }
                   </nz-select>
                 </nz-form-control>
@@ -58,12 +66,27 @@
               <nz-form-item>
                 <nz-form-label>{{ 'app.organization.filter.ownerId' | i18n }}</nz-form-label>
                 <nz-form-control>
-                  <input
-                    nz-input
+                  <nz-select
                     [(ngModel)]="filter.ownerId"
-                    [placeholder]="'app.organization.filter.ownerIdPlaceholder' | i18n"
-                    style="width: 100%"
-                  />
+                    nzShowSearch
+                    [nzServerSearch]="true"
+                    [nzLoading]="usersLoading"
+                    [nzPlaceHolder]="'app.organization.filter.ownerIdPlaceholder' | i18n"
+                    (nzOnSearch)="onUserSearch($event)"
+                    [nzOptionHeightPx]="48"
+                    [nzDropdownStyle]="{ 'max-height': '192px' }"
+                    style="width: 100%;"
+                    nzAllowClear
+                  >
+                    @for (user of users; track user.id) {
+                      <nz-option [nzValue]="user.id" [nzLabel]="user.username">
+                        <div class="user-option">
+                          <div class="user-option-name">{{ user.username }}</div>
+                          <div class="user-option-meta">{{ user.email }} · {{ user.fullName }}</div>
+                        </div>
+                      </nz-option>
+                    }
+                  </nz-select>
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -79,7 +102,7 @@
                     nz-input
                     [(ngModel)]="filter.address"
                     [placeholder]="'app.organization.filter.addressPlaceholder' | i18n"
-                    style="width: 100%"
+                    style="width: 100%;"
                   />
                 </nz-form-control>
               </nz-form-item>
@@ -105,13 +128,7 @@
   >
     <ng-template st-row="status" let-item>
       <nz-tag [nzColor]="item.status === 'ACTIVE' ? 'success' : item.status === 'INACTIVE' ? 'warning' : 'error'">
-        {{
-          item.status === 'ACTIVE'
-            ? ('app.organization.status.active' | i18n)
-            : item.status === 'INACTIVE'
-              ? ('app.organization.status.inactive' | i18n)
-              : ('app.organization.status.suspended' | i18n)
-        }}
+        {{ item.status === 'ACTIVE' ? ('app.organization.status.active' | i18n) : item.status === 'INACTIVE' ? ('app.organization.status.inactive' | i18n) : ('app.organization.status.suspended' | i18n) }}
       </nz-tag>
     </ng-template>
   </st>

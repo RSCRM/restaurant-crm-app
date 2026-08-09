@@ -1,26 +1,57 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EMPTY, catchError, finalize } from 'rxjs';
+
 import { FormsModule } from '@angular/forms';
+
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
 import { I18nPipe } from '@delon/theme';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { EMPTY, catchError, finalize } from 'rxjs';
 
-import { InventoryCategoryFormComponent } from '../inventory-category-form/inventory-category-form.component';
-import { InventoryCategoryResponse, PagingResponse, PagingParams } from '../inventory.model';
+import {
+  InventoryCategoryResponse,
+  InventoryCategoryStatus,
+  PagingParams,
+  PagingResponse
+} from '../inventory.model';
 import { InventoryService } from '../inventory.service';
-
+import { InventoryCategoryFormComponent } from '../inventory-category-form/inventory-category-form.component';
+import { NzTagComponent } from 'ng-zorro-antd/tag';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { ALAIN_I18N_TOKEN } from '@delon/theme';
 @Component({
   selector: 'app-inventory-category',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, PageHeaderModule, STModule, NzCardModule, NzButtonModule, NzInputModule, NzIconModule, NzModalModule, I18nPipe],
+  imports: [
+    FormsModule,
+
+    PageHeaderModule,
+    STModule,
+
+    NzCardModule,
+    NzButtonModule,
+    NzInputModule,
+    NzIconModule,
+    NzModalModule,
+    NzSwitchModule,
+    I18nPipe,
+    NzTagComponent,
+  ],
   templateUrl: './inventory-category.component.html',
   styleUrl: './inventory-category.component.less'
 })
@@ -30,7 +61,8 @@ export class InventoryCategoryComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly message = inject(NzMessageService);
   private readonly destroyRef = inject(DestroyRef);
-
+  private readonly i18n = inject(ALAIN_I18N_TOKEN);
+  readonly inventoryCategoryStatus = InventoryCategoryStatus;
   loading = false;
 
   categories: InventoryCategoryResponse[] = [];
@@ -52,24 +84,26 @@ export class InventoryCategoryComponent implements OnInit {
       index: 'description'
     },
     {
+      title: { i18n: 'app.inventory.category.status' },
+      index: 'status',
+      render: 'status',
+      width: 120
+    },
+    {
       title: { i18n: 'app.inventory.category.action' },
-      width: 200,
+      width: 120,
       buttons: [
         {
           icon: 'edit',
           i18n: 'app.inventory.category.edit',
           click: record => this.openEdit(record)
-        },
-        {
-          icon: 'delete',
-          i18n: 'app.inventory.category.delete',
-          type: 'del',
-          pop: {
-            title: 'app.inventory.category.deleteConfirm'
-          },
-          click: record => this.delete(record.id)
         }
       ]
+    },
+    {
+      title: { i18n: 'app.inventory.category.enabled' },
+      render: 'statusSwitch',
+      width: 100
     }
   ];
 
@@ -143,20 +177,51 @@ export class InventoryCategoryComponent implements OnInit {
     });
   }
 
-  delete(id: string): void {
+  confirmToggle(category: InventoryCategoryResponse): void {
+    const enable =
+      category.status === InventoryCategoryStatus.INACTIVE;
+
+    this.modal.confirm({
+      nzTitle: this.i18n.fanyi('app.inventory.category.confirm.title'),
+      nzContent: this.i18n.fanyi(
+        enable
+          ? 'app.inventory.category.enableConfirm'
+          : 'app.inventory.category.disableConfirm'
+      ),
+      nzOnOk: () => this.updateStatus(category, enable)
+    });
+  }
+
+  private updateStatus(
+    category: InventoryCategoryResponse,
+    enabled: boolean
+  ): void {
     this.inventoryService
-      .deleteInventoryCategory(id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Delete inventory category failed');
-          return EMPTY;
-        })
-      )
+      .updateInventoryCategoryStatus(category.id, {
+        status: enabled
+          ? InventoryCategoryStatus.ACTIVE
+          : InventoryCategoryStatus.INACTIVE
+      })
       .subscribe(() => {
-        this.message.success('Inventory category deleted successfully');
-        this.loadData();
+        category.status = enabled
+          ? InventoryCategoryStatus.ACTIVE
+          : InventoryCategoryStatus.INACTIVE;
+
+        this.cdr.markForCheck();
       });
+  }
+
+  getCategoryStatusColor(status: InventoryCategoryStatus): string {
+    switch (status) {
+      case InventoryCategoryStatus.ACTIVE:
+        return 'success';
+
+      case InventoryCategoryStatus.INACTIVE:
+        return 'default';
+
+      default:
+        return 'default';
+    }
   }
 
   search(): void {

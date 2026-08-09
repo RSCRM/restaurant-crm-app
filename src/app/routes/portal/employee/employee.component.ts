@@ -265,6 +265,7 @@ export class EmployeeComponent implements OnInit {
       nzTitle: undefined,
       nzContent: component as never,
       nzWidth: 600,
+      nzFooter: null,
       nzData: data
     });
     modalRef.afterClose.subscribe(result => {
@@ -277,6 +278,7 @@ export class EmployeeComponent implements OnInit {
       nzTitle: undefined,
       nzContent: EmployeeDetailComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { employee, branchName: this.branchName(employee) }
     });
   }
