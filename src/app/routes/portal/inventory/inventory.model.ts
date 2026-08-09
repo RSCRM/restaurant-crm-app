@@ -66,6 +66,10 @@ export interface CreateInventoryTransactionRequest {
   note?: string;
 }
 
+export interface CreateBatchInventoryTransactionRequest {
+  transactions: CreateInventoryTransactionRequest[];
+}
+
 /* ===========================
  * RESPONSES
  * =========================== */

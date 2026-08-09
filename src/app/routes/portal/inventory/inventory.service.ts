@@ -13,6 +13,7 @@ import {
   InventorySearchRequest,
   InventoryResponse,
   CreateInventoryTransactionRequest,
+  CreateBatchInventoryTransactionRequest,
   InventoryTransactionSearchRequest,
   InventoryTransactionResponse,
   PagingParams,
@@ -268,5 +269,16 @@ export class InventoryService {
     return this.http
       .post<ApiResponse<InventoryTransactionResponse>>(this.TRANSACTION_API, request)
       .pipe(map(res => res.data));
+  }
+
+  createBatchTransactions(
+    request: CreateBatchInventoryTransactionRequest
+  ): Observable<void> {
+    return this.http
+      .post<ApiResponse<void>>(
+        `${this.TRANSACTION_API}/batch`,
+        request
+      )
+      .pipe(map(() => void 0));
   }
 }

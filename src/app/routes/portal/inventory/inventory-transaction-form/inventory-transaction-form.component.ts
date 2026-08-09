@@ -9,13 +9,14 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  FormArray, FormsModule,
   NonNullableFormBuilder,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
 import { EMPTY, catchError, finalize } from 'rxjs';
 
-import { I18nPipe } from '@delon/theme';
+import { I18nPipe, ALAIN_I18N_TOKEN } from '@delon/theme';
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -26,8 +27,10 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { ALAIN_I18N_TOKEN } from '@delon/theme';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+
 import {
+  CreateBatchInventoryTransactionRequest,
   CreateInventoryTransactionRequest,
   InventoryResponse,
   InventoryTransactionDirection,
@@ -49,7 +52,9 @@ import { InventoryService } from '../inventory.service';
     NzSpinModule,
     NzGridModule,
     NzSelectModule,
-    I18nPipe
+    NzIconModule,
+    I18nPipe,
+    FormsModule
   ],
   templateUrl: './inventory-transaction-form.component.html',
   styleUrl: './inventory-transaction-form.component.less'
@@ -62,6 +67,7 @@ export class InventoryTransactionFormComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly i18n = inject(ALAIN_I18N_TOKEN);
+
   loading = false;
   submitting = false;
 
@@ -71,24 +77,41 @@ export class InventoryTransactionFormComponent implements OnInit {
   readonly transactionDirections = Object.values(InventoryTransactionDirection);
 
   form = this.fb.group({
-    inventoryId: this.fb.control('', Validators.required),
-    transactionType: this.fb.control<InventoryTransactionType>(
-      InventoryTransactionType.PURCHASE,
-      Validators.required
-    ),
-    transactionDirection: this.fb.control<InventoryTransactionDirection>(
-      InventoryTransactionDirection.IN,
-      Validators.required
-    ),
-    quantity: this.fb.control(1, [
-      Validators.required,
-      Validators.min(0.001)
-    ]),
-    note: this.fb.control('')
+    transactionType: this.fb.control(InventoryTransactionType.PURCHASE, Validators.required),
+    transactionDirection: this.fb.control(InventoryTransactionDirection.IN, Validators.required),
+    note: this.fb.control(''),
+    items: this.fb.array([])
   });
 
   ngOnInit(): void {
     this.loadInventories();
+    this.addItem();
+  }
+
+  get items(): FormArray {
+    return this.form.get('items') as FormArray;
+  }
+
+  private createItem() {
+    return this.fb.group({
+      inventoryId: this.fb.control('', Validators.required),
+      quantity: this.fb.control(1, [Validators.required, Validators.min(0.001)])
+    });
+  }
+
+  addItem(): void {
+    this.items.push(this.createItem());
+    this.cdr.markForCheck();
+  }
+
+  removeItem(index: number): void {
+    this.items.removeAt(index);
+
+    if (this.items.length === 0) {
+      this.addItem();
+    }
+
+    this.cdr.markForCheck();
   }
 
   private loadInventories(): void {
@@ -100,9 +123,7 @@ export class InventoryTransactionFormComponent implements OnInit {
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
-          this.message.error(
-            this.i18n.fanyi('app.inventory.transaction.createError')
-          );
+          this.message.error(this.i18n.fanyi('app.inventory.transaction.loadError'));
           return EMPTY;
         }),
         finalize(() => {
@@ -127,22 +148,26 @@ export class InventoryTransactionFormComponent implements OnInit {
 
     const raw = this.form.getRawValue();
 
-    const request: CreateInventoryTransactionRequest = {
-      inventoryId: raw.inventoryId,
+    const items = this.items.getRawValue();
+
+    const transactions: CreateInventoryTransactionRequest[] = items.map(item => ({
+      inventoryId: item.inventoryId,
+      quantity: item.quantity,
       transactionType: raw.transactionType,
       transactionDirection: raw.transactionDirection,
-      quantity: raw.quantity,
       note: raw.note.trim() || undefined
+    }));
+
+    const request: CreateBatchInventoryTransactionRequest = {
+      transactions
     };
 
     this.inventoryService
-      .createTransaction(request)
+      .createBatchTransactions(request)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
-          this.message.error(
-            this.i18n.fanyi('app.inventory.transaction.createError')
-          );
+          this.message.error(this.i18n.fanyi('app.inventory.transaction.createError'));
           return EMPTY;
         }),
         finalize(() => {
@@ -151,7 +176,7 @@ export class InventoryTransactionFormComponent implements OnInit {
         })
       )
       .subscribe(() => {
-        this.message.success('app.inventory.transaction.createSuccess');
+        this.message.success(this.i18n.fanyi('app.inventory.transaction.createSuccess'));
         this.modalRef.destroy(true);
       });
   }
