@@ -85,7 +85,8 @@
 
   <ng-template #asideUserTpl>
     <div class="alain-default__aside-user">
-      <nz-avatar class="alain-default__aside-user-avatar" [nzSrc]="(user$ | async)?.avatar || ''" />
+      <nz-avatar nzSrc="https://cdn.phototourl.com/free/2026-08-05-b75889b1-1e87-4d69-9f04-cb406d13c449.png" nzSize="small" class="alain-default__nav-item-avatar">
+      </nz-avatar>
       <div class="alain-default__aside-user-info">
         <strong>{{ (user$ | async)?.fullName || 'User' }}</strong>
       </div>

@@ -12,15 +12,18 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { I18nPipe } from '@delon/theme';
-import { catchError, EMPTY, finalize } from 'rxjs';
+import { catchError, EMPTY, finalize, Subject, debounceTime, switchMap } from 'rxjs';
 
 import { OrganizationFormComponent } from './organization-form/organization-form.component';
 import { OrganizationService } from './organization.service';
 import { OrganizationResponse, OrganizationSearchRequest, OrganizationStatus, PagingResponse } from './organization.model';
+import { UserService } from '../user/user.service';
+import { UserResponse } from '../user/user.model';
 
 @Component({
   selector: 'app-organization',
@@ -37,6 +40,7 @@ import { OrganizationResponse, OrganizationSearchRequest, OrganizationStatus, Pa
     NzGridModule,
     NzInputModule,
     NzSelectModule,
+    NzSpinModule,
     FormsModule,
     STModule,
     I18nPipe
@@ -48,6 +52,7 @@ export class OrganizationComponent implements OnInit {
   @ViewChild('st') st!: STComponent;
 
   private orgService = inject(OrganizationService);
+  private userService = inject(UserService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private router = inject(Router);
@@ -65,6 +70,11 @@ export class OrganizationComponent implements OnInit {
   filter: OrganizationSearchRequest = {};
   showFilter = false;
   searchValue = '';
+
+  // Owner dropdown
+  users: UserResponse[] = [];
+  usersLoading = false;
+  private userSearch$ = new Subject<string>();
 
   // Enum options for status select
   statusOptions = [
@@ -114,6 +124,47 @@ export class OrganizationComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+
+    this.userSearch$.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      debounceTime(300),
+      switchMap(keyword => {
+        this.usersLoading = true;
+        this.cdr.markForCheck();
+        return this.userService.searchUsers(
+          keyword ? { username: keyword } : {},
+          1, 3
+        ).pipe(
+          finalize(() => {
+            this.usersLoading = false;
+            this.cdr.markForCheck();
+          })
+        );
+      })
+    ).subscribe(res => {
+      this.users = res.data;
+      this.cdr.markForCheck();
+    });
+  }
+
+  loadUsers(): void {
+    this.usersLoading = true;
+    this.cdr.markForCheck();
+    this.userService.searchUsers({}, 1, 3).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.usersLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe(res => {
+      this.users = res.data;
+      this.cdr.markForCheck();
+    });
+  }
+
+  onUserSearch(keyword: string): void {
+    this.userSearch$.next(keyword);
   }
 
   loadData(): void {
@@ -171,6 +222,9 @@ export class OrganizationComponent implements OnInit {
 
   toggleFilter(): void {
     this.showFilter = !this.showFilter;
+    if (this.showFilter && this.users.length === 0) {
+      this.loadUsers();
+    }
   }
 
   get hasActiveFilter(): boolean {
