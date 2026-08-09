@@ -26,6 +26,7 @@ import { OrganizationResponse } from '../organization.model';
 import { GrantSubscriptionFormComponent } from './grant-subscription-form/grant-subscription-form.component';
 import { LicenseService } from '../../license/license.service';
 import { SubscriptionResponse, SubscriptionStatus } from '../../license/license.model';
+import { OrganizationBranchResponse, OrganizationBranchStatus } from '../../../portal/branch/branch.model';
 
 @Component({
   selector: 'app-organization-detail',
@@ -65,6 +66,32 @@ export class OrganizationDetailComponent implements OnInit {
   organization: OrganizationResponse | null = null;
   orgId = '';
   loading = true;
+
+  // Branches
+  branches: OrganizationBranchResponse[] = [];
+  branchTotal = 0;
+  branchPageSize = 10;
+  branchCurrentPage = 1;
+  branchLoading = false;
+  branchShowFilter = false;
+  branchHasActiveFilter = false;
+  branchSearchValue = '';
+  branchFilter: Record<string, any> = {};
+
+  branchStatusOptions = [
+    { label: 'Tất cả', value: null },
+    { label: 'Active', value: 'ACTIVE' },
+    { label: 'Inactive', value: 'INACTIVE' },
+    { label: 'Closed', value: 'CLOSED' }
+  ];
+
+  branchColumns: STColumn[] = [
+    { title: { i18n: 'app.organization.branch.col.name' }, index: 'branchName', width: 200 },
+    { title: { i18n: 'app.organization.branch.col.address' }, index: 'address', width: 220 },
+    { title: { i18n: 'app.organization.branch.col.phone' }, index: 'phone', width: 140 },
+    { title: { i18n: 'app.organization.branch.col.status' }, render: 'branchStatus', width: 120 },
+    { title: { i18n: 'app.organization.branch.col.createdAt' }, index: 'createdAt', width: 150, type: 'date' }
+  ];
 
   // Subscription history
   subscriptions: SubscriptionResponse[] = [];
@@ -129,7 +156,86 @@ export class OrganizationDetailComponent implements OnInit {
   ngOnInit(): void {
     this.orgId = this.route.snapshot.paramMap.get('id') || '';
     this.loadOrganization(this.orgId);
+    this.loadBranches();
     this.loadSubscriptions();
+  }
+
+  // ── Branches ──
+
+  loadBranches(): void {
+    this.branchLoading = true;
+    this.cdr.markForCheck();
+
+    this.orgService.searchBranches(
+      this.orgId,
+      this.branchFilter,
+      this.branchCurrentPage,
+      this.branchPageSize
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      catchError(() => EMPTY),
+      finalize(() => {
+        this.branchLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe(res => {
+      this.branches = res.data;
+      this.branchTotal = res.totalElement;
+      this.cdr.markForCheck();
+    });
+  }
+
+  onBranchSTChange(e: STChange): void {
+    if (e.type === 'pi' || e.type === 'ps') {
+      this.branchCurrentPage = e.pi!;
+      this.branchPageSize = e.ps!;
+      this.loadBranches();
+    }
+  }
+
+  branchToggleFilter(): void {
+    this.branchShowFilter = !this.branchShowFilter;
+  }
+
+  branchSearch(): void {
+    if (this.branchSearchValue) {
+      this.branchFilter['branchName'] = this.branchSearchValue;
+    } else {
+      delete this.branchFilter['branchName'];
+    }
+    this.branchHasActiveFilter = Object.values(this.branchFilter).some(v => v != null && v !== '');
+    this.branchCurrentPage = 1;
+    this.loadBranches();
+  }
+
+  branchClearFilter(): void {
+    this.branchFilter = {};
+    this.branchSearchValue = '';
+    this.branchHasActiveFilter = false;
+    this.branchCurrentPage = 1;
+    this.loadBranches();
+  }
+
+  getBranchStatusColor(status: OrganizationBranchStatus | null | undefined): string {
+    switch (status) {
+      case OrganizationBranchStatus.ACTIVE: return 'success';
+      case OrganizationBranchStatus.INACTIVE: return 'warning';
+      case OrganizationBranchStatus.CLOSED: return 'error';
+      default: return 'default';
+    }
+  }
+
+  getBranchStatusText(status: OrganizationBranchStatus | null | undefined): string {
+    switch (status) {
+      case OrganizationBranchStatus.ACTIVE: return 'app.organization.branch.status.active';
+      case OrganizationBranchStatus.INACTIVE: return 'app.organization.branch.status.inactive';
+      case OrganizationBranchStatus.CLOSED: return 'app.organization.branch.status.closed';
+      default: return 'common.emptyValue';
+    }
+  }
+
+  getManagerDisplay(branch: OrganizationBranchResponse): string {
+    return branch.managerName || branch.managerUsername || branch.managerEmail || '';
   }
 
   private loadOrganization(id: string): void {
