@@ -45,12 +45,32 @@
     [ps]="pageSize"
     [pi]="currentPage"
     [page]="{
-      show: true,
-      showSize: true,
-      front: false
-    }"
+    show: true,
+    showSize: true,
+    front: false
+  }"
     [scroll]="{ x: '900px' }"
     (change)="onSTChange($event)"
   >
+    <ng-template st-row="status" let-item>
+      <nz-tag [nzColor]="getCategoryStatusColor(item.status)">
+        {{
+          item.status === inventoryCategoryStatus.ACTIVE
+            ? ('app.inventory.category.status.active' | i18n)
+            : ('app.inventory.category.status.inactive' | i18n)
+        }}
+      </nz-tag>
+    </ng-template>
+    <ng-template st-row="statusSwitch" let-item>
+  <span
+    class="switch-wrapper"
+    (click)="confirmToggle(item)"
+  >
+    <nz-switch
+      [ngModel]="item.status === inventoryCategoryStatus.ACTIVE"
+      class="status-switch">
+    </nz-switch>
+  </span>
+    </ng-template>
   </st>
 </nz-card>
