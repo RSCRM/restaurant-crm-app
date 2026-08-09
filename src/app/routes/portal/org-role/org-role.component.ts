@@ -91,6 +91,7 @@ export class OrgRoleComponent implements OnInit {
       nzTitle: undefined,
       nzContent: OrgRoleFormComponent,
       nzWidth: 720,
+      nzFooter: null,
       nzData: { mode: 'create' }
     });
     modalRef.afterClose.subscribe(result => {
@@ -103,6 +104,7 @@ export class OrgRoleComponent implements OnInit {
       nzTitle: undefined,
       nzContent: OrgRoleFormComponent,
       nzWidth: 720,
+      nzFooter: null,
       nzData: { mode: 'edit', role }
     });
     modalRef.afterClose.subscribe(result => {
@@ -115,6 +117,7 @@ export class OrgRoleComponent implements OnInit {
       nzTitle: undefined,
       nzContent: OrgRoleDetailComponent,
       nzWidth: 600,
+      nzFooter: null,
       nzData: { role }
     });
   }
