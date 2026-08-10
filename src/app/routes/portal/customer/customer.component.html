@@ -96,6 +96,20 @@
               </nz-form-control>
             </nz-form-item>
           </div>
+
+          <!-- Customer Status Filter -->
+          <div nz-col [nzSpan]="8">
+            <nz-form-item nzLayout="vertical" style="margin-bottom: 0">
+              <nz-form-label>{{ 'customer.column.status' | i18n }}</nz-form-label>
+              <nz-form-control>
+                <nz-select [(ngModel)]="filterCustomerStatus" name="filterCustomerStatus" (ngModelChange)="loadMemberCustomers()" style="width: 100%">
+                  <nz-option nzValue="ALL" [nzLabel]="'customer.filter.status-all' | i18n" />
+                  <nz-option nzValue="ACTIVE" [nzLabel]="'customer.status.active' | i18n" />
+                  <nz-option nzValue="LOCKED" [nzLabel]="'customer.status.locked' | i18n" />
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
         </div>
       </div>
       }
@@ -114,7 +128,32 @@
 
         <st #memberCustomerSt [data]="memberCustomersList" [columns]="memberCustomerColumns"
           [loading]="memberCustomerLoading" [total]="memberCustomerTotal" [pi]="memberCustomerPage"
-          [ps]="memberCustomerSize" [page]="{ front: false }" (change)="onMemberCustomerSTChange($event)" />
+          [ps]="memberCustomerSize" [page]="{ show: true, showSize: true, front: false }" (change)="onMemberCustomerSTChange($event)">
+          <!-- Custom render for Status column -->
+          <ng-template st-row="status" let-item>
+            <nz-tag [nzColor]="item.status === 'LOCKED' ? 'error' : 'success'">
+              {{ item.status === 'LOCKED' ? ('customer.status.locked' | i18n) : ('customer.status.active' | i18n) }}
+            </nz-tag>
+          </ng-template>
+
+          <!-- Custom render for Actions column -->
+          <ng-template st-row="actions" let-item>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <button nz-button nzType="link" nzSize="small" (click)="selectCustomerFromList(item)">
+                {{ 'customer.action.view-wallet' | i18n }}
+              </button>
+              <button
+                nz-button
+                [nzType]="item.status === 'LOCKED' ? 'primary' : 'default'"
+                [nzDanger]="item.status !== 'LOCKED'"
+                nzSize="small"
+                (click)="toggleCustomerStatus(item)"
+              >
+                {{ item.status === 'LOCKED' ? ('customer.action.unlock' | i18n) : ('customer.action.lock' | i18n) }}
+              </button>
+            </div>
+          </ng-template>
+        </st>
       </div>
       }
 
@@ -165,19 +204,20 @@
       </h4>
 
       <st #pointSt [columns]="pointColumns" [data]="pointHistory" [total]="pointTotal" [ps]="pointSize" [pi]="pointPage"
-        [loading]="pointLoading" [page]="{ show: true, showSize: true }" (change)="onPointSTChange($event)"
+        [loading]="pointLoading" [page]="{ show: true, showSize: true, front: false }" (change)="onPointSTChange($event)"
         style="margin-bottom: 32px">
         <!-- Custom template for Transaction Type -->
         <ng-template st-row="type" let-item>
+          @let itemType = item.transactionType || item.type;
           <nz-tag [nzColor]="
-                item.type === 'EARN' ? 'success' : item.type === 'REDEEM' ? 'warning' : item.type === 'DEDUCT' ? 'error' : 'default'
+                itemType === 'EARN' ? 'success' : itemType === 'REDEEM' ? 'warning' : itemType === 'DEDUCT' ? 'error' : 'default'
               ">
             {{
-            item.type === 'EARN'
+            itemType === 'EARN'
             ? ('customer.history.type.earn' | i18n)
-            : item.type === 'REDEEM'
+            : itemType === 'REDEEM'
             ? ('customer.history.type.redeem' | i18n)
-            : item.type === 'DEDUCT'
+            : itemType === 'DEDUCT'
             ? ('customer.history.type.deduct' | i18n)
             : ('customer.history.type.expire' | i18n)
             }}
@@ -186,8 +226,10 @@
 
         <!-- Custom template for Amount -->
         <ng-template st-row="amount" let-item>
-          <strong [style.color]="item.type === 'EARN' ? '#52c41a' : '#f5222d'">
-            {{ item.type === 'EARN' ? '+' : '-' }}{{ item.amount }}
+          @let itemType = item.transactionType || item.type;
+          @let pts = item.pointsChanged ?? item.amount ?? 0;
+          <strong [style.color]="itemType === 'EARN' ? '#52c41a' : '#f5222d'" style="font-size: 15px">
+            {{ itemType === 'EARN' ? '+' : '-' }}{{ Math.abs(pts) }}
           </strong>
         </ng-template>
       </st>
@@ -333,9 +375,9 @@
       </div>
       }
 
-      <st #sysVoucherSt [columns]="sysVoucherColumns" [data]="displaySystemVouchers" [total]="sysVoucherTotal"
-        [ps]="sysVoucherSize" [pi]="sysVoucherPage" [loading]="sysVoucherLoading"
-        [page]="{ show: true, showSize: true }" [scroll]="{ x: '1000px' }" (change)="onSysVoucherSTChange($event)">
+      <st #sysVoucherSt [columns]="sysVoucherColumns" [data]="displaySystemVouchers"
+        [ps]="sysVoucherSize" [loading]="sysVoucherLoading"
+        [page]="{ show: true, showSize: true, front: true }" [scroll]="{ x: '1000px' }" (change)="onSysVoucherSTChange($event)">
         <!-- Custom render for Switch isActive -->
         <ng-template st-row="isActive" let-item>
           <nz-switch [ngModel]="item.isActive === 1" (ngModelChange)="toggleVoucherStatus(item, $event)"

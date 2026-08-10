@@ -35,16 +35,21 @@ export interface CustomerPointResponse {
   organizationId: string;
   currentPoints: number;
   lifetimePoints: number;
+  status: 'ACTIVE' | 'LOCKED';
   updatedAt: string;
 }
 
 export interface PointTransactionResponse {
   id: string;
-  walletId: string;
-  type: PointTransactionType;
-  amount: number;
-  balanceAfter: number;
-  source: string;
+  customerId?: string;
+  organizationId?: string;
+  walletId?: string;
+  type?: PointTransactionType;
+  transactionType?: PointTransactionType;
+  amount?: number;
+  pointsChanged?: number;
+  balanceAfter?: number;
+  source?: string;
   referenceId: string | null;
   createdAt: string;
 }

@@ -575,16 +575,14 @@
   "app.register.get-verification-code": "Get code",
   "app.register.sign-in": "Already have an account?",
   "app.register-result.msg": "Account：registered at {{email}}",
-  "app.register-result.activation-email":
-    "The activation email has been sent to your email address and is valid for 24 hours. Please log in to the email in time and click on the link in the email to activate the account.",
+  "app.register-result.activation-email": "The activation email has been sent to your email address and is valid for 24 hours. Please log in to the email in time and click on the link in the email to activate the account.",
   "app.register-result.back-home": "Back to home",
   "app.register-result.view-mailbox": "View mailbox",
   "validation.email.required": "Please enter your email!",
   "validation.email.wrong-format": "The email address is in the wrong format!",
   "validation.password.required": "Please enter your password!",
   "validation.password.twice": "The passwords entered twice do not match!",
-  "validation.password.strength.msg":
-    "Please enter at least 6 characters and don't use passwords that are easy to guess.",
+  "validation.password.strength.msg": "Please enter at least 6 characters and don't use passwords that are easy to guess.",
   "validation.password.strength.strong": "Strength: strong",
   "validation.password.strength.medium": "Strength: medium",
   "validation.password.strength.short": "Strength: too short",
@@ -762,14 +760,12 @@
   "table.status.occupied": "Occupied",
   "table.status.reserved": "Reserved",
   "validation.standard.required": "Please enter a metric",
-
   "app.inventory.title": "Inventory Management",
   "app.inventory.search": "Search",
   "app.inventory.searchPlaceholder": "Search by inventory name",
   "app.inventory.filter": "Filter",
   "app.inventory.applyFilter": "Apply Filter",
   "app.inventory.clearFilter": "Clear Filter",
-
   "app.inventory.inventoryName": "Inventory",
   "app.inventory.quantity": "Quantity",
   "app.inventory.minimumQuantity": "Minimum Quantity",
@@ -777,9 +773,7 @@
   "app.inventory.createdAt": "Created At",
   "app.inventory.updatedAt": "Updated At",
   "app.inventory.actions": "Actions",
-
   "app.inventory.edit": "Edit",
-
   "app.inventory.status.good": "Good",
   "app.inventory.status.low": "Low Stock",
   "app.inventory.status.outOfStock": "Out of Stock",
@@ -794,25 +788,20 @@
   "app.inventory.filter.createdAtFrom": "Created From",
   "app.inventory.filter.createdAtTo": "Created To",
   "app.inventory.category.enabled": "Enabled",
-
   "app.inventory.category.status": "Status",
   "app.inventory.category.status.active": "Active",
   "app.inventory.category.status.inactive": "Inactive",
-
   "app.inventory.category.status.updated": "Category status updated successfully",
   "app.inventory.category.status.updateFailed": "Failed to update category status",
   "app.inventory.category.confirm.title": "Confirm Status Change",
   "app.inventory.category.enableConfirm": "Are you sure you want to enable this category? Every inventory in this category will also be enabled.",
   "app.inventory.category.disableConfirm": "Are you sure you want to disable this category? Every inventory in this category will also be disabled!",
-
   "app.inventoryCategory.create": "Create Inventory Category",
   "app.inventoryCategory.categoryName": "Category Name",
   "app.inventoryCategory.categoryNamePlaceholder": "Enter category name",
   "app.inventoryCategory.description": "Description",
   "app.inventoryCategory.descriptionPlaceholder": "Enter description",
-
   "app.error.categoryName.required": "Category name is required",
-
   "app.inventory.create": "Create Inventory",
   "app.inventory.category": "Category",
   "app.inventory.categoryPlaceholder": "Select category",
@@ -837,9 +826,7 @@
   "app.inventory.updateStatusFailed": "Failed to update inventory status",
   "app.inventory.categoryInactive": "The category of this inventory is inactive. Cannot update status.",
   "app.inventory.transaction.title": "Inventory Transactions",
-
   "app.inventory.transaction.search": "Search inventory...",
-
   "app.inventory.transaction.inventory": "Inventory",
   "app.inventory.transaction.type": "Transaction Type",
   "app.inventory.transaction.direction": "Direction",
@@ -847,23 +834,17 @@
   "app.inventory.transaction.employee": "Employee",
   "app.inventory.transaction.note": "Note",
   "app.inventory.transaction.transactionTime": "Transaction Time",
-
   "app.inventory.transaction.direction.in": "In",
   "app.inventory.transaction.direction.out": "Out",
-
   "app.inventory.transaction.type.purchase": "Purchase",
   "app.inventory.transaction.type.sale": "Sale",
   "app.inventory.transaction.type.adjustment": "Adjustment",
   "app.inventory.transaction.type.waste": "Waste",
   "app.inventory.transaction.type.return": "Return",
-
   "app.inventory.transaction.loadError": "Failed to load inventory transactions.",
-
-
   "app.inventory.transaction.search.button": "Search",
   "app.inventory.transaction.reset.button": "Reset",
   "app.inventory.transaction.create": "Create Transaction",
-
   "app.inventory.transaction.inventoryPlaceholder": "Select inventory",
   "app.inventory.transaction.typePlaceholder": "Select transaction type",
   "app.inventory.transaction.directionPlaceholder": "Select transaction direction",
@@ -878,21 +859,17 @@
   "app.inventory.category.search.button": "Search",
   "app.inventory.category.reset.button": "Reset",
   "app.inventory.category.create": "Create Category",
-
   "app.inventory.category.categoryName": "Category Name",
   "app.inventory.category.description": "Description",
-
   "app.inventory.category.deleteConfirm": "Are you sure you want to delete this category?",
   "app.inventory.category.search": "Search",
   "app.inventory.category.reset": "Reset",
   "app.inventory.category.action": "Action",
   "app.inventory.category.edit": "Edit",
   "app.inventory.category.delete": "Delete",
-
   "app.inventory.category.categoryNamePlaceholder": "Enter category name",
   "app.inventory.category.descriptionPlaceholder": "Enter description",
   "app.error.inventoryCategoryName.required": "Category name is required",
-
   "voucher.modal.title": "Vouchers & Member Loyalty Points",
   "voucher.my-vouchers": "My Vouchers",
   "voucher.catalog": "Voucher Catalog (Redeem)",
@@ -913,12 +890,12 @@
   "voucher.min-order": "Min Order",
   "voucher.expiry": "Expires:",
   "voucher.discount": "Off",
-
   "customer.title": "Customer Management & Loyalty",
   "customer.tab.lookup": "Customer Search",
   "customer.tab.system-vouchers": "System Voucher Catalog",
   "customer.search.placeholder": "Search by customer phone...",
   "customer.search.button": "Search",
+  "customer.search.back": "Back",
   "customer.search.reset": "Reset",
   "customer.member-list.title": "Organization Member Customers List",
   "customer.member-list.total": "Total:",
@@ -935,9 +912,21 @@
   "customer.column.phone": "Customer Phone",
   "customer.column.points": "Current Points",
   "customer.column.lifetime-points": "Lifetime Points",
+  "customer.column.status": "Status",
   "customer.column.updated-at": "Last Updated",
   "customer.column.actions": "Actions",
-
+  "customer.status.active": "Active",
+  "customer.status.locked": "Locked (Banned)",
+  "customer.action.lock": "Lock",
+  "customer.action.unlock": "Unlock",
+  "customer.confirm.lock-title": "Confirm Lock Customer",
+  "customer.confirm.lock-content": "Lock member account for phone {{phone}} in this organization?",
+  "customer.confirm.unlock-title": "Confirm Unlock Customer",
+  "customer.confirm.unlock-content": "Unlock member account for phone {{phone}}?",
+  "customer.msg.lock-success": "Locked customer account phone {{phone}} successfully!",
+  "customer.msg.unlock-success": "Unlocked customer account phone {{phone}} successfully!",
+  "customer.msg.status-error": "Error updating customer status.",
+  "customer.filter.status-all": "All Statuses",
   "customer.history.col.type": "Transaction Type",
   "customer.history.col.amount": "Points",
   "customer.history.col.balanceAfter": "Balance After",
@@ -948,14 +937,12 @@
   "customer.history.type.redeem": "- Redeemed",
   "customer.history.type.deduct": "- Deducted",
   "customer.history.type.expire": "Expired",
-
   "customer.sys-voucher.col.title": "Voucher Title",
   "customer.sys-voucher.col.discountPercent": "% Discount",
   "customer.sys-voucher.col.minBillAmount": "Min Bill",
   "customer.sys-voucher.col.pointsRequired": "Points Needed",
   "customer.sys-voucher.col.isActive": "Active Status",
   "customer.sys-voucher.col.actions": "Actions",
-
   "customer.voucher.search.placeholder": "Search by voucher title...",
   "customer.voucher.filter.status": "Status",
   "customer.voucher.filter.all": "All",
@@ -988,7 +975,6 @@
   "customer.msg.load-vouchers-error-msg": "Error loading vouchers list.",
   "customer.msg.bulk-give-success": "Bulk vouchers granted successfully!",
   "customer.msg.bulk-give-error": "Error granting bulk vouchers.",
-
   "customer.msg.invalid-phone": "Please enter a valid phone number!",
   "customer.msg.org-not-found": "Organization / Restaurant information not found.",
   "customer.msg.identify-success": "Customer phone {{phone}} identified successfully",
@@ -998,7 +984,6 @@
   "customer.msg.toggle-status-enable-success": "Enabled voucher \"{{title}}\" successfully.",
   "customer.msg.toggle-status-disable-success": "Disabled voucher \"{{title}}\" successfully.",
   "customer.msg.toggle-status-error": "Error updating status.",
-
   "redeem-modal.title.redeem": "Redeem Member Points for Voucher",
   "redeem-modal.title.give": "Grant Direct Voucher to Member",
   "redeem-modal.header.info": "Phone: {{phone}} (Balance: {{points}} pts)",
@@ -1019,7 +1004,6 @@
   "redeem-modal.msg.give-success": "Granted voucher to customer successfully!",
   "redeem-modal.msg.redeem-error": "Error redeeming voucher.",
   "redeem-modal.msg.give-error": "Error granting voucher.",
-
   "voucher-form.title.create": "Create New System Voucher",
   "voucher-form.title.edit": "Edit System Voucher",
   "voucher-form.label.title": "Voucher Title",
@@ -1054,7 +1038,6 @@
   "voucher-form.msg.update-error": "Error updating voucher.",
   "voucher-form.msg.create-success": "New voucher created successfully!",
   "voucher-form.msg.create-error": "Error creating voucher.",
-
   "booking.action.seated": "Seat Guest",
   "booking.status.seated": "Seated",
   "booking.confirm.seated": "Confirm seating guest? System will automatically register/save member customer for the restaurant.",
@@ -1069,8 +1052,12 @@
   "booking.status.cancelled": "Cancelled",
   "booking.status.expired": "Expired",
   "booking.action.cancel": "Cancel booking",
+  "booking.action.edit": "Edit",
   "booking.action.create": "Create Booking",
   "booking.column.phone": "Customer Phone",
+  "booking.column.table": "Table",
+  "booking.table.prefix": "Table",
+  "booking.table.unassigned": "Unassigned",
   "booking.column.guests": "Guests count",
   "booking.column.time": "Booking time",
   "booking.column.note": "Note",
@@ -1082,9 +1069,7 @@
   "booking.success.cancel": "Booking cancelled successfully!",
   "booking.success.update-status": "Status updated successfully!",
   "booking.msg.load-error": "Error loading bookings list.",
-
   "customer.sys-voucher.col.usageLimit": "Usage Limit",
-
   "checkout.label.orderId": "Order ID",
   "checkout.placeholder.orderId": "Enter Order ID to checkout",
   "checkout.label.paymentMethod": "Payment Method",
@@ -1095,6 +1080,38 @@
   "checkout.label.voucherCode": "Or enter Voucher Code",
   "checkout.placeholder.voucherCode": "Enter voucher code (e.g. PHO20, SUSHI25)",
   "checkout.divider.loyalty": "🏆 Deduct Loyalty Points",
+  "booking-form.title.create": "Create New Booking",
+  "booking-form.title.edit": "Edit Booking",
+  "booking-form.label.phone": "Customer Phone Number",
+  "booking-form.placeholder.phone": "Enter customer phone...",
+  "booking-form.error.phone": "Phone number must be 9 - 15 digits",
+  "booking-form.label.name": "Customer Name (Optional)",
+  "booking-form.placeholder.name": "Enter customer name...",
+  "booking-form.label.time": "Booking Time",
+  "booking-form.error.time": "Please select booking time",
+  "booking-form.label.duration": "Duration (Hours)",
+  "booking-form.error.duration": "Please enter valid duration (> 0)",
+  "booking-form.label.note": "Booking Notes",
+  "booking-form.placeholder.note": "Additional notes (e.g., window table, high chair)...",
+  "booking-form.label.table-select": "Select Available Table (Green = Available, Red = Time conflict / Capacity issue)",
+  "booking-form.table-select.empty": "No tables available or invalid data",
+  "booking-form.table.name": "Table {{number}}",
+  "booking-form.table.info": "({{area}} - Capacity: {{capacity}} guests)",
+  "booking-form.table.status.available": "Available",
+  "booking-form.table.status.busy": "Busy",
+  "booking-form.table.reason-label": "Reason: {{reason}}",
+  "booking-form.btn.cancel": "Cancel",
+  "booking-form.btn.create": "Confirm Booking",
+  "booking-form.btn.update": "Update Booking",
+  "booking-form.msg.table-load-error": "Error loading table list.",
+  "booking-form.msg.history-load-error": "Error loading booking history.",
+  "booking-form.reason.select-time": "Please select dining time and duration.",
+  "booking-form.reason.reserved": "Already reserved at {{time}} (Phone: {{phone}})",
+  "booking-form.reason.occupied": "Table is currently occupied by dining guests",
+  "booking-form.msg.create-success": "Booking created successfully!",
+  "booking-form.msg.create-error": "Error creating booking.",
+  "booking-form.msg.update-success": "Booking updated successfully!",
+  "booking-form.msg.update-error": "Error updating booking.",
   "checkout.label.loyaltyPhone": "Member Phone Number (optional)",
   "checkout.placeholder.loyaltyPhone": "Enter phone to look up loyalty points",
   "checkout.label.loyaltyPoints": "Points to Redeem",
@@ -1109,7 +1126,6 @@
   "checkout.payment.cash": "💵 Cash",
   "checkout.payment.transfer": "💳 Bank Transfer",
   "checkout.payment.creditCard": "💳 Credit Card",
-
   "voucher.promo-code.label": "Or enter a promo code (Voucher Code)",
   "voucher.promo-code.placeholder": "Enter code (e.g. PHO20, SUSHI25)",
   "voucher.promo-code.apply": "Apply",
@@ -1124,9 +1140,7 @@
   "voucher.msg.applyError": "Unable to apply voucher.",
   "voucher.msg.removeSuccess": "Voucher removed!",
   "voucher.msg.removeError": "Error removing voucher.",
-
   "customer.placeholder.selectVoucher": "Select voucher to grant...",
-
   "voucher.spin.loading": "Loading vouchers...",
   "voucher.showing.all": "Showing: All",
   "voucher.showing.applicable": "Showing: Applicable",
@@ -1134,7 +1148,6 @@
   "voucher.toggle.showAll": "Show All",
   "voucher.sn.label": "Code",
   "voucher.not-eligible": "Not Eligible",
-
   "order.status.loading": "Loading order status...",
   "order.empty.title": "No active orders",
   "order.empty.subtitle": "Please return to the menu to place an order.",
@@ -1153,6 +1166,5 @@
   "order.voucher.change": "🔄 Change Voucher",
   "order.voucher.apply": "🎁 Apply Voucher",
   "order.btn.addItems": "⊕ Add More Items",
-
   "voucher-form.error.dateRangeInvalid": "End date must be after or equal to start date!"
 }
