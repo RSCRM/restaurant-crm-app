@@ -16,6 +16,7 @@ import {
 } from './table.model';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../auth/models/auth.model';
+import { OrganizationBranchResponse } from '../branch/branch.model';
 
 @Injectable({ providedIn: 'root' })
 export class TableService {
@@ -23,9 +24,19 @@ export class TableService {
   private readonly base = `${environment.api.baseUrl}${environment.api['apiPrefix']}`;
   private readonly tableApi = `${this.base}/erp/tables`;
 
-  getMap(areaId?: string): Observable<TableMap> {
-    const params = areaId ? new HttpParams().set('areaId', areaId) : undefined;
+  getMap(areaId?: string, branchId?: string): Observable<TableMap> {
+    let params = new HttpParams();
+    if (areaId) params = params.set('areaId', areaId);
+    if (branchId) params = params.set('branchId', branchId);
     return this.http.get<ApiResponse<TableMap>>(`${this.tableApi}/map`, { params }).pipe(map(response => response.data));
+  }
+
+  getOrganizationBranches(): Observable<OrganizationBranchResponse[]> {
+    return this.http
+      .get<ApiResponse<{ data: OrganizationBranchResponse[] }>>(`${this.base}/erp/organization-branches`, {
+        params: { page: 1, size: 100 }
+      })
+      .pipe(map(response => response.data.data));
   }
 
   getTableContext(tableId: string): Observable<TableContext> {

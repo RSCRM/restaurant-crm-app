@@ -1,19 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { I18nPipe } from '@delon/theme';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { catchError, debounceTime, EMPTY, finalize, Subject, switchMap } from 'rxjs';
 
-import { OrganizationService } from '../organization.service';
-import { OrganizationResponse } from '../organization.model';
-import { UserService } from '../../user/user.service';
 import { UserResponse } from '../../user/user.model';
+import { UserService } from '../../user/user.service';
+import { OrganizationResponse } from '../organization.model';
+import { OrganizationService } from '../organization.service';
 
 interface ModalData {
   mode: 'create' | 'edit';
@@ -24,14 +24,7 @@ interface ModalData {
   selector: 'app-organization-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzSelectModule,
-    NzButtonModule,
-    I18nPipe
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzSelectModule, NzButtonModule, I18nPipe],
   templateUrl: './organization-form.component.html',
   styleUrl: './organization-form.component.less'
 })
@@ -64,26 +57,25 @@ export class OrganizationFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
 
-    this.userSearch$.pipe(
-      takeUntilDestroyed(this.destroyRef),
-      debounceTime(300),
-      switchMap(keyword => {
-        this.userLoading = true;
+    this.userSearch$
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        debounceTime(300),
+        switchMap(keyword => {
+          this.userLoading = true;
+          this.cdr.markForCheck();
+          return this.userService.searchUsers(keyword ? { username: keyword } : {}, 1, 30).pipe(
+            finalize(() => {
+              this.userLoading = false;
+              this.cdr.markForCheck();
+            })
+          );
+        })
+      )
+      .subscribe(res => {
+        this.users = res.data;
         this.cdr.markForCheck();
-        return this.userService.searchUsers(
-          keyword ? { username: keyword } : {},
-          1, 30
-        ).pipe(
-          finalize(() => {
-            this.userLoading = false;
-            this.cdr.markForCheck();
-          })
-        );
-      })
-    ).subscribe(res => {
-      this.users = res.data;
-      this.cdr.markForCheck();
-    });
+      });
 
     if (this.modalData?.mode === 'edit' && this.modalData.organization) {
       this.mode = 'edit';
@@ -103,17 +95,20 @@ export class OrganizationFormComponent implements OnInit {
   loadUsers(): void {
     this.userLoading = true;
     this.cdr.markForCheck();
-    this.userService.searchUsers({}, 1, 30).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => EMPTY),
-      finalize(() => {
-        this.userLoading = false;
+    this.userService
+      .searchUsers({}, 1, 30)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => EMPTY),
+        finalize(() => {
+          this.userLoading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(res => {
+        this.users = res.data;
         this.cdr.markForCheck();
-      })
-    ).subscribe(res => {
-      this.users = res.data;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   onUserSearch(keyword: string): void {
@@ -136,27 +131,30 @@ export class OrganizationFormComponent implements OnInit {
   private submitCreate(): void {
     const raw = this.form.getRawValue();
 
-    this.orgService.createOrganization({
-      ownerId: raw.ownerId,
-      organizationName: raw.organizationName,
-      taxCode: raw.taxCode || undefined,
-      address: raw.address || undefined,
-      phone: raw.phone || undefined,
-      email: raw.email || undefined
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Tạo tổ chức thất bại');
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
+    this.orgService
+      .createOrganization({
+        ownerId: raw.ownerId,
+        organizationName: raw.organizationName,
+        taxCode: raw.taxCode || undefined,
+        address: raw.address || undefined,
+        phone: raw.phone || undefined,
+        email: raw.email || undefined
       })
-    ).subscribe(() => {
-      this.message.success('Tạo tổ chức thành công');
-      this.modalRef.destroy(true);
-    });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Tạo tổ chức thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Tạo tổ chức thành công');
+        this.modalRef.destroy(true);
+      });
   }
 
   private submitUpdate(): void {
@@ -164,26 +162,29 @@ export class OrganizationFormComponent implements OnInit {
 
     const raw = this.form.getRawValue();
 
-    this.orgService.updateOrganization(this.organization.id, {
-      organizationName: raw.organizationName,
-      taxCode: raw.taxCode || undefined,
-      address: raw.address || undefined,
-      phone: raw.phone || undefined,
-      email: raw.email || undefined
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Cập nhật tổ chức thất bại');
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
+    this.orgService
+      .updateOrganization(this.organization.id, {
+        organizationName: raw.organizationName,
+        taxCode: raw.taxCode || undefined,
+        address: raw.address || undefined,
+        phone: raw.phone || undefined,
+        email: raw.email || undefined
       })
-    ).subscribe(() => {
-      this.message.success('Cập nhật tổ chức thành công');
-      this.modalRef.destroy(true);
-    });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Cập nhật tổ chức thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Cập nhật tổ chức thành công');
+        this.modalRef.destroy(true);
+      });
   }
 
   close(): void {

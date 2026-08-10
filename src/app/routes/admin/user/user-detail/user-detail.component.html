@@ -1,6 +1,6 @@
 @if (loading) {
   <div class="loading-container">
-    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+    <nz-spin nzSimple [nzSize]="'large'" />
   </div>
 } @else if (user) {
   <page-header [title]="'User: ' + user.username" [action]="actionTpl" />

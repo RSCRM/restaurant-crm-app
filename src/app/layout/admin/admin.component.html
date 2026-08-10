@@ -1,7 +1,7 @@
 <layout-default [options]="options" [asideUser]="asideUserTpl" [content]="contentTpl" [customError]="null">
   <layout-default-header-item direction="right">
     <div class="alain-default__nav-item" nz-dropdown [nzDropdownMenu]="userMenu" nzPlacement="bottomRight">
-      <nz-avatar [nzSrc]="(user$ | async)?.avatar || ''" nzSize="small" class="alain-default__nav-item-avatar"></nz-avatar>
+      <nz-avatar [nzSrc]="(user$ | async)?.avatar || ''" nzSize="small" class="alain-default__nav-item-avatar" />
       <span class="alain-default__nav-item-text">{{ (user$ | async)?.fullName || 'Admin' }}</span>
     </div>
     <nz-dropdown-menu #userMenu="nzDropdownMenu">

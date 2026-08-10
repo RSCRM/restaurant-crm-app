@@ -104,7 +104,9 @@ export class LayoutPortal implements OnInit, OnDestroy {
     this.store
       .select(selectPortalMenuState)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(({ hasContext, canManageOrgRole }) => this.buildMenu(hasContext, canManageOrgRole));
+      .subscribe(({ hasContext, canManageOrgRole, featureContextReady }) =>
+        this.buildMenu(hasContext, canManageOrgRole, featureContextReady)
+      );
   }
 
   ngOnDestroy(): void {
@@ -154,7 +156,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  private buildMenu(hasContext: boolean, canManageOrgRole: boolean): void {
+  private buildMenu(hasContext: boolean, canManageOrgRole: boolean, featureContextReady: boolean): void {
     this.menuService.clear();
     this.menuService.add([
       {
@@ -188,7 +190,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
               { text: 'Combo', i18n: 'menu.portal.menu.combo', link: '/portal/menu/combo', disabled: !hasContext }
             ]
           },
-          { text: 'Quản lý Bàn', i18n: 'menu.portal.table', link: '/portal/table', disabled: !hasContext },
+          { text: 'Quản lý Bàn', i18n: 'menu.portal.table', link: '/portal/table', disabled: !featureContextReady },
           { text: 'Đặt bàn', i18n: 'menu.portal.booking', link: '/portal/booking', disabled: !hasContext },
           {
             text: 'Kho hàng',
@@ -218,8 +220,8 @@ export class LayoutPortal implements OnInit, OnDestroy {
           { text: 'Nhân viên', i18n: 'menu.portal.employee', link: '/portal/employee', disabled: !hasContext },
           { text: 'Hóa đơn', i18n: 'menu.portal.invoice', link: '/portal/invoice', disabled: !hasContext },
           { text: 'Khách hàng', i18n: 'menu.portal.customer', link: '/portal/customer', disabled: !hasContext },
-          { text: 'Điểm danh', i18n: 'menu.attendance', link: '/portal/attendance', disabled: !hasContext },
-          { text: 'Lịch làm việc', i18n: 'menu.schedule', link: '/portal/schedule', disabled: !hasContext }
+          { text: 'Điểm danh', i18n: 'menu.attendance', link: '/portal/attendance', disabled: !featureContextReady },
+          { text: 'Lịch làm việc', i18n: 'menu.schedule', link: '/portal/schedule', disabled: !featureContextReady }
         ]
       }
     ]);

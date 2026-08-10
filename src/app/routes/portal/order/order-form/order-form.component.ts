@@ -1,34 +1,25 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormControl, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { I18nPipe } from '@delon/theme';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { OrderService } from '../order.service';
 import { OrderType } from '../order.model';
+import { OrderService } from '../order.service';
 
 @Component({
   selector: 'app-order-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    NzButtonModule,
-    NzIconModule,
-    I18nPipe
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzInputNumberModule, NzSelectModule, NzButtonModule, NzIconModule, I18nPipe],
   templateUrl: './order-form.component.html',
   styleUrl: './order-form.component.less'
 })
@@ -39,7 +30,7 @@ export class OrderFormComponent implements OnInit {
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
-  private modalData = inject<{ branchId: string } | null>(NZ_MODAL_DATA, { optional: true });
+  private modalData = inject<{ branchId: string; tableId?: string } | null>(NZ_MODAL_DATA, { optional: true });
 
   loading = false;
 
@@ -65,7 +56,7 @@ export class OrderFormComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.modalData?.branchId) {
-      this.form.patchValue({ branchId: this.modalData.branchId });
+      this.form.patchValue({ branchId: this.modalData.branchId, tableId: this.modalData.tableId ?? '' });
     }
   }
 
@@ -102,33 +93,36 @@ export class OrderFormComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.orderService.createOrder({
-      branchId: raw.branchId,
-      tableId: raw.tableId || undefined,
-      orderType: raw.orderType,
-      customerName: raw.customerName || undefined,
-      customerPhone: raw.customerPhone || undefined,
-      note: raw.note || undefined,
-      items: validItems.map((item: any) => ({
-        productId: item.productId || undefined,
-        comboId: item.comboId || undefined,
-        quantity: item.quantity,
-        note: item.note || undefined
-      }))
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Tạo đơn hàng thất bại');
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
+    this.orderService
+      .createOrder({
+        branchId: raw.branchId,
+        tableId: raw.tableId || undefined,
+        orderType: raw.orderType,
+        customerName: raw.customerName || undefined,
+        customerPhone: raw.customerPhone || undefined,
+        note: raw.note || undefined,
+        items: validItems.map((item: any) => ({
+          productId: item.productId || undefined,
+          comboId: item.comboId || undefined,
+          quantity: item.quantity,
+          note: item.note || undefined
+        }))
       })
-    ).subscribe((res) => {
-      this.message.success('Tạo đơn hàng thành công');
-      this.modalRef.destroy(res.orderId);
-    });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Tạo đơn hàng thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(res => {
+        this.message.success('Tạo đơn hàng thành công');
+        this.modalRef.destroy(res.orderId);
+      });
   }
 
   close(): void {

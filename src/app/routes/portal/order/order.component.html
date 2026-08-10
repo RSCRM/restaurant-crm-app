@@ -8,10 +8,12 @@
         <label nz-radio-button nzValue="tableId">{{ 'app.order.search.byTableId' | i18n }}</label>
       </nz-radio-group>
 
-      <nz-input-group [nzPrefix]="prefixSearch" style="width: 300px;">
+      <nz-input-group [nzPrefix]="prefixSearch" style="width: 300px">
         <input
           nz-input
-          [placeholder]="searchMode === 'orderId' ? ('app.order.search.orderIdPlaceholder' | i18n) : ('app.order.search.tableIdPlaceholder' | i18n)"
+          [placeholder]="
+            searchMode === 'orderId' ? ('app.order.search.orderIdPlaceholder' | i18n) : ('app.order.search.tableIdPlaceholder' | i18n)
+          "
           [(ngModel)]="searchValue"
           (keyup.enter)="search()"
         />
@@ -34,13 +36,13 @@
   <!-- Loading -->
   @if (loading) {
     <div class="loading-container">
-      <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+      <nz-spin nzSimple [nzSize]="'large'" />
     </div>
   }
 
   <!-- Error -->
   @if (error && !loading) {
-    <nz-alert [nzType]="'warning'" [nzMessage]="error" nzShowIcon></nz-alert>
+    <nz-alert [nzType]="'warning'" [nzMessage]="error" nzShowIcon />
   }
 
   <!-- Order Result -->

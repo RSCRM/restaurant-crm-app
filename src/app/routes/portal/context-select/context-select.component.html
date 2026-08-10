@@ -9,7 +9,9 @@
           <nz-card [nzTitle]="ctx.organizationName" nzHoverable>
             <div class="context-card-body">
               @if (ctx.branchName) {
-                <p><strong>{{ 'app.context-select.branch' | i18n }}:</strong> {{ ctx.branchName }}</p>
+                <p
+                  ><strong>{{ 'app.context-select.branch' | i18n }}:</strong> {{ ctx.branchName }}</p
+                >
               }
               <div class="context-card-bottom">
                 <div class="context-role">

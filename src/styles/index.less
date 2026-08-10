@@ -1,1 +1,71 @@
 /* You can add global styles to this file, and also import other style files */
+
+.branch-selector {
+  &.ant-select {
+    .ant-select-selector {
+      background-color: #fffbe6 !important; /* Premium soft gold/amber background */
+      border-color: #ffe58f !important;     /* Gentle amber border */
+      border-radius: 6px !important;
+      padding: 0 12px !important;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #fa8c16 !important;   /* Vibrant orange border on hover */
+        box-shadow: 0 0 0 2px rgba(250, 140, 22, 0.1) !important;
+      }
+    }
+
+    &.ant-select-focused, &.ant-select-open {
+      .ant-select-selection-item,
+      .ant-select-selection-placeholder {
+        opacity: 0 !important;
+      }
+    }
+
+    &.ant-select-focused {
+      .ant-select-selector {
+        border-color: #fa8c16 !important;
+        box-shadow: 0 0 0 2px rgba(250, 140, 22, 0.2) !important;
+      }
+    }
+
+    .ant-select-selection-item {
+      color: #d46b08 !important;             /* Warm dark orange/gold for selected text */
+      font-weight: 600 !important;
+    }
+
+    .ant-select-selection-placeholder {
+      color: #d46b08 !important;
+      opacity: 0.8;
+      font-weight: 500;
+    }
+
+    /* Style for typed search text when user searches branches */
+    .ant-select-selection-search-input {
+      color: #d46b08 !important;
+      font-weight: 600 !important;
+    }
+
+    .branch-icon {
+      color: #d46b08 !important;             /* Golden/orange icon */
+      font-size: 16px;
+    }
+
+    .ant-select-clear {
+      color: #fa8c16 !important;
+      background: transparent !important;
+    }
+  }
+}
+
+.branch-dropdown {
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    background-color: #fffbe6 !important;   /* Match select background when selected */
+    color: #d46b08 !important;               /* Match text color */
+    font-weight: 600;
+  }
+
+  .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+    background-color: #fffcf0 !important;   /* Soft lighter gold for hover active state */
+  }
+}

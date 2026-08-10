@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormGroup, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { I18nPipe } from '@delon/theme';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
 import { OrderService } from '../order.service';
@@ -17,15 +17,7 @@ import { OrderService } from '../order.service';
   selector: 'app-update-modifiers-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzButtonModule,
-    NzIconModule,
-    I18nPipe
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzInputNumberModule, NzButtonModule, NzIconModule, I18nPipe],
   template: `
     <div class="modal-header">
       <div class="modal-title">{{ 'app.order.updateModifiers.title' | i18n }}</div>
@@ -50,7 +42,7 @@ import { OrderService } from '../order.service';
             <nz-form-item>
               <nz-form-label>{{ 'app.order.form.modifierQty' | i18n }}</nz-form-label>
               <nz-form-control>
-                <nz-input-number formControlName="quantity" [nzMin]="1"></nz-input-number>
+                <nz-input-number formControlName="quantity" [nzMin]="1" />
               </nz-form-control>
             </nz-form-item>
             <button nz-button nzType="text" nzDanger type="button" (click)="removeModifier(i)">
@@ -68,14 +60,40 @@ import { OrderService } from '../order.service';
       </div>
     </form>
   `,
-  styles: [`
-    .modal-header { margin-bottom: 16px; }
-    .modal-title { font-size: 18px; font-weight: 600; }
-    .modifiers-section { border: 1px solid #f0f0f0; border-radius: 4px; padding: 12px; margin-bottom: 16px; }
-    .modifiers-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .modifier-row { display: flex; gap: 8px; align-items: start; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-  `]
+  styles: [
+    `
+      .modal-header {
+        margin-bottom: 16px;
+      }
+      .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .modifiers-section {
+        border: 1px solid #f0f0f0;
+        border-radius: 4px;
+        padding: 12px;
+        margin-bottom: 16px;
+      }
+      .modifiers-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .modifier-row {
+        display: flex;
+        gap: 8px;
+        align-items: start;
+      }
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 16px;
+      }
+    `
+  ]
 })
 export class UpdateModifiersFormComponent implements OnInit {
   private fb = inject(NonNullableFormBuilder);
@@ -113,24 +131,23 @@ export class UpdateModifiersFormComponent implements OnInit {
 
     const modifiers = this.modifiers.controls.map(c => c.getRawValue());
 
-    this.orderService.updateOrderItemModifiers(
-      this.modalData.orderId,
-      this.modalData.orderItemId,
-      { modifiers }
-    ).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Cập nhật modifier thất bại');
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      })
-    ).subscribe(() => {
-      this.message.success('Cập nhật modifier thành công');
-      this.modalRef.destroy(true);
-    });
+    this.orderService
+      .updateOrderItemModifiers(this.modalData.orderId, this.modalData.orderItemId, { modifiers })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Cập nhật modifier thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Cập nhật modifier thành công');
+        this.modalRef.destroy(true);
+      });
   }
 
   close(): void {

@@ -3,15 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '@env/environment';
 import { Observable, map } from 'rxjs';
 
+import { PagingResponse, RoleResponse, UserCreationRequest, UserResponse, UserRolesUpdateRequest, UserSearchRequest } from './user.model';
 import { ApiResponse } from '../../../routes/auth/models/auth.model';
-import {
-  PagingResponse,
-  RoleResponse,
-  UserCreationRequest,
-  UserResponse,
-  UserRolesUpdateRequest,
-  UserSearchRequest
-} from './user.model';
 
 const API = environment.api['apiPrefix'];
 
@@ -23,13 +16,13 @@ export class UserService {
   private readonly ROLE_API = `${API}/roles`;
 
   getRoles(): Observable<RoleResponse[]> {
-    return this.http
-      .get<ApiResponse<any>>(this.ROLE_API)
-      .pipe(map(res => {
+    return this.http.get<ApiResponse<any>>(this.ROLE_API).pipe(
+      map(res => {
         const d = res.data;
         // API có thể trả về array trực tiếp hoặc paging object { data: [...] }
         return Array.isArray(d) ? d : (d?.data ?? []);
-      }));
+      })
+    );
   }
 
   searchUsers(
@@ -51,26 +44,18 @@ export class UserService {
   }
 
   createUser(request: UserCreationRequest): Observable<UserResponse> {
-    return this.http
-      .post<ApiResponse<UserResponse>>(this.USER_API, request)
-      .pipe(map(res => res.data));
+    return this.http.post<ApiResponse<UserResponse>>(this.USER_API, request).pipe(map(res => res.data));
   }
 
   getUserById(userId: string): Observable<UserResponse> {
-    return this.http
-      .get<ApiResponse<UserResponse>>(`${this.USER_API}/${userId}`)
-      .pipe(map(res => res.data));
+    return this.http.get<ApiResponse<UserResponse>>(`${this.USER_API}/${userId}`).pipe(map(res => res.data));
   }
 
   updateUserRoles(userId: string, roleIds: string[]): Observable<UserResponse> {
-    return this.http
-      .put<ApiResponse<UserResponse>>(`${this.USER_API}/${userId}/roles`, { roleIds })
-      .pipe(map(res => res.data));
+    return this.http.put<ApiResponse<UserResponse>>(`${this.USER_API}/${userId}/roles`, { roleIds }).pipe(map(res => res.data));
   }
 
   deleteUser(userId: string): Observable<void> {
-    return this.http
-      .delete<ApiResponse<void>>(`${this.USER_API}/${userId}`)
-      .pipe(map(() => undefined));
+    return this.http.delete<ApiResponse<void>>(`${this.USER_API}/${userId}`).pipe(map(() => undefined));
   }
 }

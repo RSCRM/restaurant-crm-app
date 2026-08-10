@@ -7,6 +7,7 @@ export interface AttendanceResponse {
   id: string;
   employeeId: string;
   employeeName?: string;
+  username?: string;
   branchId: string;
   shiftAssignmentId: string;
   workDate: string;
@@ -32,6 +33,7 @@ export interface EmployeeAttendanceResponse {
   employeeId: string;
   employeeName: string;
   username: string;
+  email?: string;
   workDate: string;
   scheduledStart: string | null;
   scheduledEnd: string | null;
@@ -45,6 +47,8 @@ export interface AttendanceBranchResponse {
   id: string;
   organizationId: string;
   branchName: string;
+  address?: string | null;
+  status?: string;
 }
 
 export interface PagingResponse<T> {

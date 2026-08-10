@@ -2,33 +2,60 @@
 
 <nz-card>
   <div class="card-filters">
-    @if (canAddTable) {
-      <button nz-button nzType="primary" (click)="openCreateTable()" class="btn-add">
-        <span nz-icon nzType="plus"></span>
-        Thêm bàn
-      </button>
-    }
-
-    <input nz-input [(ngModel)]="keyword" placeholder="Tìm theo số bàn" class="filter-input" />
-
-    <nz-select [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear class="filter-select">
-      @for (area of areas; track area.id) {
-        <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+    <div class="filter-row">
+      @if (canAddTable) {
+        <button nz-button nzType="primary" (click)="openCreateTable()" class="btn-add">
+          <span nz-icon nzType="plus"></span>
+          Thêm bàn
+        </button>
       }
-    </nz-select>
 
-    <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear class="filter-select">
-      <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
-      <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
-      <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
-    </nz-select>
+      <input
+        nz-input
+        [ngModel]="keyword"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Tìm theo số bàn"
+        class="filter-input"
+      />
 
-    <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" class="filter-number" />
+      <nz-select [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear class="filter-select">
+        @for (area of areas; track area.id) {
+          <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+        }
+      </nz-select>
 
-    <button nz-button [nzLoading]="mapLoading" (click)="reset()" class="btn-reset">
-      <span nz-icon nzType="reload"></span>
-      {{ 'table.search.reset' | i18n }}
-    </button>
+      <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear class="filter-select">
+        <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
+        <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
+        <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
+      </nz-select>
+
+      <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" class="filter-number" />
+
+      <button nz-button [nzLoading]="mapLoading" (click)="reset()" class="btn-reset">
+        <span nz-icon nzType="reload"></span>
+        {{ 'table.search.reset' | i18n }}
+      </button>
+
+      @if (ownerContext) {
+        <nz-select
+          class="branch-selector"
+          nzShowSearch
+          [nzFilterOption]="branchFilterOption"
+          nzPlaceHolder="Chọn chi nhánh"
+          [(ngModel)]="branchId"
+          (ngModelChange)="onBranchChange()"
+          [nzSuffixIcon]="branchIconTpl"
+        >
+          @for (branch of branches; track branch.id) {
+            <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+          }
+        </nz-select>
+        <ng-template #branchIconTpl>
+          <span nz-icon nzType="shop" class="branch-icon"></span>
+        </ng-template>
+      }
+    </div>
 
     <div class="status-summary" aria-label="Thống kê trạng thái bàn">
       <span><i class="status-dot available"></i>Trống: {{ availableCount }}</span>
@@ -90,6 +117,11 @@
                           <span nz-icon nzType="eye"></span>
                         </a>
                       }
+                      @if (table.status === 'OCCUPIED') {
+                        <button nz-button nzType="text" nz-tooltip nzTooltipTitle="Xem chi tiết đơn hàng" (click)="viewOrderDetails(table)">
+                          <span nz-icon nzType="file-text"></span>
+                        </button>
+                      }
                       @if (canUpdateTable || canDeleteTable) {
                         <button
                           nz-button
@@ -123,7 +155,7 @@
                 <div class="card-actions">
                   @if (transferSource?.id === table.id) {
                     <button nz-button nzDanger nzBlock (click)="cancelTransfer()" class="btn-full"> Hủy chuyển </button>
-                  } @else if (table.status === 'AVAILABLE' && !bookingLockedFor(table.id)) {
+                  } @else if ((table.status === 'AVAILABLE' || table.status === 'RESERVED') && !bookingLockedFor(table.id)) {
                     <button
                       nz-button
                       nzType="primary"
@@ -135,13 +167,24 @@
                       <span nz-icon [nzType]="transferSource ? 'swap' : 'user-add'"></span>
                       {{ transferSource ? 'Chuyển đến' : ('table.register.action' | i18n) }}
                     </button>
-                  } @else if (table.status === 'AVAILABLE' && !bookingDueFor(table.id)) {
-                    <button nz-button nzBlock disabled class="btn-full"> <span nz-icon nzType="lock"></span> Bàn đã khóa </button>
+                  } @else if (
+                    (table.status === 'AVAILABLE' || table.status === 'RESERVED') &&
+                    !bookingDueFor(table.id) &&
+                    !showActionsTableIds.has(table.id)
+                  ) {
+                    <button nz-button nzBlock (click)="showActionsForTable(table.id)" class="btn-full">
+                      <span nz-icon nzType="lock"></span> Bàn đã khóa
+                    </button>
                   } @else if (table.status === 'OCCUPIED') {
-                    <div class="action-group">
-                      <button nz-button (click)="startTransfer(table)" class="btn-transfer">
-                        <span nz-icon nzType="swap"></span> Chuyển bàn
-                      </button>
+                    <div class="occupied-actions">
+                      <div class="action-row">
+                        <button nz-button (click)="startTransfer(table)" class="btn-transfer">
+                          <span nz-icon nzType="swap"></span> Chuyển bàn
+                        </button>
+                        <button nz-button (click)="openOrder(table)" class="btn-order">
+                          <span nz-icon nzType="shopping-cart"></span> Order
+                        </button>
+                      </div>
                       <button
                         nz-button
                         nzType="primary"
@@ -153,9 +196,11 @@
                         <span nz-icon nzType="dollar"></span> Thanh toán
                       </button>
                     </div>
+                  } @else if (table.status === 'RESERVED') {
+                    <span class="booking-pending">Chờ đến giờ nhận khách</span>
                   }
 
-                  @if (!transferSource && bookingDueFor(table.id)) {
+                  @if (!transferSource && (bookingDueFor(table.id) || showActionsTableIds.has(table.id))) {
                     <div class="action-group booking-actions">
                       <button
                         nz-button
@@ -274,8 +319,16 @@
 
 <ng-template #tableFooter>
   <div class="table-modal-footer">
-    @if (editingTable?.status === 'AVAILABLE' && canDeleteTable) {
-      <button nz-button nzDanger [nzLoading]="deletingTableId === editingTable?.id" (click)="confirmDeleteTable()">
+    @if (editingTable && canDeleteTable) {
+      <button
+        nz-button
+        nzDanger
+        [disabled]="editingTable.status !== 'AVAILABLE'"
+        [nzLoading]="deletingTableId === editingTable.id"
+        (click)="confirmDeleteTable()"
+        nz-tooltip
+        [nzTooltipTitle]="editingTable.status !== 'AVAILABLE' ? 'Chỉ có thể xóa bàn khi bàn ở trạng thái Trống' : null"
+      >
         <span nz-icon nzType="delete"></span> Xóa bàn
       </button>
     }

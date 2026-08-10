@@ -343,7 +343,7 @@
       <div class="filter-panel">
         <div nz-row [nzGutter]="[16, 16]">
           <!-- Status Selection -->
-          <div nz-col [nzSpan]="12">
+          <div nz-col [nzSpan]="6">
             <nz-form-item nzLayout="vertical" style="margin-bottom: 0">
               <nz-form-label>{{ 'customer.voucher.filter.status' | i18n }}</nz-form-label>
               <nz-form-control>
@@ -358,7 +358,7 @@
           </div>
 
           <!-- Type Selection -->
-          <div nz-col [nzSpan]="12">
+          <div nz-col [nzSpan]="6">
             <nz-form-item nzLayout="vertical" style="margin-bottom: 0">
               <nz-form-label>{{ 'customer.voucher.filter.type' | i18n }}</nz-form-label>
               <nz-form-control>
@@ -368,6 +368,42 @@
                   <nz-option nzValue="POINT" [nzLabel]="'customer.voucher.filter.type.point' | i18n" />
                   <nz-option nzValue="CODE" [nzLabel]="'customer.voucher.filter.type.code' | i18n" />
                 </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <!-- Discount Percent Range -->
+          <div nz-col [nzSpan]="6">
+            <nz-form-item nzLayout="vertical" style="margin-bottom: 0">
+              <nz-form-label>{{ 'customer.sys-voucher.col.discountPercent' | i18n }}</nz-form-label>
+              <nz-form-control>
+                <div class="price-range">
+                  <nz-input-number [(ngModel)]="filterMinDiscount" name="filterMinDiscount" [nzMin]="0" [nzMax]="100"
+                    [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n"
+                    (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                  <span class="price-range-separator">-</span>
+                  <nz-input-number [(ngModel)]="filterMaxDiscount" name="filterMaxDiscount" [nzMin]="0" [nzMax]="100"
+                    [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n"
+                    (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <!-- Points Required Range -->
+          <div nz-col [nzSpan]="6">
+            <nz-form-item nzLayout="vertical" style="margin-bottom: 0">
+              <nz-form-label>{{ 'customer.sys-voucher.col.pointsRequired' | i18n }}</nz-form-label>
+              <nz-form-control>
+                <div class="price-range">
+                  <nz-input-number [(ngModel)]="filterVoucherMinPoints" name="filterVoucherMinPoints" [nzMin]="0"
+                    [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n"
+                    (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                  <span class="price-range-separator">-</span>
+                  <nz-input-number [(ngModel)]="filterVoucherMaxPoints" name="filterVoucherMaxPoints" [nzMin]="0"
+                    [nzStep]="1" [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n"
+                    (ngModelChange)="filterSystemVouchers()" style="width: 100%" />
+                </div>
               </nz-form-control>
             </nz-form-item>
           </div>

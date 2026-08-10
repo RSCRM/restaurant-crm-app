@@ -1,21 +1,7 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  OnInit,
-  inject
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
-import { catchError, EMPTY, finalize } from 'rxjs';
-
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { I18nPipe } from '@delon/theme';
-
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -23,28 +9,16 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { catchError, EMPTY, finalize } from 'rxjs';
 
-import {
-  CreateInventoryRequest,
-  InventoryCategoryResponse,
-  InventoryResponse,
-  UpdateInventoryRequest
-} from '../inventory.model';
+import { CreateInventoryRequest, InventoryCategoryResponse, InventoryResponse, UpdateInventoryRequest } from '../inventory.model';
 import { InventoryService } from '../inventory.service';
 
 @Component({
   selector: 'app-inventory-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
-    NzButtonModule,
-    I18nPipe
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzInputNumberModule, NzSelectModule, NzButtonModule, I18nPipe],
   templateUrl: './inventory-form.component.html',
   styleUrl: './inventory-form.component.less'
 })
@@ -56,10 +30,7 @@ export class InventoryFormComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly modalData = inject<InventoryResponse | null>(
-    NZ_MODAL_DATA,
-    { optional: true }
-  );
+  private readonly modalData = inject<InventoryResponse | null>(NZ_MODAL_DATA, { optional: true });
 
   loading = false;
   isEdit = false;
@@ -67,20 +38,11 @@ export class InventoryFormComponent implements OnInit {
   categoryOptions: InventoryCategoryResponse[] = [];
 
   form = this.fb.group({
-    inventoryName: this.fb.control('', [
-      Validators.required,
-      Validators.maxLength(255)
-    ]),
+    inventoryName: this.fb.control('', [Validators.required, Validators.maxLength(255)]),
     inventoryCategoryId: this.fb.control('', Validators.required),
-    unit: this.fb.control('', [
-      Validators.required,
-      Validators.maxLength(50)
-    ]),
+    unit: this.fb.control('', [Validators.required, Validators.maxLength(50)]),
     description: this.fb.control(''),
-    minimumQuantity: this.fb.control(0, [
-      Validators.required,
-      Validators.min(0)
-    ])
+    minimumQuantity: this.fb.control(0, [Validators.required, Validators.min(0)])
   });
 
   ngOnInit(): void {

@@ -10,16 +10,10 @@ export default [
   // },
   {
     path: '',
-    loadComponent: () =>
-      import('./inventory/inventory.component').then(
-        m => m.InventoryComponent
-      )
+    loadComponent: () => import('./inventory/inventory.component').then(m => m.InventoryComponent)
   },
   {
     path: 'transactions',
-    loadComponent: () =>
-      import('./inventory-transaction/inventory-transaction.component').then(
-        m => m.InventoryTransactionComponent
-      )
+    loadComponent: () => import('./inventory-transaction/inventory-transaction.component').then(m => m.InventoryTransactionComponent)
   }
 ] as Routes;

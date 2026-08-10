@@ -3,7 +3,6 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '@env/environment';
 import { Observable, map } from 'rxjs';
 
-import { ApiResponse } from '../../auth/models/auth.model';
 import {
   AddOrderItemRequest,
   AddOrderItemResponse,
@@ -14,6 +13,7 @@ import {
   UpdateOrderItemModifiersRequest,
   UpdateOrderItemQuantityRequest
 } from './order.model';
+import { ApiResponse } from '../../auth/models/auth.model';
 
 const API = environment.api['apiPrefix'];
 
@@ -24,15 +24,11 @@ export class OrderService {
   private readonly ORDER_API = `${API}/orders`;
 
   createOrder(request: CreateOrderRequest): Observable<CreateOrderResponse> {
-    return this.http
-      .post<ApiResponse<CreateOrderResponse>>(this.ORDER_API, request)
-      .pipe(map(res => res.data));
+    return this.http.post<ApiResponse<CreateOrderResponse>>(this.ORDER_API, request).pipe(map(res => res.data));
   }
 
   getCookingStatus(orderId: string): Observable<OrderCookingStatusResponse> {
-    return this.http
-      .get<ApiResponse<OrderCookingStatusResponse>>(`${this.ORDER_API}/${orderId}/cooking-status`)
-      .pipe(map(res => res.data));
+    return this.http.get<ApiResponse<OrderCookingStatusResponse>>(`${this.ORDER_API}/${orderId}/cooking-status`).pipe(map(res => res.data));
   }
 
   getActiveOrderCookingStatusByTable(tableId: string): Observable<OrderCookingStatusResponse> {
@@ -42,9 +38,7 @@ export class OrderService {
   }
 
   addOrderItem(orderId: string, request: AddOrderItemRequest): Observable<AddOrderItemResponse> {
-    return this.http
-      .post<ApiResponse<AddOrderItemResponse>>(`${this.ORDER_API}/${orderId}/items`, request)
-      .pipe(map(res => res.data));
+    return this.http.post<ApiResponse<AddOrderItemResponse>>(`${this.ORDER_API}/${orderId}/items`, request).pipe(map(res => res.data));
   }
 
   updateOrderItemQuantity(orderId: string, orderItemId: string, request: UpdateOrderItemQuantityRequest): Observable<void> {
@@ -60,14 +54,10 @@ export class OrderService {
   }
 
   cancelOrder(orderId: string): Observable<CancelOrderResponse> {
-    return this.http
-      .patch<ApiResponse<CancelOrderResponse>>(`${this.ORDER_API}/${orderId}/cancel`, {})
-      .pipe(map(res => res.data));
+    return this.http.patch<ApiResponse<CancelOrderResponse>>(`${this.ORDER_API}/${orderId}/cancel`, {}).pipe(map(res => res.data));
   }
 
   removeOrderItem(orderId: string, orderItemId: string): Observable<void> {
-    return this.http
-      .delete<ApiResponse<void>>(`${this.ORDER_API}/${orderId}/items/${orderItemId}`)
-      .pipe(map(() => undefined));
+    return this.http.delete<ApiResponse<void>>(`${this.ORDER_API}/${orderId}/items/${orderItemId}`).pipe(map(() => undefined));
   }
 }

@@ -1,17 +1,17 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { I18nPipe } from '@delon/theme';
+import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { UserService } from '../user.service';
 import { RoleResponse, UserResponse } from '../user.model';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { UserService } from '../user.service';
 
 interface ModalData {
   mode: 'create' | 'roles';
@@ -22,14 +22,7 @@ interface ModalData {
   selector: 'app-user-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzButtonModule,
-    NzSpinModule,
-    I18nPipe
-  ],
+  imports: [ReactiveFormsModule, NzFormModule, NzInputModule, NzButtonModule, NzSpinModule, I18nPipe],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.less'
 })
@@ -47,7 +40,7 @@ export class UserFormComponent implements OnInit {
   loading = false;
   rolesLoading = false;
   roles: RoleResponse[] = [];
-  selectedRoleIds: Set<string> = new Set();
+  selectedRoleIds = new Set<string>();
 
   createForm = this.fb.group({
     username: this.fb.control('', [Validators.required, Validators.minLength(5), Validators.maxLength(50)]),
@@ -77,17 +70,20 @@ export class UserFormComponent implements OnInit {
     this.rolesLoading = true;
     this.cdr.markForCheck();
 
-    this.userService.getRoles().pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => EMPTY),
-      finalize(() => {
-        this.rolesLoading = false;
+    this.userService
+      .getRoles()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => EMPTY),
+        finalize(() => {
+          this.rolesLoading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(roles => {
+        this.roles = roles;
         this.cdr.markForCheck();
-      })
-    ).subscribe(roles => {
-      this.roles = roles;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   toggleRole(roleId: string): void {
@@ -120,26 +116,29 @@ export class UserFormComponent implements OnInit {
     this.cdr.markForCheck();
     const raw = this.createForm.getRawValue();
 
-    this.userService.createUser({
-      username: raw.username,
-      password: raw.password,
-      email: raw.email,
-      fullName: raw.fullName,
-      phone: raw.phone
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Tạo người dùng thất bại');
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
+    this.userService
+      .createUser({
+        username: raw.username,
+        password: raw.password,
+        email: raw.email,
+        fullName: raw.fullName,
+        phone: raw.phone
       })
-    ).subscribe(() => {
-      this.message.success('Tạo người dùng thành công');
-      this.modalRef.destroy(true);
-    });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Tạo người dùng thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Tạo người dùng thành công');
+        this.modalRef.destroy(true);
+      });
   }
 
   private submitRoles(): void {
@@ -149,20 +148,23 @@ export class UserFormComponent implements OnInit {
     this.cdr.markForCheck();
     const raw = this.rolesForm.getRawValue();
 
-    this.userService.updateUserRoles(this.user.id, raw.roleIds).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Cập nhật vai trò thất bại');
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      })
-    ).subscribe(() => {
-      this.message.success('Cập nhật vai trò thành công');
-      this.modalRef.destroy(true);
-    });
+    this.userService
+      .updateUserRoles(this.user.id, raw.roleIds)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Cập nhật vai trò thất bại');
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Cập nhật vai trò thành công');
+        this.modalRef.destroy(true);
+      });
   }
 
   close(): void {

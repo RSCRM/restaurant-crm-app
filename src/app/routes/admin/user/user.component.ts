@@ -2,6 +2,9 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inje
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { PageHeaderModule } from '@delon/abc/page-header';
+import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
+import { I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -13,14 +16,11 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { STColumn, STComponent, STModule, STChange } from '@delon/abc/st';
-import { PageHeaderModule } from '@delon/abc/page-header';
-import { I18nPipe } from '@delon/theme';
 import { catchError, EMPTY, finalize } from 'rxjs';
 
-import { UserService } from './user.service';
-import { PagingResponse, UserResponse, UserSearchRequest, UserStatus } from './user.model';
 import { UserFormComponent } from './user-form/user-form.component';
+import { PagingResponse, UserResponse, UserSearchRequest, UserStatus } from './user.model';
+import { UserService } from './user.service';
 
 @Component({
   selector: 'app-user',
@@ -117,26 +117,25 @@ export class UserComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.userService.searchUsers(
-      this.filter,
-      this.currentPage,
-      this.pageSize
-    ).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.data = [];
-        this.total = 0;
-        return EMPTY;
-      }),
-      finalize(() => {
-        this.loading = false;
+    this.userService
+      .searchUsers(this.filter, this.currentPage, this.pageSize)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.data = [];
+          this.total = 0;
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        })
+      )
+      .subscribe((res: PagingResponse<UserResponse>) => {
+        this.data = res.data;
+        this.total = res.totalElement;
         this.cdr.markForCheck();
-      })
-    ).subscribe((res: PagingResponse<UserResponse>) => {
-      this.data = res.data;
-      this.total = res.totalElement;
-      this.cdr.markForCheck();
-    });
+      });
   }
 
   onSTChange(e: STChange): void {
@@ -201,16 +200,19 @@ export class UserComponent implements OnInit {
   }
 
   deleteUser(user: UserResponse): void {
-    this.userService.deleteUser(user.id).pipe(
-      takeUntilDestroyed(this.destroyRef),
-      catchError(() => {
-        this.message.error('Xóa người dùng thất bại');
-        return EMPTY;
-      })
-    ).subscribe(() => {
-      this.message.success('Xóa người dùng thành công');
-      this.loadData();
-    });
+    this.userService
+      .deleteUser(user.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.message.error('Xóa người dùng thất bại');
+          return EMPTY;
+        })
+      )
+      .subscribe(() => {
+        this.message.success('Xóa người dùng thành công');
+        this.loadData();
+      });
   }
 
   goToDetail(user: UserResponse): void {

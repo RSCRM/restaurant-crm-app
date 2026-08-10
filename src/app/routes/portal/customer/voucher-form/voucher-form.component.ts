@@ -1,8 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -11,7 +21,6 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NZ_MODAL_DATA, NzModalRef } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 
 import { VoucherResponse } from '../customer.model';
 import { CustomerService } from '../customer.service';
@@ -111,7 +120,7 @@ export class VoucherFormComponent implements OnInit {
 
     const codeCtrl = this.form.get('voucherCode');
     const limitCtrl = this.form.get('usageLimit');
-    if (!!v?.voucherCode) {
+    if (v?.voucherCode) {
       codeCtrl?.setValidators([Validators.required]);
       limitCtrl?.setValidators([Validators.required, Validators.min(1)]);
     }

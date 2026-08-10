@@ -1,7 +1,7 @@
 <page-header [title]="(managerMode ? 'schedule.staff-title' : 'schedule.title') | i18n" />
 
 <nz-card>
-  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px">
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center">
     @if (managerMode) {
       <button nz-button nzType="primary" (click)="openCreate()">
         <span nz-icon nzType="plus"></span>
@@ -12,15 +12,15 @@
     <button nz-button (click)="showThisWeek()">{{ 'schedule.this-week' | i18n }}</button>
     @if (managerMode) {
       <nz-select
-        style="min-width: 220px"
+        style="min-width: 280px"
         nzAllowClear
+        nzShowSearch
+        [nzFilterOption]="employeeFilterOption"
         [nzPlaceHolder]="'schedule.select-employee' | i18n"
         [(ngModel)]="selectedEmployeeId"
-        (ngModelChange)="filterByEmployee()"
       >
-        <nz-option [nzValue]="null" [nzLabel]="'schedule.all-employees' | i18n" />
-        @for (employee of employees; track employee.id) {
-          <nz-option [nzValue]="employee.id" [nzLabel]="employee.name" />
+        @for (employee of managedEmployees; track employee.id) {
+          <nz-option [nzValue]="employee.id" [nzLabel]="employee.name + ' - ' + employee.fullName + ' - ' + employee.email" />
         }
       </nz-select>
     }
@@ -29,13 +29,38 @@
       <span nz-icon nzType="search"></span>
       {{ 'schedule.view' | i18n }}
     </button>
-    <button nz-button (click)="showThisWeek()">
+    <button nz-button (click)="reloadAll()">
       <span nz-icon nzType="reload"></span>
       {{ 'action.reload' | i18n }}
     </button>
+    @if (ownerContext) {
+      <nz-select
+        class="branch-selector"
+        nzDropdownClassName="branch-dropdown"
+        style="min-width: 260px; margin-left: auto"
+        nzShowSearch
+        [nzFilterOption]="branchFilterOption"
+        [nzPlaceHolder]="'schedule.select-branch' | i18n"
+        [(ngModel)]="selectedBranchId"
+        (ngModelChange)="onBranchChange()"
+        [nzSuffixIcon]="branchIconTpl"
+      >
+        @for (branch of branches; track branch.id) {
+          <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+        }
+      </nz-select>
+      <ng-template #branchIconTpl>
+        <span nz-icon nzType="shop" class="branch-icon"></span>
+      </ng-template>
+    }
   </div>
 
-  <st [columns]="columns" [data]="schedules" [loading]="loading" [page]="{ show: false }">
+  <st
+    [columns]="columns"
+    [data]="schedules"
+    [loading]="loading"
+    [page]="{ show: true, showSize: true, showQuickJumper: false, pageSizes: [5, 10, 20, 50] }"
+  >
     <ng-template st-row="date" let-item>{{ item.workDate | date: 'dd/MM/yyyy' }}</ng-template>
     <ng-template st-row="time" let-item>{{ item.startTime.slice(0, 5) }}–{{ item.endTime.slice(0, 5) }}</ng-template>
     <ng-template st-row="note" let-item>{{ item.note || '-' }}</ng-template>
@@ -69,9 +94,16 @@
       <nz-form-item>
         <nz-form-label nzRequired>{{ 'schedule.employee' | i18n }}</nz-form-label>
         <nz-form-control>
-          <nz-select [(ngModel)]="createForm.employeeId" name="employeeId" [nzPlaceHolder]="'schedule.select-employee' | i18n">
+          <nz-select
+            nzShowSearch
+            nzMode="multiple"
+            [nzFilterOption]="employeeFilterOption"
+            [(ngModel)]="createForm.employeeIds"
+            name="employeeIds"
+            [nzPlaceHolder]="'schedule.select-employee' | i18n"
+          >
             @for (employee of managedEmployees; track employee.id) {
-              <nz-option [nzValue]="employee.id" [nzLabel]="employee.name + ' - ' + employee.branchName" />
+              <nz-option [nzValue]="employee.id" [nzLabel]="employee.name + ' - ' + employee.fullName + ' - ' + employee.email" />
             }
           </nz-select>
         </nz-form-control>
@@ -90,6 +122,18 @@
           <nz-form-control><input nz-input type="time" [(ngModel)]="createForm.endTime" name="endTime" /></nz-form-control>
         </nz-form-item>
       </div>
+      <nz-form-item>
+        <nz-form-label>{{ 'schedule.note' | i18n }}</nz-form-label>
+        <nz-form-control>
+          <textarea
+            nz-input
+            [nzAutosize]="{ minRows: 2, maxRows: 6 }"
+            [(ngModel)]="createForm.note"
+            name="note"
+            [placeholder]="'schedule.note-placeholder' | i18n"
+          ></textarea>
+        </nz-form-control>
+      </nz-form-item>
     </form>
   </ng-container>
 </nz-modal>

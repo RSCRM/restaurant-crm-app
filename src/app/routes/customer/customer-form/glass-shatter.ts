@@ -36,7 +36,7 @@ export class GlassShatter {
 
   // Reset lerp
   private resetT = 0;
-  private resetStarts: { x: number; y: number; angle: number }[] = [];
+  private resetStarts: Array<{ x: number; y: number; angle: number }> = [];
   private onDone: (() => void) | null = null;
   private savedOverflow = '';
 
@@ -61,7 +61,10 @@ export class GlassShatter {
   }
 
   resetForm(callback?: () => void): void {
-    if (this.phase !== 'exploding') { callback?.(); return; }
+    if (this.phase !== 'exploding') {
+      callback?.();
+      return;
+    }
     this.onDone = callback || null;
     this.resetT = 0;
     this.resetStarts = this.bodies.map(b => ({ x: b.x, y: b.y, angle: b.angle }));
@@ -69,9 +72,15 @@ export class GlassShatter {
   }
 
   destroy(): void {
-    if (this.animId != null) { cancelAnimationFrame(this.animId); this.animId = null; }
+    if (this.animId != null) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
     // Restore hidden source elements
-    this.hiddenSources.forEach(el => { el.style.visibility = ''; el.style.opacity = ''; });
+    this.hiddenSources.forEach(el => {
+      el.style.visibility = '';
+      el.style.opacity = '';
+    });
     this.hiddenSources = [];
     if (this.overlay?.parentNode) this.overlay.parentNode.removeChild(this.overlay);
     this.overlay = null;
@@ -94,7 +103,7 @@ export class GlassShatter {
       height: '100vh',
       pointerEvents: 'none',
       zIndex: '999999',
-      overflow: 'hidden'  // Hard clip — nothing escapes the viewport
+      overflow: 'hidden' // Hard clip — nothing escapes the viewport
     });
     document.body.appendChild(this.overlay);
   }
@@ -158,10 +167,10 @@ export class GlassShatter {
 
       Object.assign(clone.style, {
         position: 'fixed',
-        left: rect.left + 'px',
-        top: rect.top + 'px',
-        width: rect.width + 'px',
-        height: rect.height + 'px',
+        left: `${rect.left}px`,
+        top: `${rect.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
         margin: '0',
         boxSizing: 'border-box',
         pointerEvents: 'none',
@@ -264,15 +273,29 @@ export class GlassShatter {
       const hw = b.origW / 2;
       const hh = b.origH / 2;
 
-      if (b.x - hw < 0) { b.x = hw; b.vx = Math.abs(b.vx) * BOUNCE; b.vAngle *= -0.5; }
-      if (b.x + hw > W) { b.x = W - hw; b.vx = -Math.abs(b.vx) * BOUNCE; b.vAngle *= -0.5; }
-      if (b.y - hh < 0) { b.y = hh; b.vy = Math.abs(b.vy) * BOUNCE; }
+      if (b.x - hw < 0) {
+        b.x = hw;
+        b.vx = Math.abs(b.vx) * BOUNCE;
+        b.vAngle *= -0.5;
+      }
+      if (b.x + hw > W) {
+        b.x = W - hw;
+        b.vx = -Math.abs(b.vx) * BOUNCE;
+        b.vAngle *= -0.5;
+      }
+      if (b.y - hh < 0) {
+        b.y = hh;
+        b.vy = Math.abs(b.vy) * BOUNCE;
+      }
       if (b.y + hh > H) {
         b.y = H - hh;
         b.vy = -Math.abs(b.vy) * BOUNCE;
         b.vx *= FLOOR_FRICTION;
         b.vAngle *= FLOOR_FRICTION;
-        if (Math.abs(b.vy) < 1.5) { b.vy = 0; b.y = H - hh; }
+        if (Math.abs(b.vy) < 1.5) {
+          b.vy = 0;
+          b.y = H - hh;
+        }
       }
     });
   }
@@ -305,8 +328,8 @@ export class GlassShatter {
 
   private updateDOM(): void {
     this.bodies.forEach(b => {
-      b.el.style.left = (b.x - b.origW / 2) + 'px';
-      b.el.style.top = (b.y - b.origH / 2) + 'px';
+      b.el.style.left = `${b.x - b.origW / 2}px`;
+      b.el.style.top = `${b.y - b.origH / 2}px`;
       b.el.style.transform = `rotate(${b.angle}rad)`;
     });
   }

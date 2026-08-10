@@ -3,7 +3,7 @@
     <h2 nz-typography>{{ 'app.login.title' | i18n }}</h2>
 
     @if (error$ | async; as error) {
-      <nz-alert nzType="error" [nzMessage]="error" nzShowIcon class="mb-md"></nz-alert>
+      <nz-alert nzType="error" [nzMessage]="error" nzShowIcon class="mb-md" />
     }
 
     <form nz-form [formGroup]="form" (ngSubmit)="submit()">

@@ -25,7 +25,7 @@ interface LangConfigData {
   delon: NzSafeAny;
 }
 
-const DEFAULT = 'en-US';
+const DEFAULT = 'vi-VN';
 const LANGS: Record<string, LangConfigData> = {
   'vi-VN': {
     text: 'Tiếng Việt',
@@ -73,10 +73,9 @@ export class I18NService extends AlainI18nBaseService {
     if (this.settings.layout.lang) {
       return this.settings.layout.lang;
     }
-    // let res = (navigator.languages ? navigator.languages[0] : null) || navigator.language;
-    // const arr = res.split('-');
-    // return arr.length <= 1 ? res : `${arr[0]}-${arr[1].toUpperCase()}`;
-    return DEFAULT;
+    const res = (navigator.languages ? navigator.languages[0] : null) || navigator.language;
+    const arr = res.split('-');
+    return arr.length <= 1 ? res : `${arr[0]}-${arr[1].toUpperCase()}`;
   }
 
   loadLangData(lang: string): Observable<NzSafeAny> {

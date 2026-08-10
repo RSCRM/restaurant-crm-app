@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
@@ -19,7 +19,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
-import { combineLatest, finalize, firstValueFrom, Subscription, timer } from 'rxjs';
+import { finalize, firstValueFrom, Subscription, timer } from 'rxjs';
 
 import {
   isBookingDue,
@@ -32,8 +32,11 @@ import {
   TableStatus
 } from './table.model';
 import { TableService } from './table.service';
-import { selectOrgRole, selectPermissions } from '../../auth/store/auth.selectors';
+import { selectHasPermission, selectSelectedContext } from '../../auth/store/auth.selectors';
+import { OrganizationBranchResponse } from '../branch/branch.model';
 import { CheckoutModalComponent } from '../invoice/checkout-modal/checkout-modal.component';
+import { AddItemFormComponent } from '../order/order-detail/add-item-form.component';
+import { OrderFormComponent } from '../order/order-form/order-form.component';
 
 @Component({
   selector: 'app-table',
@@ -68,6 +71,7 @@ export class TableComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(Store);
+  private readonly router = inject(Router);
 
   mapLoading = false;
   saving = false;
@@ -83,8 +87,12 @@ export class TableComponent implements OnInit {
   canUpdateTable = false;
   canDeleteTable = false;
   canViewBooking = false;
+  ownerContext = false;
+  branches: OrganizationBranchResponse[] = [];
+  private organizationId = '';
 
   selectedAreaId: string | null = null;
+  branchId = '';
   areas: TableAreaMap[] = [];
 
   keyword = '';
@@ -96,28 +104,56 @@ export class TableComponent implements OnInit {
   tableForm: SaveTableRequest = { areaId: '', tableNumber: '', capacity: 1, status: 'AVAILABLE' };
   bookingsByTable = new Map<string, TableBooking>();
   now = Date.now();
+  showActionsTableIds = new Set<string>();
   private mapSubscription?: Subscription;
   private bookingSubscription?: Subscription;
 
   ngOnInit(): void {
-    combineLatest([this.store.select(selectOrgRole), this.store.select(selectPermissions)])
+    this.store
+      .select(selectHasPermission('RESTAURANT_TABLE_ADD'))
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([role, permissions]) => {
-        const isOwner = role === 'OWNER';
-        const isManager = role === 'MANAGER';
-        this.canAddTable = isOwner || (isManager && permissions.includes('RESTAURANT_TABLE_ADD'));
-        this.canUpdateTable = isOwner || (isManager && permissions.includes('RESTAURANT_TABLE_UPDATE'));
-        this.canDeleteTable = isOwner || (isManager && permissions.includes('RESTAURANT_TABLE_DELETE'));
-        this.canViewBooking = isOwner || permissions.includes('BOOKING_READ');
+      .subscribe(v => {
+        this.canAddTable = v;
         this.cdr.markForCheck();
       });
-    timer(0, 30_000)
+    this.store
+      .select(selectHasPermission('RESTAURANT_TABLE_UPDATE'))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(v => {
+        this.canUpdateTable = v;
+        this.cdr.markForCheck();
+      });
+    this.store
+      .select(selectHasPermission('RESTAURANT_TABLE_DELETE'))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(v => {
+        this.canDeleteTable = v;
+        this.cdr.markForCheck();
+      });
+    this.store
+      .select(selectHasPermission('BOOKING_READ'))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(v => {
+        this.canViewBooking = v;
+        this.cdr.markForCheck();
+      });
+    timer(0, 10_000)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.now = Date.now();
-        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       });
-    this.reload();
+    this.store
+      .select(selectSelectedContext)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(context => {
+        if (!context) return;
+        this.ownerContext = context.role === 'OWNER';
+        this.organizationId = context.organizationId;
+        this.branchId = context.branchId ?? '';
+        if (this.ownerContext) this.loadBranches();
+        else this.reload();
+      });
   }
 
   get visibleAreas(): TableAreaMap[] {
@@ -153,7 +189,12 @@ export class TableComponent implements OnInit {
     return this.bookingsByTable.size;
   }
 
+  onSearchChange(keyword: string): void {
+    this.keyword = keyword;
+  }
+
   reload(): void {
+    this.showActionsTableIds.clear();
     this.loadMap();
   }
 
@@ -161,7 +202,7 @@ export class TableComponent implements OnInit {
     this.mapSubscription?.unsubscribe();
     this.mapLoading = true;
     this.mapSubscription = this.tableService
-      .getMap()
+      .getMap(undefined, this.branchId || undefined)
       .pipe(
         finalize(() => {
           this.mapLoading = false;
@@ -170,6 +211,7 @@ export class TableComponent implements OnInit {
       )
       .subscribe({
         next: map => {
+          this.branchId = map.branchId;
           this.areas = map.areas;
           this.loadBookings(map.branchId);
         },
@@ -177,8 +219,26 @@ export class TableComponent implements OnInit {
       });
   }
 
+  onBranchChange(): void {
+    if (!this.branchId) return;
+    localStorage.setItem(this.branchStorageKey(), this.branchId);
+    this.selectedAreaId = null;
+    this.areas = [];
+    this.bookingsByTable.clear();
+    this.reload();
+  }
+
+  branchFilterOption = (input: string, option: { nzValue: string; nzLabel: string | number | null }): boolean => {
+    const branch = this.branches.find(item => item.id === option.nzValue);
+    return !!branch && `${branch.branchName} ${branch.address ?? ''}`.toLowerCase().includes(input.toLowerCase());
+  };
+
   loadBookings(branchId: string): void {
     this.bookingSubscription?.unsubscribe();
+    if (!this.canViewBooking) {
+      this.bookingsByTable.clear();
+      return;
+    }
     this.bookingSubscription = this.tableService.getActiveBookings(branchId).subscribe({
       next: bookings => {
         this.bookingsByTable = new Map();
@@ -327,7 +387,7 @@ export class TableComponent implements OnInit {
       const modalRef = this.modal.create({
         nzTitle: `Thanh toán ${table.tableNumber}`,
         nzContent: CheckoutModalComponent,
-        nzWidth: 640,
+        nzWidth: 1200,
         nzFooter: null
       });
       modalRef.getContentComponent().orderId = order.orderId;
@@ -340,6 +400,64 @@ export class TableComponent implements OnInit {
     } finally {
       this.finishingTableId = null;
       this.cdr.markForCheck();
+    }
+  }
+
+  async viewOrderDetails(table: TableStatus): Promise<void> {
+    try {
+      const order = await firstValueFrom(this.tableService.getActiveOrder(table.id));
+      this.router.navigate(['/portal/order', order.orderId, 'detail']);
+    } catch (error: unknown) {
+      const detail = (error as { error?: { errorMessage?: { message?: string } } }).error?.errorMessage?.message;
+      this.message.error(detail ?? 'Không thể tải đơn hàng của bàn');
+    }
+  }
+
+  async openOrder(table: TableStatus): Promise<void> {
+    try {
+      const order = await firstValueFrom(this.tableService.getActiveOrder(table.id));
+      const modalRef = this.modal.create({
+        nzTitle: `Thêm món cho ${table.tableNumber}`,
+        nzContent: AddItemFormComponent,
+        nzWidth: 1450,
+        nzFooter: null,
+        nzData: { orderId: order.orderId, branchId: this.branchId },
+        nzOnCancel: instance => {
+          modalRef.destroy(instance.hasAdded);
+        }
+      });
+      modalRef.afterClose.subscribe(result => {
+        if (result) {
+          this.reload();
+        }
+      });
+    } catch {
+      if (!this.branchId) return;
+      const modalRef = this.modal.create({
+        nzTitle: `Tạo order ${table.tableNumber}`,
+        nzContent: OrderFormComponent,
+        nzWidth: 700,
+        nzData: { branchId: this.branchId, tableId: table.id }
+      });
+      modalRef.afterClose.subscribe(orderId => {
+        if (orderId) {
+          const addModalRef = this.modal.create({
+            nzTitle: `Thêm món cho ${table.tableNumber}`,
+            nzContent: AddItemFormComponent,
+            nzWidth: 1450,
+            nzFooter: null,
+            nzData: { orderId, branchId: this.branchId },
+            nzOnCancel: instance => {
+              addModalRef.destroy(instance.hasAdded);
+            }
+          });
+          addModalRef.afterClose.subscribe(result => {
+            if (result) {
+              this.reload();
+            }
+          });
+        }
+      });
     }
   }
 
@@ -357,9 +475,15 @@ export class TableComponent implements OnInit {
     return !!booking && isBookingLocked(booking.bookingTime, this.now);
   }
 
+  showActionsForTable(tableId: string): void {
+    this.showActionsTableIds.add(tableId);
+    this.cdr.markForCheck();
+  }
+
   confirmReservation(table: TableStatus): void {
     const booking = this.bookingFor(table.id);
-    if (!booking || !this.bookingDueFor(table.id) || table.status === 'OCCUPIED') return;
+    if (!booking || table.status === 'OCCUPIED') return;
+    if (!this.bookingDueFor(table.id) && !this.showActionsTableIds.has(table.id)) return;
     this.modal.confirm({
       nzTitle: 'Xác nhận đặt bàn',
       nzContent: `Xác nhận đặt bàn cho ${table.tableNumber}?`,
@@ -450,5 +574,26 @@ export class TableComponent implements OnInit {
       this.bookingActionTableId = null;
       this.cdr.markForCheck();
     }
+  }
+
+  private loadBranches(): void {
+    this.tableService
+      .getOrganizationBranches()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: branches => {
+          this.branches = branches.filter(branch => branch.status === 'ACTIVE');
+          const savedBranchId = localStorage.getItem(this.branchStorageKey());
+          this.branchId = this.branches.some(branch => branch.id === savedBranchId) ? savedBranchId! : (this.branches[0]?.id ?? '');
+          if (this.branchId) localStorage.setItem(this.branchStorageKey(), this.branchId);
+          this.reload();
+          this.cdr.markForCheck();
+        },
+        error: () => this.message.error('Không thể tải danh sách chi nhánh')
+      });
+  }
+
+  private branchStorageKey(): string {
+    return `table_branch_${this.organizationId}`;
   }
 }

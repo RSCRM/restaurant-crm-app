@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { contextGuard } from '../auth/guards/context.guard';
+import { featureContextGuard } from '../auth/guards/feature-context.guard';
 import { ownerGuard } from '../auth/guards/owner.guard';
 import { permissionGuard } from '../auth/guards/permission.guard';
 
@@ -45,13 +46,13 @@ export const routes: Routes = [
   },
   {
     path: 'table/:id/detail',
-    canActivate: [contextGuard, permissionGuard('TABLE_MAP_READ'), permissionGuard('BOOKING_READ')],
+    canActivate: [featureContextGuard, permissionGuard('TABLE_MAP_READ'), permissionGuard('BOOKING_READ')],
     loadComponent: () => import('./table/table-detail.component').then(m => m.TableDetailComponent)
   },
   {
     path: 'table',
     canActivate: [
-      contextGuard,
+      featureContextGuard,
       permissionGuard('TABLE_MAP_READ'),
       permissionGuard('TABLE_SEARCH_READ'),
       permissionGuard('TABLE_SESSION_CREATE')
@@ -109,12 +110,12 @@ export const routes: Routes = [
   },
   {
     path: 'attendance',
-    canActivate: [contextGuard],
+    canActivate: [featureContextGuard],
     loadComponent: () => import('./attendance/attendance.component').then(m => m.AttendanceComponent)
   },
   {
     path: 'schedule',
-    canActivate: [contextGuard],
+    canActivate: [featureContextGuard],
     loadComponent: () => import('./schedule/schedule.component').then(m => m.ScheduleComponent)
   }
 ];

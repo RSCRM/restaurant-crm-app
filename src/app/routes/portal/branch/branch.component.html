@@ -74,10 +74,11 @@
             </button>
           }
 
-          <!-- Nut "Gan quan ly" da bi go cung voi openAssignManager() trong branch.component.ts:
-               no phu thuoc EmployeeSelectionModalComponent va EmployeeResponse.userId, ca hai
-               khong con sau khi employee module duoc viet lai theo API contract that. -->
           @if (canAssignManager()) {
+            <button nz-button nzType="link" type="button" (click)="openAssignManager(item)">
+              <span nz-icon nzType="user-switch" nzTheme="outline"></span>
+              {{ (item.managerId ? 'branch.manager.replace' : 'branch.manager.assign') | i18n }}
+            </button>
             @if (item.managerId) {
               <button
                 nz-button
@@ -116,3 +117,15 @@
     }
   }
 </div>
+
+<ng-template #managerPickerTpl>
+  <nz-select
+    [(ngModel)]="selectedManagerId"
+    style="width: 100%"
+    [nzPlaceHolder]="'branch.manager.selectPlaceholder' | i18n"
+  >
+    @for (employee of managerCandidates; track employee.id) {
+      <nz-option [nzValue]="employee.id" [nzLabel]="employee.fullName || employee.username" />
+    }
+  </nz-select>
+</ng-template>

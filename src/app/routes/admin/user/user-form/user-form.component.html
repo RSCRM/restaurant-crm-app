@@ -55,9 +55,15 @@
 } @else {
   <!-- Edit Roles Mode -->
   <div class="user-info">
-    <p><strong>{{ 'app.user.username' | i18n }}:</strong> {{ user?.username }}</p>
-    <p><strong>{{ 'app.user.email' | i18n }}:</strong> {{ user?.email }}</p>
-    <p><strong>{{ 'app.user.status' | i18n }}:</strong> {{ user?.status }}</p>
+    <p
+      ><strong>{{ 'app.user.username' | i18n }}:</strong> {{ user?.username }}</p
+    >
+    <p
+      ><strong>{{ 'app.user.email' | i18n }}:</strong> {{ user?.email }}</p
+    >
+    <p
+      ><strong>{{ 'app.user.status' | i18n }}:</strong> {{ user?.status }}</p
+    >
   </div>
 
   <form nz-form [formGroup]="rolesForm" (ngSubmit)="submit()" nzLayout="vertical">
@@ -67,17 +73,13 @@
         <div class="role-listbox">
           @if (rolesLoading) {
             <div class="role-listbox-loading">
-              <nz-spin nzSimple></nz-spin>
+              <nz-spin nzSimple />
             </div>
           } @else if (roles.length === 0) {
             <div class="role-listbox-empty">Không có vai trò nào</div>
           } @else {
             @for (role of roles; track role.id) {
-              <div
-                class="role-item"
-                [class.selected]="isRoleSelected(role.id)"
-                (click)="toggleRole(role.id)"
-              >
+              <div class="role-item" [class.selected]="isRoleSelected(role.id)" (click)="toggleRole(role.id)">
                 <div class="role-item-header">
                   <span class="checkbox" [class.checked]="isRoleSelected(role.id)">
                     @if (isRoleSelected(role.id)) {

@@ -118,6 +118,10 @@ export class CustomerComponent implements OnInit, OnDestroy {
   searchVoucherTitle = '';
   filterVoucherStatus = 'ALL';
   filterVoucherType: 'ALL' | 'POINT' | 'CODE' = 'ALL';
+  filterMinDiscount: number | null = null;
+  filterMaxDiscount: number | null = null;
+  filterVoucherMinPoints: number | null = null;
+  filterVoucherMaxPoints: number | null = null;
 
   // Delon ST Columns for Point History
   pointColumns: STColumn[] = [];
@@ -168,6 +172,8 @@ export class CustomerComponent implements OnInit, OnDestroy {
     this.pointColumns = [
       { title: this.i18n.fanyi('customer.history.col.type'), render: 'type', width: 140 },
       { title: this.i18n.fanyi('customer.history.col.amount'), render: 'amount', width: 140 },
+      { title: this.i18n.fanyi('customer.history.col.balanceAfter'), index: 'balanceAfter', width: 120, type: 'number' },
+      { title: this.i18n.fanyi('customer.history.col.source'), index: 'source' },
       { title: this.i18n.fanyi('customer.history.col.referenceId'), index: 'referenceId' },
       { title: this.i18n.fanyi('customer.history.col.createdAt'), index: 'createdAt', width: 180, type: 'date' }
     ];
@@ -625,6 +631,19 @@ export class CustomerComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(v => !!v.voucherCode);
     }
 
+    if (this.filterMinDiscount !== null) {
+      filtered = filtered.filter(v => v.discountPercent >= this.filterMinDiscount!);
+    }
+    if (this.filterMaxDiscount !== null) {
+      filtered = filtered.filter(v => v.discountPercent <= this.filterMaxDiscount!);
+    }
+    if (this.filterVoucherMinPoints !== null) {
+      filtered = filtered.filter(v => v.pointsRequired >= this.filterVoucherMinPoints!);
+    }
+    if (this.filterVoucherMaxPoints !== null) {
+      filtered = filtered.filter(v => v.pointsRequired <= this.filterVoucherMaxPoints!);
+    }
+
     if (this.searchVoucherTitle.trim()) {
       const q = this.searchVoucherTitle.trim().toLowerCase();
       filtered = filtered.filter(v => {
@@ -664,13 +683,21 @@ export class CustomerComponent implements OnInit, OnDestroy {
     this.searchVoucherTitle = '';
     this.filterVoucherStatus = 'ALL';
     this.filterVoucherType = 'ALL';
+    this.filterMinDiscount = null;
+    this.filterMaxDiscount = null;
+    this.filterVoucherMinPoints = null;
+    this.filterVoucherMaxPoints = null;
     this.filterSystemVouchers();
   }
 
   get hasActiveVoucherFilter(): boolean {
     return this.searchVoucherTitle.trim() !== '' ||
       this.filterVoucherStatus !== 'ALL' ||
-      this.filterVoucherType !== 'ALL';
+      this.filterVoucherType !== 'ALL' ||
+      this.filterMinDiscount !== null ||
+      this.filterMaxDiscount !== null ||
+      this.filterVoucherMinPoints !== null ||
+      this.filterVoucherMaxPoints !== null;
   }
 
   onSysVoucherSTChange(e: STChange): void {

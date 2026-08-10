@@ -76,20 +76,14 @@ export class CustomerService {
 
   // 6. Get All System Vouchers
   getVouchers(restaurantId: string, paging: PagingParams): Observable<PagingResponse<VoucherResponse>> {
-    const params = new HttpParams()
-      .set('branchId', restaurantId)
-      .set('page', paging.page.toString())
-      .set('size', paging.size.toString());
+    const params = new HttpParams().set('branchId', restaurantId).set('page', paging.page.toString()).set('size', paging.size.toString());
 
     return this.http.get<ApiResponse<PagingResponse<VoucherResponse>>>(`${this.CRM_API}/vouchers`, { params }).pipe(map(res => res.data));
   }
 
   // 7. Get Active System Vouchers (for redeem/give selection)
   getActiveVouchers(restaurantId: string, paging: PagingParams): Observable<PagingResponse<VoucherResponse>> {
-    const params = new HttpParams()
-      .set('branchId', restaurantId)
-      .set('page', paging.page.toString())
-      .set('size', paging.size.toString());
+    const params = new HttpParams().set('branchId', restaurantId).set('page', paging.page.toString()).set('size', paging.size.toString());
 
     return this.http
       .get<ApiResponse<PagingResponse<VoucherResponse>>>(`${this.CRM_API}/vouchers/active`, { params })
@@ -170,17 +164,13 @@ export class CustomerService {
 
   // 13. Give Voucher Bulk
   giveVoucherBulk(customerIds: string[], branchId: string, voucherId: string): Observable<void> {
-    let params = new HttpParams()
-      .set('branchId', branchId)
-      .set('voucherId', voucherId);
+    let params = new HttpParams().set('branchId', branchId).set('voucherId', voucherId);
 
     customerIds.forEach(id => {
       params = params.append('customerIds', id);
     });
 
-    return this.http
-      .post<ApiResponse<void>>(`${this.CRM_API}/customer-vouchers/bulk-give`, null, { params })
-      .pipe(map(() => undefined));
+    return this.http.post<ApiResponse<void>>(`${this.CRM_API}/customer-vouchers/bulk-give`, null, { params }).pipe(map(() => undefined));
   }
 
   // 14. Update Customer Status for Organization (Lock / Unlock Customer)

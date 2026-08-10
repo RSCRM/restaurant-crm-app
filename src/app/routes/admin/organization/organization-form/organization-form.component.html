@@ -22,17 +22,18 @@
           [nzOptionHeightPx]="48"
           [nzDropdownStyle]="{ 'max-height': '320px', 'overflow-y': 'auto' }"
           (nzOnSearch)="onUserSearch($event)"
-          style="width: 100%;"
+          style="width: 100%"
         >
           @for (user of users; track user.id) {
-            <nz-option
-              [nzValue]="user.id"
-              [nzLabel]="user.username"
-              nzCustomContent
-            >
+            <nz-option [nzValue]="user.id" [nzLabel]="user.username" nzCustomContent>
               <div class="user-option">
                 <div class="user-name">{{ user.username }}</div>
-                <div class="user-info">{{ user.email }} @if (user.fullName) { · {{ user.fullName }} }</div>
+                <div class="user-info"
+                  >{{ user.email }}
+                  @if (user.fullName) {
+                    · {{ user.fullName }}
+                  }
+                </div>
               </div>
             </nz-option>
           }

@@ -92,11 +92,11 @@ export interface TableBooking {
 }
 
 export function isBookingDue(bookingTime: string, now = Date.now()): boolean {
-  return new Date(bookingTime).getTime() <= now + 5 * 60_000;
+  return new Date(bookingTime).getTime() <= now;
 }
 
 export function isBookingLocked(bookingTime: string, now = Date.now()): boolean {
-  return new Date(bookingTime).getTime() <= now + 30 * 60_000;
+  return new Date(bookingTime).getTime() <= now + 15 * 60_000;
 }
 
 export interface TableSession {

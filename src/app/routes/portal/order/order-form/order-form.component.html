@@ -22,7 +22,7 @@
     <nz-form-control>
       <nz-select formControlName="orderType">
         @for (opt of orderTypeOptions; track opt.value) {
-          <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+          <nz-option [nzValue]="opt.value" [nzLabel]="opt.label" />
         }
       </nz-select>
     </nz-form-control>
@@ -78,7 +78,7 @@
         <nz-form-item>
           <nz-form-label>{{ 'app.order.form.quantity' | i18n }}</nz-form-label>
           <nz-form-control>
-            <nz-input-number formControlName="quantity" [nzMin]="1" style="width: 100%;"></nz-input-number>
+            <nz-input-number formControlName="quantity" [nzMin]="1" style="width: 100%" />
           </nz-form-control>
         </nz-form-item>
 

@@ -72,6 +72,10 @@ export class AuthService {
     return localStorage.getItem('auth_contextToken');
   }
 
+  clearContextToken(): void {
+    localStorage.removeItem('auth_contextToken');
+  }
+
   setAccessToken(token: string): void {
     localStorage.setItem('auth_accessToken', token);
   }

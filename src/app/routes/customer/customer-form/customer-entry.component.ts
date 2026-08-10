@@ -2,15 +2,15 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inje
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzResultModule } from 'ng-zorro-antd/result';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzStepsModule } from 'ng-zorro-antd/steps';
-import { NzIconModule } from 'ng-zorro-antd/icon';
 
-import { CustomerService } from '../customer.service';
 import { QrResolveResponse } from '../customer.model';
+import { CustomerService } from '../customer.service';
 import { GlassShatter, ShatterOptions } from './glass-shatter';
 
 @Component({
@@ -127,44 +127,52 @@ export class CustomerEntryComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-    this.customerService.verifyOtp({
-      qrToken: this.qrToken,
-      customerPhone: this.phone.trim(),
-      otpCode: this.otp.trim()
-    }).subscribe({
-      next: res => {
-        this.otpTicket = res.otpTicket;
-        this.createSession();
-      },
-      error: err => {
-        this.loading = false;
-        this.message.error(err?.error?.errorMessage || 'Mã OTP không đúng!');
-        this.cdr.markForCheck();
-      }
-    });
+    this.customerService
+      .verifyOtp({
+        qrToken: this.qrToken,
+        customerPhone: this.phone.trim(),
+        otpCode: this.otp.trim()
+      })
+      .subscribe({
+        next: res => {
+          this.otpTicket = res.otpTicket;
+          this.createSession();
+        },
+        error: err => {
+          this.loading = false;
+          this.message.error(err?.error?.errorMessage || 'Mã OTP không đúng!');
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   private createSession(): void {
-    this.customerService.startSession({
-      qrToken: this.qrToken,
-      customerPhone: this.phone.trim(),
-      otpTicket: this.otpTicket
-    }).subscribe({
-      next: () => {
-        this.loading = false;
-        this.message.success('Xác thực thành công! Chuyển đến thực đơn...');
-        this.router.navigate(['/customer/menu']);
-      },
-      error: err => {
-        this.loading = false;
-        if (err?.status === 409 || err?.error?.errorCode === 'TQR_TABLE_SESSION_EXISTS') {
-          this.message.error('Bàn ' + (this.tableInfo?.tableNumber || 'này') + ' đang có phiên gọi món chưa đóng. Vui lòng chạy `docker exec -it redis-crm redis-cli flushall` để reset bàn!');
-        } else {
-          this.message.error(err?.error?.errorMessage || 'Không thể tạo phiên. Vui lòng thử lại!');
+    this.customerService
+      .startSession({
+        qrToken: this.qrToken,
+        customerPhone: this.phone.trim(),
+        otpTicket: this.otpTicket
+      })
+      .subscribe({
+        next: () => {
+          this.loading = false;
+          this.message.success('Xác thực thành công! Chuyển đến thực đơn...');
+          this.router.navigate(['/customer/menu']);
+        },
+        error: err => {
+          this.loading = false;
+          if (err?.status === 409 || err?.error?.errorCode === 'TQR_TABLE_SESSION_EXISTS') {
+            this.message.error(
+              `Bàn ${
+                this.tableInfo?.tableNumber || 'này'
+              } đang có phiên gọi món chưa đóng. Vui lòng chạy \`docker exec -it redis-crm redis-cli flushall\` để reset bàn!`
+            );
+          } else {
+            this.message.error(err?.error?.errorMessage || 'Không thể tạo phiên. Vui lòng thử lại!');
+          }
+          this.cdr.markForCheck();
         }
-        this.cdr.markForCheck();
-      }
-    });
+      });
   }
 
   goBackToPhone(): void {
