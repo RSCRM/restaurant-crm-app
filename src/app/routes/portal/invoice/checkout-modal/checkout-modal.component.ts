@@ -79,14 +79,12 @@ export class CheckoutModalComponent implements OnInit {
   ngOnInit(): void {
     if (this.orderId) {
       this.loadOrderDetails();
-      this.loadVouchers();
     }
   }
 
   onOrderIdChange(): void {
     if (this.orderId && this.orderId.trim().length >= 10) {
       this.loadOrderDetails();
-      this.loadVouchers();
     } else {
       this.applicableVouchers = [];
       this.selectedVoucherId = '';
@@ -103,6 +101,12 @@ export class CheckoutModalComponent implements OnInit {
       next: res => {
         this.order = res;
         this.orderLoading = false;
+        if (res.customerPhone?.trim()) {
+          this.loadVouchers();
+        } else {
+          this.applicableVouchers = [];
+          this.selectedVoucherId = '';
+        }
         this.cdr.markForCheck();
       },
       error: () => {

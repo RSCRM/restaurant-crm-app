@@ -19,6 +19,13 @@ export interface ScheduleEmployeeResponse {
   branchName: string;
 }
 
+export interface ScheduleBranchResponse {
+  id: string;
+  branchName: string;
+  address: string | null;
+  status: string;
+}
+
 export interface ScheduleRangeCreationRequest {
   employeeIds: string[];
   from: string;

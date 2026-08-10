@@ -24,6 +24,8 @@ export const authReducer = createReducer(
     ...state,
     accessToken,
     refreshToken,
+    contextToken: null,
+    permissions: [],
     contexts,
     systemRoles,
     loading: false,

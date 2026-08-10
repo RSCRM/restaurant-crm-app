@@ -86,9 +86,10 @@ import { OrderService } from '../order.service';
       <!-- Right Column: Cart / Items List -->
       <div class="list-column">
         @if (isConfirmed) {
-          <div class="success-alert">
+          <div class="success-banner">
             <span nz-icon nzType="check-circle" nzTheme="fill" class="success-icon"></span>
-            <div class="success-text">Xác nhận gửi món thành công!</div>
+            <div class="success-title">Gửi món thành công!</div>
+            <div class="success-subtitle">Các món ăn đã được chuyển đến bộ phận bếp chế biến thành công.</div>
           </div>
         }
 
@@ -176,9 +177,11 @@ import { OrderService } from '../order.service';
         display: flex;
         gap: 24px;
         align-items: stretch;
+        height: 650px;
       }
       .modal-body-container.confirmed {
         display: block;
+        height: auto;
       }
       .form-column {
         flex: 1.3;
@@ -200,12 +203,12 @@ import { OrderService } from '../order.service';
       }
       .dish-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 12px;
-        max-height: 480px;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 14px;
         overflow-y: auto;
         padding-right: 4px;
         flex: 1;
+        align-content: start;
       }
       .dish-card {
         background: #fff;
@@ -218,7 +221,7 @@ import { OrderService } from '../order.service';
         cursor: pointer;
         transition: all 0.2s ease-in-out;
         position: relative;
-        min-height: 84px;
+        height: 100px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
       }
       .dish-card:hover {
@@ -274,26 +277,52 @@ import { OrderService } from '../order.service';
         flex-direction: column;
       }
       .modal-body-container.confirmed .list-column {
-        max-width: 600px;
+        max-width: 900px;
+        width: 100%;
         margin: 0 auto;
+        padding: 10px 0;
       }
-      .success-alert {
+      .modal-body-container.confirmed .ordered-list {
+        max-height: 380px;
+        background: #ffffff;
+        border: 1px solid #e8e8e8;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        padding: 12px;
+        border-radius: 8px;
+      }
+      .modal-body-container.confirmed .modal-footer button {
+        height: 40px;
+        min-width: 120px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 6px;
+      }
+      .success-banner {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 12px;
+        justify-content: center;
+        padding: 24px;
         background: #f6ffed;
         border: 1px solid #b7eb8f;
-        padding: 12px;
-        border-radius: 4px;
-        margin-bottom: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
       }
       .success-icon {
         color: #52c41a;
-        font-size: 20px;
+        font-size: 44px;
+        margin-bottom: 8px;
       }
-      .success-text {
-        color: rgba(0, 0, 0, 0.85);
-        font-weight: 500;
+      .success-title {
+        color: #262626;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .success-subtitle {
+        color: #595959;
+        font-size: 13px;
       }
       .section-title {
         font-size: 14px;
@@ -308,11 +337,16 @@ import { OrderService } from '../order.service';
         border: 1px solid #f0f0f0;
         border-radius: 4px;
         padding: 8px;
-        max-height: 230px;
         overflow-y: auto;
         background: #fafafa;
         flex: 1;
         min-height: 120px;
+      }
+      .cart-list {
+        max-height: 350px;
+      }
+      .ordered-list {
+        max-height: 250px;
       }
       .empty-list-text {
         text-align: center;
@@ -438,7 +472,8 @@ import { OrderService } from '../order.service';
         display: flex;
         justify-content: flex-end;
         gap: 8px;
-        margin-top: 16px;
+        margin-top: auto;
+        padding-top: 12px;
       }
     `
   ]

@@ -18,7 +18,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { finalize, Observable, Subscription } from 'rxjs';
 
-import { PersonalScheduleResponse, ScheduleEmployeeResponse } from './schedule.model';
+import { PersonalScheduleResponse, ScheduleBranchResponse, ScheduleEmployeeResponse } from './schedule.model';
 import { ScheduleService } from './schedule.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { selectContextToken } from '../../auth/store/auth.selectors';
@@ -54,7 +54,9 @@ export class ScheduleComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 
-  selectedDate: Date | null = new Date();
+  selectedDate: Date | null = null;
+  private lastFrom: Date | null = null;
+  private lastTo: Date | null = null;
   allSchedules: PersonalScheduleResponse[] = [];
   schedules: PersonalScheduleResponse[] = [];
   employees: Array<{ id: string; name: string }> = [];
@@ -66,6 +68,10 @@ export class ScheduleComponent implements OnInit {
   createDateRange: Date[] = [new Date(), new Date()];
   createForm = { employeeIds: [] as string[], startTime: '08:00', endTime: '16:00', note: '' };
   managerMode = false;
+  ownerContext = false;
+  branches: ScheduleBranchResponse[] = [];
+  selectedBranchId: string | null = null;
+  private organizationId = '';
   columns: STColumn[] = [];
   private loadSubscription?: Subscription;
 
@@ -79,15 +85,24 @@ export class ScheduleComponent implements OnInit {
         const payload = this.authService.parseJwtPayload(token);
         const orgRole = payload['orgRole'];
         this.managerMode = orgRole === 'MANAGER' || orgRole === 'OWNER';
+        this.ownerContext = orgRole === 'OWNER';
+        this.organizationId = typeof payload['organizationId'] === 'string' ? payload['organizationId'] : '';
+        this.selectedBranchId = typeof payload['branchId'] === 'string' ? payload['branchId'] : null;
         this.updateColumns();
-        if (this.managerMode) this.loadManagedEmployees();
-        this.load();
+        const today = new Date();
+        if (this.ownerContext) {
+          this.loadBranches(today);
+        } else {
+          if (this.managerMode) this.loadManagedEmployees();
+          this.load(today, today);
+        }
       });
   }
 
   showToday(): void {
-    this.selectedDate = new Date();
-    this.load();
+    this.selectedDate = null;
+    const today = new Date();
+    this.load(today, today);
   }
 
   showThisWeek(): void {
@@ -125,6 +140,9 @@ export class ScheduleComponent implements OnInit {
       effectiveTo = sunday;
     }
 
+    this.lastFrom = effectiveFrom;
+    this.lastTo = effectiveTo;
+
     this.loadSubscription?.unsubscribe();
     this.loading = true;
     this.cdr.markForCheck();
@@ -138,10 +156,10 @@ export class ScheduleComponent implements OnInit {
         request$ = this.service.getPersonalSchedule(fromDate, toDate);
       } else if (this.selectedEmployeeId) {
         // Có chọn nhân viên cụ thể → gọi API lấy lịch riêng nhân viên đó
-        request$ = this.service.getStaffSchedule(this.selectedEmployeeId, fromDate, toDate);
+        request$ = this.service.getStaffSchedule(this.selectedEmployeeId, fromDate, toDate, this.selectedBranchId ?? undefined);
       } else {
         // Không chọn nhân viên → lấy tất cả
-        request$ = this.service.getManagedSchedules(fromDate, toDate);
+        request$ = this.service.getManagedSchedules(fromDate, toDate, this.selectedBranchId ?? undefined);
       }
 
       this.loadSubscription = request$
@@ -181,6 +199,24 @@ export class ScheduleComponent implements OnInit {
       : this.allSchedules;
     this.cdr.markForCheck();
   }
+
+  onBranchChange(): void {
+    if (!this.selectedBranchId) return;
+    localStorage.setItem(this.branchStorageKey(), this.selectedBranchId);
+    this.selectedEmployeeId = null;
+    this.createForm.employeeIds = [];
+    this.managedEmployees = [];
+    this.schedules = [];
+    this.loadManagedEmployees();
+    const today = new Date();
+    this.load(this.lastFrom ?? today, this.lastTo ?? today);
+  }
+
+  branchFilterOption = (input: string, option: { nzValue: string; nzLabel: string | number | null }): boolean => {
+    const branch = this.branches.find(item => item.id === option.nzValue);
+    const search = input.toLowerCase();
+    return !!branch && `${branch.branchName} ${branch.address ?? ''}`.toLowerCase().includes(search);
+  };
 
   employeeFilterOption = (input: string, option: { nzValue: string; nzLabel: string | number | null }): boolean => {
     const search = input.toLowerCase();
@@ -244,7 +280,7 @@ export class ScheduleComponent implements OnInit {
           } else {
             this.message.success(this.i18n.fanyi('schedule.create-success', { count: schedules.length }));
           }
-          this.load();
+          this.load(this.lastFrom, this.lastTo);
         },
         error: error => {
           this.creating = false;
@@ -280,7 +316,7 @@ export class ScheduleComponent implements OnInit {
 
   private loadManagedEmployees(): void {
     this.service
-      .getManagedEmployees()
+      .getManagedEmployees(this.selectedBranchId ?? undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: employees => {
@@ -289,6 +325,30 @@ export class ScheduleComponent implements OnInit {
         },
         error: () => this.message.error(this.i18n.fanyi('schedule.employee-load-failed'))
       });
+  }
+
+  private loadBranches(today: Date): void {
+    this.service
+      .getOrganizationBranches()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: branches => {
+          this.branches = branches.filter(branch => !branch.status || branch.status === 'ACTIVE');
+          const savedBranchId = localStorage.getItem(this.branchStorageKey());
+          this.selectedBranchId = this.branches.some(branch => branch.id === savedBranchId)
+            ? savedBranchId
+            : (this.branches[0]?.id ?? null);
+          if (this.selectedBranchId) localStorage.setItem(this.branchStorageKey(), this.selectedBranchId);
+          this.loadManagedEmployees();
+          this.load(today, today);
+          this.cdr.markForCheck();
+        },
+        error: () => this.message.error(this.i18n.fanyi('schedule.branch-load-failed'))
+      });
+  }
+
+  private branchStorageKey(): string {
+    return `schedule_branch_${this.organizationId}`;
   }
 
   private formatDate(date: Date | string): string {

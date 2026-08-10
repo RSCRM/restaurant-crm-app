@@ -1,7 +1,7 @@
 <page-header [title]="(managerMode ? 'schedule.staff-title' : 'schedule.title') | i18n" />
 
 <nz-card>
-  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px">
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: center">
     @if (managerMode) {
       <button nz-button nzType="primary" (click)="openCreate()">
         <span nz-icon nzType="plus"></span>
@@ -33,6 +33,26 @@
       <span nz-icon nzType="reload"></span>
       {{ 'action.reload' | i18n }}
     </button>
+    @if (ownerContext) {
+      <nz-select
+        class="branch-selector"
+        nzDropdownClassName="branch-dropdown"
+        style="min-width: 260px; margin-left: auto"
+        nzShowSearch
+        [nzFilterOption]="branchFilterOption"
+        [nzPlaceHolder]="'schedule.select-branch' | i18n"
+        [(ngModel)]="selectedBranchId"
+        (ngModelChange)="onBranchChange()"
+        [nzSuffixIcon]="branchIconTpl"
+      >
+        @for (branch of branches; track branch.id) {
+          <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+        }
+      </nz-select>
+      <ng-template #branchIconTpl>
+        <span nz-icon nzType="shop" class="branch-icon"></span>
+      </ng-template>
+    }
   </div>
 
   <st

@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '@env/environment';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 
-import { PersonalScheduleResponse, ScheduleEmployeeResponse, ScheduleRangeCreationRequest } from './schedule.model';
+import { PersonalScheduleResponse, ScheduleBranchResponse, ScheduleEmployeeResponse, ScheduleRangeCreationRequest } from './schedule.model';
 import { ApiResponse } from '../../auth/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
@@ -17,20 +17,32 @@ export class ScheduleService {
       .pipe(map(response => response.data ?? []));
   }
 
-  getManagedSchedules(from: string, to: string): Observable<PersonalScheduleResponse[]> {
+  getManagedSchedules(from: string, to: string, branchId?: string): Observable<PersonalScheduleResponse[]> {
+    const params: Record<string, string> = { from, to };
+    if (branchId) params['branchId'] = branchId;
     return this.http
-      .get<ApiResponse<PersonalScheduleResponse[]>>(`${this.api}/staff`, { params: { from, to } })
+      .get<ApiResponse<PersonalScheduleResponse[]>>(`${this.api}/staff`, { params })
       .pipe(map(response => response.data ?? []));
   }
 
-  getStaffSchedule(employeeId: string, from: string, to: string): Observable<PersonalScheduleResponse[]> {
+  getStaffSchedule(employeeId: string, from: string, to: string, branchId?: string): Observable<PersonalScheduleResponse[]> {
+    const params: Record<string, string> = { from, to };
+    if (branchId) params['branchId'] = branchId;
     return this.http
-      .get<ApiResponse<PersonalScheduleResponse[]>>(`${this.api}/staff/${employeeId}`, { params: { from, to } })
+      .get<ApiResponse<PersonalScheduleResponse[]>>(`${this.api}/staff/${employeeId}`, { params })
       .pipe(map(response => response.data ?? []));
   }
 
-  getManagedEmployees(): Observable<ScheduleEmployeeResponse[]> {
-    return this.http.get<ApiResponse<ScheduleEmployeeResponse[]>>(`${this.api}/staff/employees`).pipe(map(response => response.data));
+  getManagedEmployees(branchId?: string): Observable<ScheduleEmployeeResponse[]> {
+    return this.http
+      .get<ApiResponse<ScheduleEmployeeResponse[]>>(`${this.api}/staff/employees`, { params: branchId ? { branchId } : {} })
+      .pipe(map(response => response.data));
+  }
+
+  getOrganizationBranches(): Observable<ScheduleBranchResponse[]> {
+    return this.http
+      .get<ApiResponse<{ data: ScheduleBranchResponse[] }>>('/api/v1/erp/organization-branches', { params: { page: 1, size: 100 } })
+      .pipe(map(response => response.data.data));
   }
 
   createSchedules(request: ScheduleRangeCreationRequest): Observable<PersonalScheduleResponse[]> {

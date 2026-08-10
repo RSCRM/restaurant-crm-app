@@ -49,7 +49,10 @@ const defaultLang: AlainProvideLang = {
 };
 
 const alainConfig: AlainConfig = {
-  st: { modal: { size: 'lg' } },
+  st: {
+    modal: { size: 'lg' },
+    page: { pageSizes: [5, 10, 20, 50] }
+  },
   auth: { login_url: '/auth/login' }
 };
 

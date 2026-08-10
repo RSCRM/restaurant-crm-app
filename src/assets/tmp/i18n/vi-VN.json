@@ -562,6 +562,8 @@
   "schedule.range-exceeded": "Khoảng ngày không được vượt quá 31 ngày",
   "schedule.load-failed": "Không thể tải lịch làm việc",
   "schedule.select-employee": "Chọn nhân viên",
+  "schedule.select-branch": "Chọn chi nhánh",
+  "schedule.branch-load-failed": "Không thể tải danh sách chi nhánh",
   "schedule.all-employees": "Tất cả nhân viên",
   "schedule.create": "Tạo lịch",
   "schedule.create-title": "Tạo lịch làm việc",

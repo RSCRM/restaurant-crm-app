@@ -47,6 +47,8 @@ export interface AttendanceBranchResponse {
   id: string;
   organizationId: string;
   branchName: string;
+  address?: string | null;
+  status?: string;
 }
 
 export interface PagingResponse<T> {

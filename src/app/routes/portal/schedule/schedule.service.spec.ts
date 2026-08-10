@@ -18,10 +18,18 @@ describe('ScheduleService', () => {
     expect(request.request.params.get('to')).toBe('2026-08-07');
     request.flush({ data: [] });
 
-    service.getManagedSchedules('2026-08-01', '2026-08-07').subscribe(data => expect(data).toEqual([]));
+    service.getManagedSchedules('2026-08-01', '2026-08-07', 'branch-1').subscribe(data => expect(data).toEqual([]));
     const managedRequest = http.expectOne(req => req.url === '/api/v1/erp/schedules/staff');
     expect(managedRequest.request.method).toBe('GET');
+    expect(managedRequest.request.params.get('branchId')).toBe('branch-1');
     managedRequest.flush({ data: [] });
+
+    service.getOrganizationBranches().subscribe(data => expect(data).toEqual([]));
+    const branchesRequest = http.expectOne(req => req.url === '/api/v1/erp/organization-branches');
+    expect(branchesRequest.request.method).toBe('GET');
+    expect(branchesRequest.request.params.get('page')).toBe('1');
+    expect(branchesRequest.request.params.get('size')).toBe('100');
+    branchesRequest.flush({ data: { data: [] } });
     http.verify();
   });
 

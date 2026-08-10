@@ -67,9 +67,11 @@ export const selectPortalMenuState = createSelector(
   selectHasContext,
   selectIsOwner,
   selectPermissions,
-  (hasContext, isOwner, permissions) => ({
+  selectContexts,
+  (hasContext, isOwner, permissions, contexts) => ({
     hasContext,
-    canManageOrgRole: isOwner && permissions.includes('ORG_ROLE_MANAGE')
+    canManageOrgRole: isOwner && permissions.includes('ORG_ROLE_MANAGE'),
+    featureContextReady: hasContext || contexts.filter(context => context.role === 'OWNER').length === 1
   })
 );
 

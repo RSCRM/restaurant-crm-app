@@ -67,6 +67,7 @@ export class AuthEffects {
         ofType(AuthActions.loginSuccess),
         tap(({ accessToken, contexts, systemRoles }) => {
           this.authService.capturePendingAttendance();
+          this.authService.clearContextToken();
           this.authService.setAccessToken(accessToken);
           this.authService.setSystemRoles(systemRoles);
           this.authService.setContexts(contexts);
@@ -88,14 +89,14 @@ export class AuthEffects {
   selectContext$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.selectContext),
-      switchMap(({ organizationId, employeeId, branchId, role }) => {
+      switchMap(({ organizationId, employeeId, branchId, role, returnUrl }) => {
         const accessToken = this.authService.getAccessToken();
         return this.authService.selectContext({ organizationId, employeeId, branchId, role }, accessToken || '').pipe(
           map(response => {
             // contextToken is the main API token for business calls
             this.authService.setToken(response.contextToken, 72 * 60 * 60 * 1000);
             this.authService.setContextToken(response.contextToken);
-            return AuthActions.selectContextSuccess({ contextToken: response.contextToken });
+            return AuthActions.selectContextSuccess({ contextToken: response.contextToken, returnUrl });
           }),
           catchError(err => {
             const message = err?.error?.errorMessage?.message || err?.error?.message || err?.message || 'Chọn context thất bại';
@@ -111,9 +112,11 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.selectContextSuccess),
-        tap(() => {
+        tap(({ returnUrl }) => {
           // Reload to ensure portal layout picks up the new context state
-          window.location.href = this.authService.hasPendingAttendance() ? '/#/portal/attendance' : '/#/portal/dashboard';
+          window.location.href = this.authService.hasPendingAttendance()
+            ? '/#/portal/attendance'
+            : `/#${returnUrl?.startsWith('/portal/') ? returnUrl : '/portal/dashboard'}`;
         })
       ),
     { dispatch: false }

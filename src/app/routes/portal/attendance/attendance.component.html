@@ -1,23 +1,9 @@
 <page-header [title]="'menu.attendance' | i18n" />
 
 <nz-card>
-  <nz-tabs>
+  <nz-tabs [nzTabBarExtraContent]="extraTemplate">
     @if (hasBranchRead) {
       <nz-tab [nzTitle]="'attendance.tab.branch' | i18n">
-        @if (ownerContext) {
-          <div style="margin-bottom: 16px">
-            <nz-select
-              [(ngModel)]="selectedBranchId"
-              (ngModelChange)="onBranchChange()"
-              style="width: 260px"
-              [nzPlaceHolder]="'attendance.select-branch' | i18n"
-            >
-              @for (branch of branches; track branch.id) {
-                <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
-              }
-            </nz-select>
-          </div>
-        }
 
         <st [columns]="branchColumns" [data]="branchList" [loading]="loadingBranch" [page]="{ show: false }">
           <ng-template st-row="working" let-item>
@@ -68,7 +54,7 @@
           [pi]="employeeHistoryPage"
           [ps]="employeeHistorySize"
           [loading]="employeeHistoryLoading"
-          [page]="{ show: true, showSize: true }"
+          [page]="{ show: true, showSize: true, pageSizes: [5, 10, 20, 50] }"
           (change)="onEmployeeHistoryChange($event)"
         >
           <ng-template st-row="status" let-item>
@@ -163,7 +149,7 @@
           [pi]="currentPage"
           [ps]="pageSize"
           [loading]="loadingHistory"
-          [page]="{ show: true, showSize: true }"
+          [page]="{ show: true, showSize: true, pageSizes: [5, 10, 20, 50] }"
           (change)="onSTChange($event)"
         >
           <ng-template st-row="status" let-item>
@@ -185,11 +171,11 @@
               <div class="qr-pair">
                 <div class="qr-container">
                   <h4>{{ 'attendance.qr-checkin' | i18n }}</h4>
-                  <nz-qrcode [nzValue]="checkInQrUrl" [nzSize]="400" [nzPadding]="16" nzType="svg" nzLevel="L" />
+                  <nz-qrcode [nzValue]="checkInQrUrl" [nzSize]="560" [nzPadding]="16" nzType="svg" nzLevel="L" />
                 </div>
                 <div class="qr-container">
                   <h4>{{ 'attendance.qr-checkout' | i18n }}</h4>
-                  <nz-qrcode [nzValue]="checkOutQrUrl" [nzSize]="400" [nzPadding]="16" nzType="svg" nzLevel="L" />
+                  <nz-qrcode [nzValue]="checkOutQrUrl" [nzSize]="560" [nzPadding]="16" nzType="svg" nzLevel="L" />
                 </div>
               </div>
 
@@ -207,4 +193,27 @@
       </nz-tab>
     }
   </nz-tabs>
+
+  <ng-template #extraTemplate>
+    @if (ownerContext) {
+      <nz-select
+        class="branch-selector"
+        nzDropdownClassName="branch-dropdown"
+        [(ngModel)]="selectedBranchId"
+        (ngModelChange)="onBranchChange()"
+        style="width: 260px; margin-right: 16px"
+        nzShowSearch
+        [nzFilterOption]="branchFilterOption"
+        [nzPlaceHolder]="'attendance.select-branch' | i18n"
+        [nzSuffixIcon]="branchIconTpl"
+      >
+        @for (branch of branches; track branch.id) {
+          <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+        }
+      </nz-select>
+      <ng-template #branchIconTpl>
+        <span nz-icon nzType="shop" class="branch-icon"></span>
+      </ng-template>
+    }
+  </ng-template>
 </nz-card>

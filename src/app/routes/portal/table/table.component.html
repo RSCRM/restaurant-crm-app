@@ -2,33 +2,60 @@
 
 <nz-card>
   <div class="card-filters">
-    @if (canAddTable) {
-      <button nz-button nzType="primary" (click)="openCreateTable()" class="btn-add">
-        <span nz-icon nzType="plus"></span>
-        Thêm bàn
-      </button>
-    }
-
-    <input nz-input [(ngModel)]="keyword" placeholder="Tìm theo số bàn" class="filter-input" />
-
-    <nz-select [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear class="filter-select">
-      @for (area of areas; track area.id) {
-        <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+    <div class="filter-row">
+      @if (canAddTable) {
+        <button nz-button nzType="primary" (click)="openCreateTable()" class="btn-add">
+          <span nz-icon nzType="plus"></span>
+          Thêm bàn
+        </button>
       }
-    </nz-select>
 
-    <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear class="filter-select">
-      <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
-      <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
-      <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
-    </nz-select>
+      <input
+        nz-input
+        [ngModel]="keyword"
+        (ngModelChange)="onSearchChange($event)"
+        placeholder="Tìm theo số bàn"
+        class="filter-input"
+      />
 
-    <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" class="filter-number" />
+      <nz-select [(ngModel)]="selectedAreaId" [nzPlaceHolder]="'table.area.all' | i18n" nzAllowClear class="filter-select">
+        @for (area of areas; track area.id) {
+          <nz-option [nzValue]="area.id" [nzLabel]="area.areaName" />
+        }
+      </nz-select>
 
-    <button nz-button [nzLoading]="mapLoading" (click)="reset()" class="btn-reset">
-      <span nz-icon nzType="reload"></span>
-      {{ 'table.search.reset' | i18n }}
-    </button>
+      <nz-select [(ngModel)]="status" [nzPlaceHolder]="'table.status' | i18n" nzAllowClear class="filter-select">
+        <nz-option nzValue="AVAILABLE" [nzLabel]="'table.status.available' | i18n" />
+        <nz-option nzValue="OCCUPIED" [nzLabel]="'table.status.occupied' | i18n" />
+        <nz-option nzValue="RESERVED" [nzLabel]="'table.status.reserved' | i18n" />
+      </nz-select>
+
+      <nz-input-number [(ngModel)]="minCapacity" [nzMin]="1" [nzPlaceHolder]="'table.capacity' | i18n" class="filter-number" />
+
+      <button nz-button [nzLoading]="mapLoading" (click)="reset()" class="btn-reset">
+        <span nz-icon nzType="reload"></span>
+        {{ 'table.search.reset' | i18n }}
+      </button>
+
+      @if (ownerContext) {
+        <nz-select
+          class="branch-selector"
+          nzShowSearch
+          [nzFilterOption]="branchFilterOption"
+          nzPlaceHolder="Chọn chi nhánh"
+          [(ngModel)]="branchId"
+          (ngModelChange)="onBranchChange()"
+          [nzSuffixIcon]="branchIconTpl"
+        >
+          @for (branch of branches; track branch.id) {
+            <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+          }
+        </nz-select>
+        <ng-template #branchIconTpl>
+          <span nz-icon nzType="shop" class="branch-icon"></span>
+        </ng-template>
+      }
+    </div>
 
     <div class="status-summary" aria-label="Thống kê trạng thái bàn">
       <span><i class="status-dot available"></i>Trống: {{ availableCount }}</span>

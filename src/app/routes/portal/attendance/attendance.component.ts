@@ -101,6 +101,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   ownerContext = false;
   branches: AttendanceBranchResponse[] = [];
   selectedBranchId: string | null = null;
+  private organizationId = '';
   selectedEmployeeId: string | null = null;
   employeeHistory: AttendanceResponse[] = [];
   employeeHistoryTotal = 0;
@@ -115,7 +116,9 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   checkOutQrUrl = '';
   loadingQr = false;
   qrSecondsRemaining = 0;
+  private qrExpiresAt = 0;
   private qrTimerId?: ReturnType<typeof setInterval>;
+  private qrRequestSubscription?: Subscription;
   private dailyRefreshTimerId?: ReturnType<typeof setTimeout>;
   private attendanceEventsSubscription?: Subscription;
 
@@ -140,6 +143,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         if (!token) return;
         const payload = this.authService.parseJwtPayload(token);
         this.ownerContext = payload['orgRole'] === 'OWNER';
+        this.organizationId = typeof payload['organizationId'] === 'string' ? payload['organizationId'] : '';
         this.selectedBranchId = typeof payload['branchId'] === 'string' ? payload['branchId'] : null;
         if (this.ownerContext) {
           this.loadBranches();
@@ -152,6 +156,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(has => {
         this.hasQrDisplay = has;
+        if (has && (!this.ownerContext || this.selectedBranchId)) this.loadQr();
         this.cdr.markForCheck();
       });
 
@@ -193,6 +198,7 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearQrTimer();
+    this.qrRequestSubscription?.unsubscribe();
     clearTimeout(this.dailyRefreshTimerId);
     this.attendanceEventsSubscription?.unsubscribe();
     void this.stopAttendanceScanner();
@@ -274,18 +280,23 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       .getOrganizationBranches()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(branches => {
-        this.branches = branches;
-        if (!branches.some(branch => branch.id === this.selectedBranchId)) {
-          this.selectedBranchId = branches[0]?.id ?? null;
-        }
+        this.branches = branches.filter(branch => !branch.status || branch.status === 'ACTIVE');
+        const savedBranchId = localStorage.getItem(this.branchStorageKey());
+        const preferredBranchId = savedBranchId ?? this.selectedBranchId;
+        this.selectedBranchId = this.branches.some(branch => branch.id === preferredBranchId)
+          ? preferredBranchId
+          : (this.branches[0]?.id ?? null);
+        if (this.selectedBranchId) localStorage.setItem(this.branchStorageKey(), this.selectedBranchId);
         this.loadBranchAttendance();
         this.loadEmployeeHistory();
         this.startAttendanceRealtime();
+        if (this.hasQrDisplay) this.loadQr();
         this.cdr.markForCheck();
       });
   }
 
   onBranchChange(): void {
+    if (this.selectedBranchId) localStorage.setItem(this.branchStorageKey(), this.selectedBranchId);
     this.qrData = null;
     this.selectedEmployeeId = null;
     this.employeeHistoryDate = null;
@@ -295,9 +306,11 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.loadBranchAttendance();
     this.loadEmployeeHistory();
     this.startAttendanceRealtime();
+    if (this.hasQrDisplay) this.loadQr();
   }
 
   loadEmployeeHistory(): void {
+    if (this.ownerContext && !this.selectedBranchId) return;
     this.employeeHistoryLoading = true;
     this.attendanceService
       .getBranchHistory(
@@ -482,12 +495,16 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   // Branch Manager Tab logic
   loadQr(force = false): void {
+    this.qrRequestSubscription?.unsubscribe();
+    if (this.ownerContext && !this.selectedBranchId) {
+      this.loadingQr = false;
+      return;
+    }
     this.loadingQr = true;
     this.cdr.markForCheck();
     this.clearQrTimer();
 
-    if (this.ownerContext && !this.selectedBranchId) return;
-    this.attendanceService.getCurrentQr(this.selectedBranchId ?? undefined, force).subscribe({
+    this.qrRequestSubscription = this.attendanceService.getCurrentQr(this.selectedBranchId ?? undefined, force).subscribe({
       next: res => {
         this.qrData = res;
         const loginUrl = `${window.location.origin}/#/auth/login`;
@@ -496,9 +513,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
         this.loadingQr = false;
 
         // Calculate countdown from expiresAt
-        const expiresTime = new Date(res.expiresAt).getTime();
-        const nowTime = Date.now();
-        this.qrSecondsRemaining = Math.max(0, Math.floor((expiresTime - nowTime) / 1000));
+        this.qrExpiresAt = new Date(res.expiresAt).getTime();
+        this.qrSecondsRemaining = Math.max(0, Math.ceil((this.qrExpiresAt - Date.now()) / 1000));
 
         this.startQrTimer();
         this.cdr.markForCheck();
@@ -513,14 +529,16 @@ export class AttendanceComponent implements OnInit, OnDestroy {
 
   private startQrTimer(): void {
     this.qrTimerId = setInterval(() => {
-      if (this.qrSecondsRemaining > 0) {
-        this.qrSecondsRemaining--;
-        this.cdr.markForCheck();
-      } else {
-        // Expiry reached: refresh QR
+      const remaining = Math.max(0, Math.ceil((this.qrExpiresAt - Date.now()) / 1000));
+      if (remaining === this.qrSecondsRemaining) return;
+
+      this.qrSecondsRemaining = remaining;
+      if (remaining === 0) {
         this.loadQr();
+      } else {
+        this.cdr.markForCheck();
       }
-    }, 1000);
+    }, 250);
   }
 
   private clearQrTimer(): void {
@@ -547,7 +565,6 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   onSelectOtherTab(): void {
-    this.clearQrTimer();
     void this.stopAttendanceScanner();
   }
 
@@ -713,4 +730,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     const label = option.nzLabel ? String(option.nzLabel).toLowerCase() : '';
     return label.includes(search);
   };
+
+  branchFilterOption = (input: string, option: { nzValue: string; nzLabel: string | number | null }): boolean => {
+    const branch = this.branches.find(item => item.id === option.nzValue);
+    const search = input.toLowerCase();
+    return !!branch && `${branch.branchName} ${branch.address ?? ''}`.toLowerCase().includes(search);
+  };
+
+  private branchStorageKey(): string {
+    return `attendance_branch_${this.organizationId}`;
+  }
 }

@@ -1,6 +1,6 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 
-import { AuthUser, ContextInfo } from './auth.state';
+import { ContextInfo } from './auth.state';
 
 export const AuthActions = createActionGroup({
   source: 'Auth',
@@ -12,8 +12,8 @@ export const AuthActions = createActionGroup({
     'Login Success': props<{ accessToken: string; refreshToken: string; contexts: ContextInfo[]; systemRoles: string[] }>(),
     'Login Failure': props<{ error: string }>(),
 
-    'Select Context': props<{ organizationId: string; employeeId?: string; branchId?: string; role: string }>(),
-    'Select Context Success': props<{ contextToken: string }>(),
+    'Select Context': props<{ organizationId: string; employeeId?: string; branchId?: string; role: string; returnUrl?: string }>(),
+    'Select Context Success': props<{ contextToken: string; returnUrl?: string }>(),
     'Select Context Failure': props<{ error: string }>(),
 
     Logout: emptyProps(),

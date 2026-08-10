@@ -32,7 +32,8 @@ import {
   TableStatus
 } from './table.model';
 import { TableService } from './table.service';
-import { selectHasPermission } from '../../auth/store/auth.selectors';
+import { selectHasPermission, selectSelectedContext } from '../../auth/store/auth.selectors';
+import { OrganizationBranchResponse } from '../branch/branch.model';
 import { CheckoutModalComponent } from '../invoice/checkout-modal/checkout-modal.component';
 import { AddItemFormComponent } from '../order/order-detail/add-item-form.component';
 import { OrderFormComponent } from '../order/order-form/order-form.component';
@@ -86,6 +87,9 @@ export class TableComponent implements OnInit {
   canUpdateTable = false;
   canDeleteTable = false;
   canViewBooking = false;
+  ownerContext = false;
+  branches: OrganizationBranchResponse[] = [];
+  private organizationId = '';
 
   selectedAreaId: string | null = null;
   branchId = '';
@@ -139,7 +143,17 @@ export class TableComponent implements OnInit {
         this.now = Date.now();
         this.cdr.detectChanges();
       });
-    this.reload();
+    this.store
+      .select(selectSelectedContext)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(context => {
+        if (!context) return;
+        this.ownerContext = context.role === 'OWNER';
+        this.organizationId = context.organizationId;
+        this.branchId = context.branchId ?? '';
+        if (this.ownerContext) this.loadBranches();
+        else this.reload();
+      });
   }
 
   get visibleAreas(): TableAreaMap[] {
@@ -175,6 +189,10 @@ export class TableComponent implements OnInit {
     return this.bookingsByTable.size;
   }
 
+  onSearchChange(keyword: string): void {
+    this.keyword = keyword;
+  }
+
   reload(): void {
     this.showActionsTableIds.clear();
     this.loadMap();
@@ -184,7 +202,7 @@ export class TableComponent implements OnInit {
     this.mapSubscription?.unsubscribe();
     this.mapLoading = true;
     this.mapSubscription = this.tableService
-      .getMap()
+      .getMap(undefined, this.branchId || undefined)
       .pipe(
         finalize(() => {
           this.mapLoading = false;
@@ -201,8 +219,26 @@ export class TableComponent implements OnInit {
       });
   }
 
+  onBranchChange(): void {
+    if (!this.branchId) return;
+    localStorage.setItem(this.branchStorageKey(), this.branchId);
+    this.selectedAreaId = null;
+    this.areas = [];
+    this.bookingsByTable.clear();
+    this.reload();
+  }
+
+  branchFilterOption = (input: string, option: { nzValue: string; nzLabel: string | number | null }): boolean => {
+    const branch = this.branches.find(item => item.id === option.nzValue);
+    return !!branch && `${branch.branchName} ${branch.address ?? ''}`.toLowerCase().includes(input.toLowerCase());
+  };
+
   loadBookings(branchId: string): void {
     this.bookingSubscription?.unsubscribe();
+    if (!this.canViewBooking) {
+      this.bookingsByTable.clear();
+      return;
+    }
     this.bookingSubscription = this.tableService.getActiveBookings(branchId).subscribe({
       next: bookings => {
         this.bookingsByTable = new Map();
@@ -383,7 +419,7 @@ export class TableComponent implements OnInit {
       const modalRef = this.modal.create({
         nzTitle: `Thêm món cho ${table.tableNumber}`,
         nzContent: AddItemFormComponent,
-        nzWidth: 1200,
+        nzWidth: 1450,
         nzFooter: null,
         nzData: { orderId: order.orderId, branchId: this.branchId },
         nzOnCancel: instance => {
@@ -408,7 +444,7 @@ export class TableComponent implements OnInit {
           const addModalRef = this.modal.create({
             nzTitle: `Thêm món cho ${table.tableNumber}`,
             nzContent: AddItemFormComponent,
-            nzWidth: 1200,
+            nzWidth: 1450,
             nzFooter: null,
             nzData: { orderId, branchId: this.branchId },
             nzOnCancel: instance => {
@@ -538,5 +574,26 @@ export class TableComponent implements OnInit {
       this.bookingActionTableId = null;
       this.cdr.markForCheck();
     }
+  }
+
+  private loadBranches(): void {
+    this.tableService
+      .getOrganizationBranches()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: branches => {
+          this.branches = branches.filter(branch => branch.status === 'ACTIVE');
+          const savedBranchId = localStorage.getItem(this.branchStorageKey());
+          this.branchId = this.branches.some(branch => branch.id === savedBranchId) ? savedBranchId! : (this.branches[0]?.id ?? '');
+          if (this.branchId) localStorage.setItem(this.branchStorageKey(), this.branchId);
+          this.reload();
+          this.cdr.markForCheck();
+        },
+        error: () => this.message.error('Không thể tải danh sách chi nhánh')
+      });
+  }
+
+  private branchStorageKey(): string {
+    return `table_branch_${this.organizationId}`;
   }
 }
