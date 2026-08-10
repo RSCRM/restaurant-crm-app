@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { BranchManagerResponse, BranchMutationRequest, OrganizationBranchResponse, PagingParams, PagingResponse } from './branch.model';
+import { BranchMutationRequest, BranchSearchParams, OrganizationBranchResponse, PagingResponse } from './branch.model';
 import { ApiResponse } from '../../auth/models/auth.model';
 
 @Injectable({ providedIn: 'root' })
@@ -10,10 +10,18 @@ export class BranchService {
   private http = inject(HttpClient);
 
   private readonly BRANCH_API = '/api/v1/erp/organization-branches';
-  private readonly BRANCH_MANAGER_API = '/api/v1/personal/branches';
 
-  getBranches(organizationId: string, params: PagingParams): Observable<PagingResponse<OrganizationBranchResponse>> {
-    const httpParams = new HttpParams().set('page', params.page.toString()).set('size', params.size.toString());
+  getBranches(organizationId: string, params: BranchSearchParams): Observable<PagingResponse<OrganizationBranchResponse>> {
+    let httpParams = new HttpParams().set('page', params.page.toString()).set('size', params.size.toString());
+    const keyword = params.keyword?.trim();
+
+    if (keyword) {
+      httpParams = httpParams.set('keyword', keyword);
+    }
+
+    if (params.status) {
+      httpParams = httpParams.set('status', params.status);
+    }
 
     return this.http
       .get<ApiResponse<PagingResponse<OrganizationBranchResponse>>>(`${this.BRANCH_API}/organization/${organizationId}`, {
@@ -36,21 +44,5 @@ export class BranchService {
 
   deleteBranch(branchId: string): Observable<void> {
     return this.http.delete<ApiResponse<void>>(`${this.BRANCH_API}/${branchId}`).pipe(map(() => undefined));
-  }
-
-  getBranchManager(branchId: string): Observable<BranchManagerResponse> {
-    return this.http.get<ApiResponse<BranchManagerResponse>>(`${this.BRANCH_MANAGER_API}/${branchId}/manager`).pipe(map(res => res.data));
-  }
-
-  assignManager(branchId: string, managerUserId: string): Observable<BranchManagerResponse> {
-    return this.http
-      .put<ApiResponse<BranchManagerResponse>>(`${this.BRANCH_MANAGER_API}/${branchId}/manager`, { managerId: managerUserId })
-      .pipe(map(res => res.data));
-  }
-
-  removeManager(branchId: string): Observable<BranchManagerResponse> {
-    return this.http
-      .delete<ApiResponse<BranchManagerResponse>>(`${this.BRANCH_MANAGER_API}/${branchId}/manager`)
-      .pipe(map(res => res.data));
   }
 }

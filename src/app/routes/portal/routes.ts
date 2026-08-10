@@ -84,6 +84,11 @@ export const routes: Routes = [
     ]
   },
   {
+    path: 'branch',
+    canActivate: [contextGuard, permissionGuard('ORGANIZATION_BRANCH_VIEW')],
+    loadComponent: () => import('./branch/branch.component').then(m => m.BranchComponent)
+  },
+  {
     path: 'employee',
     canActivate: [contextGuard, permissionGuard('EMPLOYEE_VIEW')],
     loadComponent: () => import('./employee/employee.component').then(m => m.EmployeeComponent)

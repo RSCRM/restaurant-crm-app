@@ -1,12 +1,21 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
-import { AuthState, SelectedContext } from './auth.state';
+import { AuthState, ContextInfo, SelectedContext } from './auth.state';
 
 export const selectAuthState = createFeatureSelector<AuthState>('auth');
 
+function dedupeContexts(contexts: ContextInfo[]): ContextInfo[] {
+  const seen = new Set<string>();
+  return (contexts || []).filter(context => {
+    const key = [context.organizationId, context.branchId ?? '', context.role].join('|');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 export const selectAccessToken = createSelector(selectAuthState, s => s.accessToken);
 export const selectContextToken = createSelector(selectAuthState, s => s.contextToken);
-export const selectContexts = createSelector(selectAuthState, s => s.contexts);
+export const selectContexts = createSelector(selectAuthState, s => dedupeContexts(s.contexts));
 export const selectSystemRoles = createSelector(selectAuthState, s => s.systemRoles);
 export const selectAuthUser = createSelector(selectAuthState, s => s.user);
 export const selectAuthLoading = createSelector(selectAuthState, s => s.loading);

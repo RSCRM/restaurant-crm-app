@@ -7,19 +7,25 @@
 .branch-toolbar {
   display: flex;
   flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.branch-toolbar-left,
+.branch-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  justify-content: flex-end;
+  align-items: center;
 }
 
-.branch-cell-subtext {
-  margin-top: 2px;
-  font-size: 12px;
-  line-height: 18px;
-  color: #8c8c8c;
+.branch-search {
+  width: 280px;
 }
 
-.branch-cell-muted {
-  color: #8c8c8c;
+.branch-status-filter {
+  width: 180px;
 }
 
 .branch-row-actions {
