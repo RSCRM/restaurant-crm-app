@@ -24,12 +24,15 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 import {
   InventoryCategoryResponse,
-  PagingResponse,
-  PagingParams
+  InventoryCategoryStatus,
+  PagingParams,
+  PagingResponse
 } from '../inventory.model';
 import { InventoryService } from '../inventory.service';
 import { InventoryCategoryFormComponent } from '../inventory-category-form/inventory-category-form.component';
-
+import { NzTagComponent } from 'ng-zorro-antd/tag';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { ALAIN_I18N_TOKEN } from '@delon/theme';
 @Component({
   selector: 'app-inventory-category',
   standalone: true,
@@ -45,8 +48,9 @@ import { InventoryCategoryFormComponent } from '../inventory-category-form/inven
     NzInputModule,
     NzIconModule,
     NzModalModule,
-
-    I18nPipe
+    NzSwitchModule,
+    I18nPipe,
+    NzTagComponent,
   ],
   templateUrl: './inventory-category.component.html',
   styleUrl: './inventory-category.component.less'
@@ -57,10 +61,14 @@ export class InventoryCategoryComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly message = inject(NzMessageService);
   private readonly destroyRef = inject(DestroyRef);
-
+  private readonly i18n = inject(ALAIN_I18N_TOKEN);
+  readonly inventoryCategoryStatus = InventoryCategoryStatus;
   loading = false;
 
   categories: InventoryCategoryResponse[] = [];
+
+  /** Search text */
+  searchKeyword = '';
 
   total = 0;
   currentPage = 1;
@@ -76,24 +84,26 @@ export class InventoryCategoryComponent implements OnInit {
       index: 'description'
     },
     {
+      title: { i18n: 'app.inventory.category.status' },
+      index: 'status',
+      render: 'status',
+      width: 120
+    },
+    {
       title: { i18n: 'app.inventory.category.action' },
-      width: 200,
+      width: 120,
       buttons: [
         {
           icon: 'edit',
           i18n: 'app.inventory.category.edit',
           click: record => this.openEdit(record)
-        },
-        {
-          icon: 'delete',
-          i18n: 'app.inventory.category.delete',
-          type: 'del',
-          pop: {
-            title: 'app.inventory.category.deleteConfirm'
-          },
-          click: record => this.delete(record.id)
         }
       ]
+    },
+    {
+      title: { i18n: 'app.inventory.category.enabled' },
+      render: 'statusSwitch',
+      width: 100
     }
   ];
 
@@ -110,8 +120,12 @@ export class InventoryCategoryComponent implements OnInit {
       size: this.pageSize
     };
 
-    this.inventoryService
-      .getInventoryCategories(params)
+    const request =
+      this.searchKeyword.trim().length > 0
+        ? this.inventoryService.searchInventoryCategories(this.searchKeyword.trim(), this.currentPage, this.pageSize)
+        : this.inventoryService.getInventoryCategories(params);
+
+    request
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError(() => {
@@ -163,20 +177,51 @@ export class InventoryCategoryComponent implements OnInit {
     });
   }
 
-  delete(id: string): void {
+  confirmToggle(category: InventoryCategoryResponse): void {
+    const enable =
+      category.status === InventoryCategoryStatus.INACTIVE;
+
+    this.modal.confirm({
+      nzTitle: this.i18n.fanyi('app.inventory.category.confirm.title'),
+      nzContent: this.i18n.fanyi(
+        enable
+          ? 'app.inventory.category.enableConfirm'
+          : 'app.inventory.category.disableConfirm'
+      ),
+      nzOnOk: () => this.updateStatus(category, enable)
+    });
+  }
+
+  private updateStatus(
+    category: InventoryCategoryResponse,
+    enabled: boolean
+  ): void {
     this.inventoryService
-      .deleteInventoryCategory(id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError(() => {
-          this.message.error('Delete inventory category failed');
-          return EMPTY;
-        })
-      )
+      .updateInventoryCategoryStatus(category.id, {
+        status: enabled
+          ? InventoryCategoryStatus.ACTIVE
+          : InventoryCategoryStatus.INACTIVE
+      })
       .subscribe(() => {
-        this.message.success('Inventory category deleted successfully');
-        this.loadData();
+        category.status = enabled
+          ? InventoryCategoryStatus.ACTIVE
+          : InventoryCategoryStatus.INACTIVE;
+
+        this.cdr.markForCheck();
       });
+  }
+
+  getCategoryStatusColor(status: InventoryCategoryStatus): string {
+    switch (status) {
+      case InventoryCategoryStatus.ACTIVE:
+        return 'success';
+
+      case InventoryCategoryStatus.INACTIVE:
+        return 'default';
+
+      default:
+        return 'default';
+    }
   }
 
   search(): void {
@@ -185,6 +230,7 @@ export class InventoryCategoryComponent implements OnInit {
   }
 
   reset(): void {
+    this.searchKeyword = '';
     this.currentPage = 1;
     this.loadData();
   }

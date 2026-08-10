@@ -29,7 +29,7 @@ export interface AuthUser {
 export interface SelectedContext {
   organizationId: string;
   branchId: string | null;
-  role: string | null;
+  role: string;
   dataScope: string | null;
 }
 

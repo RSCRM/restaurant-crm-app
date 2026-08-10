@@ -63,6 +63,7 @@ import {
   SoundOutline,
   StarOutline,
   StopOutline,
+  SwapOutline,
   TagOutline,
   TagsOutline,
   TaobaoCircleOutline,
@@ -72,6 +73,8 @@ import {
   TrophyOutline,
   UnlockOutline,
   UsbOutline,
+  UserAddOutline,
+  UserDeleteOutline,
   UserOutline,
   WeiboCircleOutline
 } from '@ant-design/icons-angular/icons';
@@ -136,6 +139,7 @@ export const ICONS_AUTO = [
   SoundOutline,
   StarOutline,
   StopOutline,
+  SwapOutline,
   TagOutline,
   TagsOutline,
   TaobaoCircleOutline,
@@ -145,6 +149,8 @@ export const ICONS_AUTO = [
   TrophyOutline,
   UnlockOutline,
   UsbOutline,
+  UserAddOutline,
+  UserDeleteOutline,
   UserOutline,
   WeiboCircleOutline
 ];

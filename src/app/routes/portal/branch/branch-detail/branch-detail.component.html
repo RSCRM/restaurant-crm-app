@@ -26,14 +26,6 @@
       </nz-tag>
     </nz-descriptions-item>
 
-    <nz-descriptions-item [nzTitle]="'branch.manager.current' | i18n">
-      @if (branch.managerName || branch.managerUsername || branch.managerEmail) {
-        <div>{{ branch.managerName || branch.managerUsername }}</div>
-        <div class="branch-detail-subtext">{{ branch.managerEmail || ('common.emptyValue' | i18n) }}</div>
-      } @else {
-        {{ 'branch.manager.empty' | i18n }}
-      }
-    </nz-descriptions-item>
   </nz-descriptions>
 
   <div class="branch-detail-actions">

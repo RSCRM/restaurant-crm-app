@@ -16,7 +16,6 @@
     <nz-descriptions nzBordered [nzColumn]="2">
       <nz-descriptions-item [nzTitle]="'app.organization.detail.id' | i18n">{{ organization.id }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.col.name' | i18n">{{ organization.organizationName }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.organization.detail.ownerId' | i18n">{{ organization.ownerId }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.col.taxCode' | i18n">{{ organization.taxCode || '-' }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.col.address' | i18n">{{ organization.address || '-' }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.col.phone' | i18n">{{ organization.phone || '-' }}</nz-descriptions-item>
@@ -29,6 +28,81 @@
       <nz-descriptions-item [nzTitle]="'app.organization.col.createdAt' | i18n">{{ organization.createdAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
       <nz-descriptions-item [nzTitle]="'app.organization.detail.updatedAt' | i18n">{{ organization.updatedAt | date:'dd/MM/yyyy HH:mm' }}</nz-descriptions-item>
     </nz-descriptions>
+  </nz-card>
+
+  <!-- Branches -->
+  <nz-card [nzTitle]="'app.organization.branches.title' | i18n" class="mb-16">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <nz-input-group [nzPrefix]="prefixBranchSearch" style="width: 250px;">
+          <input
+            nz-input
+            [placeholder]="'app.organization.branches.searchPlaceholder' | i18n"
+            [(ngModel)]="branchSearchValue"
+            (keyup.enter)="branchSearch()"
+          />
+        </nz-input-group>
+        <ng-template #prefixBranchSearch>
+          <span nz-icon nzType="search" nzTheme="outline"></span>
+        </ng-template>
+
+        <button nz-button nzType="primary" (click)="branchSearch()">
+          {{ 'app.organization.branches.search' | i18n }}
+        </button>
+
+        <button nz-button nzType="default" (click)="branchToggleFilter()">
+          <span nz-icon nzType="filter" nzTheme="outline"></span>
+          {{ 'app.organization.branches.filter' | i18n }}
+          @if (branchHasActiveFilter) {
+            <span class="filter-badge"></span>
+          }
+        </button>
+
+        @if (branchHasActiveFilter) {
+          <button nz-button nzType="default" nzDanger (click)="branchClearFilter()">
+            <span nz-icon nzType="close-circle" nzTheme="outline"></span>
+            {{ 'app.organization.branches.clearFilter' | i18n }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (branchShowFilter) {
+      <div class="filter-panel">
+        <div nz-row [nzGutter]="[16, 0]">
+          <div nz-col [nzSpan]="6">
+            <nz-form-item>
+              <nz-form-label>{{ 'app.organization.branch.filter.status' | i18n }}</nz-form-label>
+              <nz-form-control>
+                <nz-select [(ngModel)]="branchFilter['status']" style="width: 100%;">
+                  @for (opt of branchStatusOptions; track opt.value) {
+                    <nz-option [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </div>
+    }
+
+    <st
+      [columns]="branchColumns"
+      [data]="branches"
+      [total]="branchTotal"
+      [ps]="branchPageSize"
+      [pi]="branchCurrentPage"
+      [loading]="branchLoading"
+      [scroll]="{ x: '1030px' }"
+      [page]="{ show: true, showSize: true }"
+      (change)="onBranchSTChange($event)"
+    >
+      <ng-template st-row="branchStatus" let-item>
+        <nz-tag [nzColor]="getBranchStatusColor(item.status)">
+          {{ getBranchStatusText(item.status) | i18n }}
+        </nz-tag>
+      </ng-template>
+    </st>
   </nz-card>
 
   <!-- Subscription History -->

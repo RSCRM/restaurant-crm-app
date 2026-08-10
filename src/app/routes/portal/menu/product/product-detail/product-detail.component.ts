@@ -14,6 +14,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { catchError, EMPTY, finalize, switchMap } from 'rxjs';
 
+import { BranchService } from '../../../branch/branch.service';
 import { menuErrorMessage } from '../../menu-error';
 import { CategoryResponse, ProductResponse } from '../../menu.model';
 import { MenuService } from '../../menu.service';
@@ -42,12 +43,14 @@ export class ProductDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private menuService = inject(MenuService);
+  private branchService = inject(BranchService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
 
   product: ProductResponse | null = null;
   categories: CategoryResponse[] = [];
+  branchName = '-';
   loading = true;
   productId = '';
 
@@ -59,6 +62,7 @@ export class ProductDetailComponent implements OnInit {
   loadDetail(): void {
     this.loading = true;
     this.product = null;
+    this.branchName = '-';
     this.cdr.markForCheck();
 
     this.menuService
@@ -67,6 +71,7 @@ export class ProductDetailComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
         switchMap(product => {
           this.product = product;
+          this.loadBranchName(product.branchId);
           return this.menuService.listCategories(product.branchId);
         }),
         catchError((err: HttpErrorResponse) => {
@@ -82,6 +87,16 @@ export class ProductDetailComponent implements OnInit {
       )
       .subscribe(categories => {
         this.categories = categories;
+        this.cdr.markForCheck();
+      });
+  }
+
+  private loadBranchName(branchId: string): void {
+    this.branchService
+      .getBranch(branchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(branch => {
+        this.branchName = branch.branchName;
         this.cdr.markForCheck();
       });
   }

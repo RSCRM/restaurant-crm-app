@@ -132,6 +132,7 @@ export class CustomerService {
     paging?: PagingParams,
     sortBy = 'updatedAt',
     sortDirection = 'DESC',
+    status?: string | null,
     minPoints?: number | null,
     maxPoints?: number | null,
     minLifetimePoints?: number | null,
@@ -145,6 +146,9 @@ export class CustomerService {
 
     if (searchPhone && searchPhone.trim()) {
       params = params.set('searchPhone', searchPhone.trim());
+    }
+    if (status && status !== 'ALL') {
+      params = params.set('status', status);
     }
     if (minPoints !== undefined && minPoints !== null) {
       params = params.set('minPoints', minPoints.toString());
@@ -177,5 +181,15 @@ export class CustomerService {
     return this.http
       .post<ApiResponse<void>>(`${this.CRM_API}/customer-vouchers/bulk-give`, null, { params })
       .pipe(map(() => undefined));
+  }
+
+  // 14. Update Customer Status for Organization (Lock / Unlock Customer)
+  updateCustomerStatus(customerId: string, organizationId: string, status: 'ACTIVE' | 'LOCKED'): Observable<CustomerPointResponse> {
+    return this.http
+      .put<ApiResponse<CustomerPointResponse>>(`${this.CRM_API}/wallets/${customerId}/status`, {
+        organizationId,
+        status
+      })
+      .pipe(map(res => res.data));
   }
 }

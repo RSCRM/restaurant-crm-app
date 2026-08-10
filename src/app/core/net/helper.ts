@@ -11,21 +11,21 @@ export interface ReThrowHttpError {
 }
 
 export const CODEMESSAGE: Record<number, string> = {
-  200: '服务器成功返回请求的数据。',
-  201: '新建或修改数据成功。',
-  202: '一个请求已经进入后台排队（异步任务）。',
-  204: '删除数据成功。',
-  400: '发出的请求有错误，服务器没有进行新建或修改数据的操作。',
-  401: '用户没有权限（令牌、用户名、密码错误）。',
-  403: '用户得到授权，但是访问是被禁止的。',
-  404: '发出的请求针对的是不存在的记录，服务器没有进行操作。',
-  406: '请求的格式不可得。',
-  410: '请求的资源被永久删除，且不会再得到的。',
-  422: '当创建一个对象时，发生一个验证错误。',
-  500: '服务器发生错误，请检查服务器。',
-  502: '网关错误。',
-  503: '服务不可用，服务器暂时过载或维护。',
-  504: '网关超时。'
+  200: 'The server successfully returned the requested data.',
+  201: 'The data was created or updated successfully.',
+  202: 'The request has been accepted and is being processed asynchronously.',
+  204: 'The data was deleted successfully.',
+  400: 'The request is invalid. The server could not create or update the data.',
+  401: 'Unauthorized. The token, username, or password is incorrect.',
+  403: 'Access denied. You do not have permission to access this resource.',
+  404: 'The requested resource was not found.',
+  406: 'The requested format is not supported.',
+  410: 'The requested resource has been permanently deleted and is no longer available.',
+  422: 'A validation error occurred while creating the object.',
+  500: 'An internal server error occurred. Please check the server.',
+  502: 'Bad gateway.',
+  503: 'The service is unavailable. The server is temporarily overloaded or under maintenance.',
+  504: 'Gateway timeout.'
 };
 
 export function goTo(injector: Injector, url: string): void {
@@ -33,7 +33,7 @@ export function goTo(injector: Injector, url: string): void {
 }
 
 export function toLogin(injector: Injector): void {
-  injector.get(NzNotificationService).error(`未登录或登录已过期，请重新登录。`, ``);
+  injector.get(NzNotificationService).error('Your session has expired. Please log in again.', '');
   goTo(injector, injector.get(DA_SERVICE_TOKEN).login_url!);
 }
 
@@ -53,5 +53,9 @@ export function checkStatus(injector: Injector, ev: HttpResponseBase): void {
   }
 
   const errortext = CODEMESSAGE[ev.status] || ev.status.toString();
-  injector.get(NzNotificationService).error(`请求错误 ${ev.status}: ${ev.url}`, errortext);
+
+  injector.get(NzNotificationService).error(
+    `HTTP ${ev.status} Error`,
+    `${ev.url}<br>${errortext}`
+  );
 }

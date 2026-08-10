@@ -193,6 +193,7 @@ export class VoucherFormComponent implements OnInit {
         discountPercent: safeNumber(val.discountPercent, 10),
         minBillAmount: safeNumber(val.minBillAmount, 0),
         pointsRequired: safeNumber(val.pointsRequired, 0),
+        isActive: val.isActive ? 1 : 0,
         startAt: val.startAt ? new Date(val.startAt).toISOString() : null,
         endAt: val.endAt ? new Date(val.endAt).toISOString() : null,
         voucherCode: val.isCodeBased && val.voucherCode ? val.voucherCode.trim() : null,

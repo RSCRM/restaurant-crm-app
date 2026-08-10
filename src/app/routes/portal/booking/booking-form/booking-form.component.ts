@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { differenceInCalendarDays } from 'date-fns';
@@ -16,8 +16,9 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { selectContextToken } from '../../../auth/store/auth.selectors';
-import { BookingStatus, BookingResponse, TableSearchResponse } from '../booking.model';
+import { BookingStatus, BookingResponse, TableSearchResponse, RestaurantTableStatus } from '../booking.model';
 import { BookingService } from '../booking.service';
 
 interface TableAvailability extends TableSearchResponse {
@@ -42,12 +43,14 @@ interface TableAvailability extends TableSearchResponse {
     NzTagModule,
     NzSpinModule,
     NzGridModule,
-    NzTooltipModule
+    NzTooltipModule,
+    I18nPipe
   ],
   templateUrl: './booking-form.component.html',
   styleUrls: ['./booking-form.component.less']
 })
-export class BookingFormComponent implements OnInit {
+export class BookingFormComponent implements OnInit, OnDestroy {
+  private i18n = inject(ALAIN_I18N_TOKEN);
   private fb = inject(FormBuilder);
   private bookingService = inject(BookingService);
   private store = inject(Store);
@@ -55,10 +58,14 @@ export class BookingFormComponent implements OnInit {
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
 
+  private refreshTimerId: ReturnType<typeof setInterval> | null = null;
   form!: FormGroup;
   branchId: string | null = null;
   loading = false;
   submitting = false;
+  isEditMode = false;
+  bookingId: string | null = null;
+  bookingData: BookingResponse | null = null;
 
   // Raw data from API
   allBookings: BookingResponse[] = [];
@@ -87,14 +94,19 @@ export class BookingFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.bookingData = this.modalRef.getConfig().nzData || null;
+    if (this.bookingData) {
+      this.isEditMode = true;
+      this.bookingId = this.bookingData.id;
+      this.selectedTableId = this.bookingData.tableId;
+    }
+
     this.initForm();
     this.store.select(selectContextToken).subscribe(token => {
       const id = this.getBranchIdFromToken(token);
       this.branchId = id;
       if (id) {
         this.loadData();
-      } else {
-        this.message.error('Không tìm thấy thông tin chi nhánh hiện tại. Vui lòng chọn chi nhánh.');
       }
     });
 
@@ -102,59 +114,79 @@ export class BookingFormComponent implements OnInit {
     this.form.valueChanges.subscribe(() => {
       this.calculateAvailability();
     });
+
+    // Polling every 3 seconds while modal is open so checkout/release table status is updated in real-time
+    this.refreshTimerId = setInterval(() => {
+      if (this.branchId && !this.submitting) {
+        this.loadData(true);
+      }
+    }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshTimerId) {
+      clearInterval(this.refreshTimerId);
+    }
   }
 
   private initForm(): void {
     this.form = this.fb.group({
-      customerPhone: ['', [Validators.required, Validators.pattern(/^\d{9,15}$/)]],
+      customerPhone: [this.bookingData?.customerPhone || '', [Validators.required, Validators.pattern(/^\d{9,15}$/)]],
       customerName: [''], // Optional
-      bookingTime: [null, [Validators.required]],
+      bookingTime: [this.bookingData ? new Date(this.bookingData.bookingTime) : null, [Validators.required]],
       duration: [3, [Validators.required, Validators.min(0.1)]], // Dining duration in hours, defaults to 3
-      note: ['']
+      note: [this.bookingData?.note || '']
     });
   }
 
-  private loadData(): void {
+  private loadData(silent = false): void {
     if (!this.branchId) return;
-    this.loading = true;
-    this.cdr.markForCheck();
+    if (!silent) {
+      this.loading = true;
+      this.cdr.markForCheck();
+    }
 
-    // Load tables (size 100 to get all tables of this branch)
-    // and load active bookings of this branch (size 1000 for conflict check)
-    // using Promise.all or manual subscriptions. Let's subscribe to both.
+    let tablesLoaded = false;
+    let bookingsLoaded = false;
+
+    const checkBothLoaded = () => {
+      if (tablesLoaded && bookingsLoaded) {
+        this.loading = false;
+        this.calculateAvailability();
+      }
+    };
+
     this.bookingService.getTables(this.branchId, { page: 1, size: 100 }).subscribe({
       next: tableRes => {
-        this.allTables = tableRes.data;
-        this.checkDataLoaded();
+        this.allTables = tableRes.data || [];
+        tablesLoaded = true;
+        checkBothLoaded();
       },
       error: () => {
-        this.loading = false;
-        this.message.error('Lỗi khi tải danh sách bàn.');
+        if (!silent) {
+          this.loading = false;
+          this.message.error(this.i18n.fanyi('booking-form.msg.table-load-error'));
+        }
         this.cdr.markForCheck();
       }
     });
 
     this.bookingService.getBookingsByBranch(this.branchId, { page: 1, size: 1000 }).subscribe({
       next: bookingRes => {
-        // Filter out cancelled or expired bookings for conflict checking
-        this.allBookings = bookingRes.data.filter(b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED);
-        this.checkDataLoaded();
+        this.allBookings = (bookingRes.data || []).filter(
+          b => (b.status === BookingStatus.PENDING || b.status === BookingStatus.CONFIRMED) && b.id !== this.bookingId
+        );
+        bookingsLoaded = true;
+        checkBothLoaded();
       },
       error: () => {
-        this.loading = false;
-        this.message.error('Lỗi khi tải lịch sử đặt bàn.');
+        if (!silent) {
+          this.loading = false;
+          this.message.error(this.i18n.fanyi('booking-form.msg.history-load-error'));
+        }
         this.cdr.markForCheck();
       }
     });
-  }
-
-  private loadedCount = 0;
-  private checkDataLoaded(): void {
-    this.loadedCount++;
-    if (this.loadedCount >= 2) {
-      this.loading = false;
-      this.calculateAvailability();
-    }
   }
 
   disabledDate = (current: Date): boolean => {
@@ -171,7 +203,7 @@ export class BookingFormComponent implements OnInit {
       this.tablesWithAvailability = this.allTables.map(t => ({
         ...t,
         isAvailable: false,
-        reason: 'Vui lòng chọn thời gian và thời lượng dùng bữa.'
+        reason: this.i18n.fanyi('booking-form.reason.select-time')
       }));
       this.cdr.markForCheck();
       return;
@@ -181,9 +213,23 @@ export class BookingFormComponent implements OnInit {
     const targetEnd = targetStart + durationVal * 60 * 60 * 1000;
     const bufferStart = targetStart - 3 * 60 * 60 * 1000; // Block 3h before to avoid overlap with previous diners
 
-    this.tablesWithAvailability = this.allTables.map(table => {
+    const now = Date.now();
+    const activeDiningEnd = now + 3 * 60 * 60 * 1000; // Active dining window for currently OCCUPIED tables (3h)
 
-      // 2. Check overlap with existing bookings on the same table
+    this.tablesWithAvailability = this.allTables.map(table => {
+      // 1. Check if table is currently OCCUPIED by active diners (walk-in or seated)
+      // and target booking time overlaps with current active dining window [now, activeDiningEnd]
+      if (table.status === RestaurantTableStatus.OCCUPIED || (table.status as string) === 'OCCUPIED') {
+        if (targetStart < activeDiningEnd && targetEnd > now) {
+          return {
+            ...table,
+            isAvailable: false,
+            reason: this.i18n.fanyi('booking-form.reason.occupied')
+          };
+        }
+      }
+
+      // 2. Check overlap with existing PENDING or CONFIRMED bookings on the same table
       const overlappingBooking = this.allBookings.find(booking => {
         if (booking.tableId !== table.id) return false;
 
@@ -203,7 +249,7 @@ export class BookingFormComponent implements OnInit {
         return {
           ...table,
           isAvailable: false,
-          reason: `Đã có khách đặt lúc ${overlapTime} (SĐT: ${overlappingBooking.customerPhone})`
+          reason: this.i18n.fanyi('booking-form.reason.reserved', { time: overlapTime, phone: overlappingBooking.customerPhone })
         };
       }
 
@@ -228,6 +274,27 @@ export class BookingFormComponent implements OnInit {
     if (!table.isAvailable) return;
     this.selectedTableId = table.id;
     this.cdr.markForCheck();
+  }
+
+  private extractErrorMessage(err: any, fallback: string): string {
+    if (!err) return fallback;
+    const e = err.error;
+    if (!e) return err.message || fallback;
+
+    let msg = '';
+    if (typeof e.errorMessage === 'string') {
+      msg = e.errorMessage;
+    } else if (typeof e.errorMessage === 'object' && e.errorMessage?.message) {
+      msg = e.errorMessage.message;
+    } else if (typeof e.message === 'string') {
+      msg = e.message;
+    }
+
+    if (msg === 'BOOKING_TIME_MUST_BE_FUTURE' || msg.includes('FUTURE')) {
+      return this.i18n.fanyi('booking.msg.future-required');
+    }
+
+    return msg || err.message || fallback;
   }
 
   submit(): void {
@@ -257,19 +324,35 @@ export class BookingFormComponent implements OnInit {
       note: (nameStr + noteStr).trim() || null
     };
 
-    this.bookingService.createBooking(request).subscribe({
-      next: () => {
-        this.submitting = false;
-        this.message.success('Đặt bàn thành công!');
-        this.modalRef.close(true);
-      },
-      error: err => {
-        this.submitting = false;
-        const msg = err?.error?.errorMessage?.message || err?.message || 'Lỗi khi tạo đặt bàn.';
-        this.message.error(msg);
-        this.cdr.markForCheck();
-      }
-    });
+    if (this.isEditMode && this.bookingId) {
+      this.bookingService.updateBooking(this.bookingId, request).subscribe({
+        next: () => {
+          this.submitting = false;
+          this.message.success(this.i18n.fanyi('booking-form.msg.update-success'));
+          this.modalRef.close(true);
+        },
+        error: err => {
+          this.submitting = false;
+          const msg = this.extractErrorMessage(err, this.i18n.fanyi('booking-form.msg.update-error'));
+          this.message.error(msg);
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      this.bookingService.createBooking(request).subscribe({
+        next: () => {
+          this.submitting = false;
+          this.message.success(this.i18n.fanyi('booking-form.msg.create-success'));
+          this.modalRef.close(true);
+        },
+        error: err => {
+          this.submitting = false;
+          const msg = this.extractErrorMessage(err, this.i18n.fanyi('booking-form.msg.create-error'));
+          this.message.error(msg);
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
   cancel(): void {

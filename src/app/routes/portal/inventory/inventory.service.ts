@@ -8,18 +8,17 @@ import {
   CreateInventoryCategoryRequest,
   UpdateInventoryCategoryRequest,
   InventoryCategoryResponse,
-
   CreateInventoryRequest,
   UpdateInventoryRequest,
   InventorySearchRequest,
   InventoryResponse,
-
   CreateInventoryTransactionRequest,
+  CreateBatchInventoryTransactionRequest,
   InventoryTransactionSearchRequest,
   InventoryTransactionResponse,
-
   PagingParams,
-  PagingResponse
+  PagingResponse,
+  UpdateInventoryCategoryStatusRequest
 } from './inventory.model';
 
 const API = environment.api['apiPrefix'];
@@ -54,6 +53,24 @@ export class InventoryService {
       .pipe(map(res => res.data));
   }
 
+  searchInventoryCategories(
+    categoryName: string,
+    page = 1,
+    size = 10
+  ): Observable<PagingResponse<InventoryCategoryResponse>> {
+    const params = new HttpParams()
+      .set('categoryName', categoryName)
+      .set('page', page)
+      .set('size', size);
+
+    return this.http
+      .get<ApiResponse<PagingResponse<InventoryCategoryResponse>>>(
+        `${this.CATEGORY_API}/search`,
+        { params }
+      )
+      .pipe(map(res => res.data));
+  }
+
   createInventoryCategory(
     request: CreateInventoryCategoryRequest
   ): Observable<InventoryCategoryResponse> {
@@ -71,12 +88,20 @@ export class InventoryService {
       .pipe(map(res => res.data));
   }
 
-  deleteInventoryCategory(id: string): Observable<void> {
+  updateInventoryCategoryStatus(
+    id: string,
+    request: UpdateInventoryCategoryStatusRequest
+  ): Observable<InventoryCategoryResponse> {
     return this.http
-      .delete<ApiResponse<void>>(`${this.CATEGORY_API}/${id}`)
+      .patch<ApiResponse<InventoryCategoryResponse>>(`${this.CATEGORY_API}/${id}/status`, request)
       .pipe(map(res => res.data));
   }
 
+  getActiveInventoryCategories(): Observable<InventoryCategoryResponse[]> {
+    return this.http
+      .get<ApiResponse<InventoryCategoryResponse[]>>(`${this.CATEGORY_API}/active`)
+      .pipe(map(res => res.data));
+  }
   // ============================================================
   // Inventory
   // ============================================================
@@ -143,6 +168,23 @@ export class InventoryService {
         filter,
         { params }
       )
+      .pipe(map(res => res.data));
+  }
+
+  updateInventoryStatus(
+    id: string
+  ): Observable<InventoryResponse> {
+    return this.http
+      .patch<ApiResponse<InventoryResponse>>(
+        `${this.INVENTORY_API}/${id}/status`,
+        {}
+      )
+      .pipe(map(res => res.data));
+  }
+
+  getActiveInventories(): Observable<InventoryResponse[]> {
+    return this.http
+      .get<ApiResponse<InventoryResponse[]>>(`${this.INVENTORY_API}/active`)
       .pipe(map(res => res.data));
   }
 
@@ -227,5 +269,16 @@ export class InventoryService {
     return this.http
       .post<ApiResponse<InventoryTransactionResponse>>(this.TRANSACTION_API, request)
       .pipe(map(res => res.data));
+  }
+
+  createBatchTransactions(
+    request: CreateBatchInventoryTransactionRequest
+  ): Observable<void> {
+    return this.http
+      .post<ApiResponse<void>>(
+        `${this.TRANSACTION_API}/batch`,
+        request
+      )
+      .pipe(map(() => void 0));
   }
 }

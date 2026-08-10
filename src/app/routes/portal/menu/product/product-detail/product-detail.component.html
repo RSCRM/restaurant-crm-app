@@ -46,6 +46,12 @@
     </nz-descriptions>
   </nz-card>
 
+  <nz-card [nzTitle]="'app.portal.menu.product.detail.branch' | i18n" class="mb-16">
+    <nz-descriptions nzBordered [nzColumn]="1">
+      <nz-descriptions-item [nzTitle]="'app.portal.menu.product.detail.branch' | i18n">{{ branchName }}</nz-descriptions-item>
+    </nz-descriptions>
+  </nz-card>
+
   <nz-card [nzTitle]="'app.portal.menu.product.modifiers' | i18n">
     <app-modifier-manager [product]="product" />
   </nz-card>

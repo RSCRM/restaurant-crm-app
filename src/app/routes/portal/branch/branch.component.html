@@ -6,17 +6,52 @@
   }
 
   <div class="branch-toolbar">
-    <button nz-button type="button" (click)="reload()" [disabled]="loading">
-      <span nz-icon nzType="reload" nzTheme="outline"></span>
-      {{ 'common.reload' | i18n }}
-    </button>
+    <div class="branch-toolbar-left">
+      <nz-input-group nzPrefixIcon="search" class="branch-search">
+        <input
+          nz-input
+          name="branchSearch"
+          [(ngModel)]="searchValue"
+          [placeholder]="'branch.search.placeholder' | i18n"
+          [disabled]="loading && !firstLoaded"
+          (ngModelChange)="onSearchChange($event)"
+        />
+      </nz-input-group>
 
-    @if (canManageBranch()) {
-      <button nz-button nzType="primary" type="button" (click)="openCreate()" [disabled]="loading || !selectedContext?.organizationId">
-        <span nz-icon nzType="plus" nzTheme="outline"></span>
-        {{ 'branch.actions.create' | i18n }}
+      <nz-select
+        class="branch-status-filter"
+        name="branchStatusFilter"
+        nzAllowClear
+        [(ngModel)]="statusFilter"
+        [nzPlaceHolder]="'branch.filter.status' | i18n"
+        [nzDisabled]="loading && !firstLoaded"
+        (ngModelChange)="onFilterChange()"
+      >
+        @for (status of branchStatuses; track status) {
+          <nz-option [nzValue]="status" [nzLabel]="'branch.status.' + status.toLowerCase() | i18n" />
+        }
+      </nz-select>
+
+      @if (hasActiveFilter()) {
+        <button nz-button type="button" (click)="resetFilters()" [disabled]="loading && !firstLoaded">
+          {{ 'branch.filter.reset' | i18n }}
+        </button>
+      }
+    </div>
+
+    <div class="branch-toolbar-actions">
+      <button nz-button type="button" (click)="reload()" [disabled]="loading">
+        <span nz-icon nzType="reload" nzTheme="outline"></span>
+        {{ 'common.reload' | i18n }}
       </button>
-    }
+
+      @if (canManageBranch()) {
+        <button nz-button nzType="primary" type="button" (click)="openCreate()" [disabled]="loading || !selectedContext?.organizationId">
+          <span nz-icon nzType="plus" nzTheme="outline"></span>
+          {{ 'branch.actions.create' | i18n }}
+        </button>
+      }
+    </div>
   </div>
 
   @if (loading && !firstLoaded) {
@@ -46,30 +81,12 @@
         </nz-tag>
       </ng-template>
 
-      <ng-template st-row="manager" let-item>
-        @if (getManagerName(item); as managerName) {
-          <strong>{{ managerName }}</strong>
-          @if (item.managerEmail) {
-            <div class="branch-cell-subtext">{{ item.managerEmail }}</div>
-          }
-        } @else {
-          <span class="branch-cell-muted">{{ 'branch.manager.empty' | i18n }}</span>
-        }
-      </ng-template>
-
       <ng-template st-row="actions" let-item>
         <div class="branch-row-actions">
           <button nz-button nzType="link" type="button" (click)="openDetail(item)">
             <span nz-icon nzType="eye" nzTheme="outline"></span>
             {{ 'branch.actions.view' | i18n }}
           </button>
-
-          @if (canAssignManager()) {
-            <button nz-button nzType="link" type="button" (click)="openManagerModal(item)">
-              <span nz-icon nzType="user-switch" nzTheme="outline"></span>
-              {{ 'branch.manager.modify' | i18n }}
-            </button>
-          }
 
           @if (canManageBranch()) {
             <button

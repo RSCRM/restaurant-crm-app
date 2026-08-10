@@ -1,5 +1,6 @@
 import { AsyncPipe, CommonModule, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnDestroy, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { I18nPipe, SettingsService, MenuService } from '@delon/theme';
 import { LayoutDefaultModule, LayoutDefaultOptions } from '@delon/theme/layout-default';
@@ -16,7 +17,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { Subscription } from 'rxjs';
 
 import { AuthActions } from '../../routes/auth/store/auth.actions';
-import { selectAuthUser, selectContextToken, selectHasContext } from '../../routes/auth/store/auth.selectors';
+import { selectAuthUser, selectContextToken, selectHasContext, selectPortalMenuState } from '../../routes/auth/store/auth.selectors';
 import { NotificationResponse, NotificationStatus } from '../../routes/portal/notification/notification.model';
 import { NotificationService } from '../../routes/portal/notification/notification.service';
 
@@ -51,6 +52,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
   private notificationService = inject(NotificationService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   user$ = this.store.select(selectAuthUser);
   hasContext$ = this.store.select(selectHasContext);
@@ -99,9 +101,10 @@ export class LayoutPortal implements OnInit, OnDestroy {
       }
     });
 
-    this.store.select(selectHasContext).subscribe(hasContext => {
-      this.buildMenu(hasContext);
-    });
+    this.store
+      .select(selectPortalMenuState)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ hasContext, canManageOrgRole }) => this.buildMenu(hasContext, canManageOrgRole));
   }
 
   ngOnDestroy(): void {
@@ -151,7 +154,7 @@ export class LayoutPortal implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  private buildMenu(hasContext: boolean): void {
+  private buildMenu(hasContext: boolean, canManageOrgRole: boolean): void {
     this.menuService.clear();
     this.menuService.add([
       {
@@ -168,6 +171,13 @@ export class LayoutPortal implements OnInit, OnDestroy {
         hideInBreadcrumb: true,
         children: [
           { text: 'Dashboard', i18n: 'menu.portal.dashboard', link: '/portal/dashboard', disabled: !hasContext },
+          {
+            text: 'Vai trò tổ chức',
+            i18n: 'menu.portal.org-role',
+            link: '/portal/org-role',
+            disabled: !hasContext,
+            hide: !canManageOrgRole
+          },
           { text: 'Quản lý Đơn hàng', i18n: 'menu.portal.order', link: '/portal/order', disabled: !hasContext },
           {
             text: 'Quản lý Thực đơn',

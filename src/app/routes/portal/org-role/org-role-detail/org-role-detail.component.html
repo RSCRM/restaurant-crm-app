@@ -1,0 +1,20 @@
+<div class="modal-header">
+  <div class="modal-title">{{ 'app.org-role.detail.title' | i18n }}</div>
+</div>
+
+<nz-descriptions nzBordered [nzColumn]="1" nzSize="small">
+  <nz-descriptions-item [nzTitle]="'app.org-role.detail.roleName' | i18n">{{ role.roleName }}</nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.org-role.detail.dataScope' | i18n">{{ role.dataScope }}</nz-descriptions-item>
+  <nz-descriptions-item [nzTitle]="'app.org-role.detail.permissions' | i18n">
+    @if (role.permissions.length === 0) {
+      <span class="empty-text">{{ 'app.org-role.detail.noPermission' | i18n }}</span>
+    }
+    @for (permission of role.permissions; track permission.id) {
+      <nz-tag>{{ permission.permissionName }}</nz-tag>
+    }
+  </nz-descriptions-item>
+</nz-descriptions>
+
+<div class="modal-footer">
+  <button nz-button (click)="close()">{{ 'app.org-role.detail.close' | i18n }}</button>
+</div>

@@ -16,8 +16,10 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
+import { Subject, debounceTime } from 'rxjs';
+
 import { BookingFormComponent } from './booking-form/booking-form.component';
-import { BookingResponse, BookingStatus } from './booking.model';
+import { BookingResponse, BookingStatus, BookingSearchRequest, TableSearchResponse, PagingResponse } from './booking.model';
 import { BookingService } from './booking.service';
 import { selectContextToken } from '../../auth/store/auth.selectors';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
@@ -43,76 +45,7 @@ import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
     I18nPipe
   ],
   templateUrl: './booking.component.html',
-  styles: [
-    `
-      .countdown-active {
-        color: #fa8c16;
-        font-size: 12px;
-        font-weight: 500;
-        margin-top: 4px;
-        display: block;
-      }
-      .overdue-pulse {
-        color: #f5222d;
-        font-size: 12px;
-        font-weight: bold;
-        animation: pulse 1.5s infinite;
-        margin-top: 4px;
-        display: block;
-      }
-      @keyframes pulse {
-        0% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.3;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-      .toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 16px;
-      }
-      .toolbar-left {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .search-input {
-        width: 250px;
-      }
-      .filter-panel {
-        margin-bottom: 16px;
-        padding: 16px;
-        border: 1px solid #f0f0f0;
-        border-radius: 8px;
-        background: #fafafa;
-      }
-      .filter-badge {
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        margin-left: 4px;
-        border-radius: 50%;
-        background: #ff4d4f;
-      }
-      .price-range {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .price-range nz-input-number {
-        flex: 1;
-      }
-      .price-range-separator {
-        color: #8c8c8c;
-      }
-    `
-  ]
+  styleUrls: ['./booking.component.less']
 })
 export class BookingComponent implements OnInit, OnDestroy {
   private i18n = inject(ALAIN_I18N_TOKEN);
@@ -145,9 +78,29 @@ export class BookingComponent implements OnInit, OnDestroy {
   sortBy = '';
   sortDirection = '';
 
+  private searchSubject = new Subject<string>();
   private refreshIntervalId: ReturnType<typeof setInterval> | null = null;
 
   columns: STColumn[] = [];
+  tablesMap = new Map<string, string>();
+
+  loadTables(): void {
+    if (!this.branchId) return;
+    this.bookingService.getTables(this.branchId, { page: 1, size: 100 }).subscribe({
+      next: (res: PagingResponse<TableSearchResponse>) => {
+        if (res?.data) {
+          res.data.forEach((t: TableSearchResponse) => this.tablesMap.set(t.id, t.tableNumber));
+        }
+        this.initColumns();
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  getTableNumber(tableId: string | null): string | null {
+    if (!tableId) return null;
+    return this.tablesMap.get(tableId) || null;
+  }
 
   getCountdownInfo(booking: BookingResponse): { type: 'none' | 'countdown' | 'overdue'; text: string } {
     if (booking.status !== BookingStatus.PENDING && booking.status !== BookingStatus.CONFIRMED) {
@@ -196,12 +149,19 @@ export class BookingComponent implements OnInit, OnDestroy {
   }
 
   private initColumns(): void {
+    const tableTitle = this.i18n.fanyi('booking.column.table');
     this.columns = [
       {
         title: this.i18n.fanyi('booking.column.phone'),
         index: 'customerPhone',
         width: 140,
         sort: true
+      },
+      {
+        title: tableTitle && tableTitle !== 'booking.column.table' ? tableTitle : 'Bàn',
+        index: 'tableNumber',
+        width: 110,
+        render: 'tableNumber'
       },
       {
         title: this.i18n.fanyi('booking.column.guests'),
@@ -224,13 +184,13 @@ export class BookingComponent implements OnInit, OnDestroy {
       {
         title: this.i18n.fanyi('booking.column.status'),
         index: 'status',
-        width: 130,
+        width: 120,
         render: 'status',
         sort: true
       },
       {
         title: this.i18n.fanyi('booking.column.actions'),
-        width: 220,
+        width: 330,
         fixed: 'right',
         render: 'actions'
       }
@@ -239,6 +199,18 @@ export class BookingComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initColumns();
+
+    this.i18n.change.subscribe(() => {
+      this.initColumns();
+      this.cdr.markForCheck();
+    });
+
+    this.searchSubject.pipe(debounceTime(100)).subscribe(val => {
+      this.searchPhone = val;
+      this.currentPage = 1;
+      this.loadData();
+    });
+
     this.store.select(selectContextToken).subscribe(token => {
       const payload = this.parseTokenPayload(token);
       if (payload) {
@@ -248,12 +220,25 @@ export class BookingComponent implements OnInit, OnDestroy {
         this.hasCreatePermission = permissions.includes('BOOKING_CREATE') || isManager;
         this.hasUpdatePermission = permissions.includes('BOOKING_UPDATE') || isManager;
         if (this.branchId) {
+          this.loadTables();
           this.loadData();
         }
+      } else {
+        this.branchId = null;
+        this.bookingsList = [];
+        this.displayBookings = [];
+        this.total = 0;
+        this.loading = false;
+        this.cdr.markForCheck();
       }
     });
 
+    let tickCount = 0;
     this.refreshIntervalId = setInterval(() => {
+      tickCount++;
+      if (tickCount % 5 === 0 && this.branchId && !this.loading) {
+        this.loadTables();
+      }
       this.cdr.markForCheck();
     }, 1000);
   }
@@ -264,8 +249,27 @@ export class BookingComponent implements OnInit, OnDestroy {
     }
   }
 
+  onSearchChange(value: string): void {
+    this.searchPhone = value;
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadData();
+  }
+
   loadData(): void {
-    if (!this.branchId) return;
+    if (!this.branchId) {
+      this.loading = false;
+      this.bookingsList = [];
+      this.displayBookings = [];
+      this.total = 0;
+      this.cdr.markForCheck();
+      return;
+    }
+
     this.loading = true;
     this.cdr.markForCheck();
 
@@ -274,11 +278,15 @@ export class BookingComponent implements OnInit, OnDestroy {
       size: this.pageSize
     };
 
-    const request$ = this.searchPhone.trim()
-      ? this.bookingService.getBookingsByCustomerPhone(this.searchPhone.trim(), pagingParams)
-      : this.bookingService.getBookingsByBranch(this.branchId, pagingParams);
+    const searchRequest: BookingSearchRequest = {
+      branchId: this.branchId,
+      searchKeyword: this.searchPhone.trim() || null,
+      status: this.filterStatus !== 'ALL' ? this.filterStatus : null,
+      minGuests: this.filterMinGuests,
+      maxGuests: this.filterMaxGuests
+    };
 
-    request$.subscribe({
+    this.bookingService.searchBookings(searchRequest, pagingParams).subscribe({
       next: res => {
         this.bookingsList = res.data;
         this.total = res.totalElement;
@@ -304,16 +312,9 @@ export class BookingComponent implements OnInit, OnDestroy {
   }
 
   filterData(): void {
+    // Filters (status, minGuests, maxGuests) are already applied server-side
+    // via searchBookings(). Only apply client-side sorting here.
     let filtered = [...this.bookingsList];
-    if (this.filterStatus !== 'ALL') {
-      filtered = filtered.filter(b => b.status === this.filterStatus);
-    }
-    if (this.filterMinGuests !== null) {
-      filtered = filtered.filter(b => b.guestCount >= this.filterMinGuests!);
-    }
-    if (this.filterMaxGuests !== null) {
-      filtered = filtered.filter(b => b.guestCount <= this.filterMaxGuests!);
-    }
 
     if (this.sortBy && this.sortDirection) {
       const field = this.sortBy;
@@ -364,7 +365,7 @@ export class BookingComponent implements OnInit, OnDestroy {
       const col = e.sort.column;
       const indexStr = (Array.isArray(col.index) ? col.index[0] : (col.index as string)) || '';
       const sortDir = e.sort.map ? e.sort.map[indexStr] : undefined;
-      
+
       this.sortBy = sortDir ? indexStr : '';
       this.sortDirection = sortDir === 'ascend' ? 'ASC' : sortDir === 'descend' ? 'DESC' : '';
       this.filterData();
@@ -378,6 +379,22 @@ export class BookingComponent implements OnInit, OnDestroy {
       nzWidth: 700,
       nzFooter: null,
       nzData: null
+    });
+
+    modalRef.afterClose.subscribe(result => {
+      if (result) {
+        this.loadData();
+      }
+    });
+  }
+
+  openEditBooking(booking: BookingResponse): void {
+    const modalRef = this.modal.create({
+      nzTitle: undefined,
+      nzContent: BookingFormComponent,
+      nzWidth: 700,
+      nzFooter: null,
+      nzData: booking
     });
 
     modalRef.afterClose.subscribe(result => {

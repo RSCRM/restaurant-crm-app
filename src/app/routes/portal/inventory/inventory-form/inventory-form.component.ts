@@ -103,13 +103,17 @@ export class InventoryFormComponent implements OnInit {
 
   private loadCategories(): void {
     this.inventoryService
-      .getInventoryCategories({
-        page: 1,
-        size: 1000
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(res => {
-        this.categoryOptions = res.data;
+      .getActiveInventoryCategories()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => {
+          this.categoryOptions = [];
+          this.message.error('Load inventory categories failed');
+          return EMPTY;
+        })
+      )
+      .subscribe(categories => {
+        this.categoryOptions = categories;
         this.cdr.markForCheck();
       });
   }

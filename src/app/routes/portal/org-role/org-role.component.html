@@ -1,0 +1,16 @@
+<page-header [title]="'app.org-role.title' | i18n" />
+
+<nz-card>
+  <div class="toolbar">
+    <button nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus" nzTheme="outline"></span>
+      {{ 'app.org-role.create' | i18n }}
+    </button>
+  </div>
+
+  <st #st [columns]="columns" [data]="data" [loading]="loading" [page]="{ show: true, showSize: true }" [scroll]="{ x: '760px' }">
+    <ng-template st-row="permissionCount" let-item>
+      <nz-tag nzColor="blue">{{ item.permissions.length }} {{ 'app.org-role.permissionCountSuffix' | i18n }}</nz-tag>
+    </ng-template>
+  </st>
+</nz-card>

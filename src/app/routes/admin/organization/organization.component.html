@@ -66,12 +66,27 @@
               <nz-form-item>
                 <nz-form-label>{{ 'app.organization.filter.ownerId' | i18n }}</nz-form-label>
                 <nz-form-control>
-                  <input
-                    nz-input
+                  <nz-select
                     [(ngModel)]="filter.ownerId"
-                    [placeholder]="'app.organization.filter.ownerIdPlaceholder' | i18n"
+                    nzShowSearch
+                    [nzServerSearch]="true"
+                    [nzLoading]="usersLoading"
+                    [nzPlaceHolder]="'app.organization.filter.ownerIdPlaceholder' | i18n"
+                    (nzOnSearch)="onUserSearch($event)"
+                    [nzOptionHeightPx]="48"
+                    [nzDropdownStyle]="{ 'max-height': '192px' }"
                     style="width: 100%;"
-                  />
+                    nzAllowClear
+                  >
+                    @for (user of users; track user.id) {
+                      <nz-option [nzValue]="user.id" [nzLabel]="user.username">
+                        <div class="user-option">
+                          <div class="user-option-name">{{ user.username }}</div>
+                          <div class="user-option-meta">{{ user.email }} · {{ user.fullName }}</div>
+                        </div>
+                      </nz-option>
+                    }
+                  </nz-select>
                 </nz-form-control>
               </nz-form-item>
             </div>

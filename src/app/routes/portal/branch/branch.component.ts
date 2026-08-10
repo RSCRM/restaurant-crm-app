@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { I18NService } from '@core';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STChange, STColumn, STModule } from '@delon/abc/st';
@@ -10,16 +11,17 @@ import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSkeletonModule } from 'ng-zorro-antd/skeleton';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { EMPTY, catchError, distinctUntilChanged, finalize } from 'rxjs';
 
 import { BranchDetailComponent, BranchDetailModalResult } from './branch-detail/branch-detail.component';
 import { BranchFormComponent } from './branch-form/branch-form.component';
-import { BranchManagerComponent } from './branch-manager/branch-manager.component';
 import { OrganizationBranchResponse, OrganizationBranchStatus } from './branch.model';
 import { BranchService } from './branch.service';
 import { selectPermissions, selectSelectedContext } from '../../auth/store/auth.selectors';
@@ -30,13 +32,16 @@ import { SelectedContext } from '../../auth/store/auth.state';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    FormsModule,
     PageHeaderModule,
     I18nPipe,
     NzAlertModule,
     NzButtonModule,
     NzEmptyModule,
     NzIconModule,
+    NzInputModule,
     NzPopconfirmModule,
+    NzSelectModule,
     NzSkeletonModule,
     NzTagModule,
     STModule
@@ -62,14 +67,16 @@ export class BranchComponent implements OnInit {
   loading = false;
   firstLoaded = false;
   errorMessageKey: string | null = null;
+  searchValue = '';
+  statusFilter: OrganizationBranchStatus | null = null;
+  branchStatuses = Object.values(OrganizationBranchStatus);
 
   columns: STColumn[] = [
     { title: this.translate('branch.branchName'), render: 'branchName', width: 240 },
     { title: this.translate('branch.branchAddress'), index: 'address', width: 260 },
     { title: this.translate('branch.branchPhone'), index: 'phone', width: 150 },
     { title: this.translate('branch.status.title'), render: 'status', width: 140 },
-    { title: this.translate('branch.manager.current'), render: 'manager', width: 260 },
-    { title: this.translate('employee.fields.actions'), render: 'actions', width: 220 }
+    { title: this.translate('branch.actions.title'), render: 'actions', width: 180 }
   ];
 
   ngOnInit(): void {
@@ -120,7 +127,12 @@ export class BranchComponent implements OnInit {
     this.loading = true;
     this.errorMessageKey = null;
     this.branchService
-      .getBranches(organizationId, { page: this.currentPage, size: this.pageSize })
+      .getBranches(organizationId, {
+        page: this.currentPage,
+        size: this.pageSize,
+        keyword: this.searchValue.trim() || null,
+        status: this.statusFilter
+      })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         catchError((error: HttpErrorResponse) => {
@@ -146,6 +158,28 @@ export class BranchComponent implements OnInit {
 
   reload(): void {
     this.loadData();
+  }
+
+  onSearchChange(value: string): void {
+    this.searchValue = value;
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  resetFilters(): void {
+    this.searchValue = '';
+    this.statusFilter = null;
+    this.currentPage = 1;
+    this.loadData();
+  }
+
+  hasActiveFilter(): boolean {
+    return !!this.searchValue.trim() || !!this.statusFilter;
   }
 
   onSTChange(event: STChange): void {
@@ -247,26 +281,8 @@ export class BranchComponent implements OnInit {
       });
   }
 
-  openManagerModal(branch: OrganizationBranchResponse): void {
-    const modalRef = this.modal.create({
-      nzTitle: undefined,
-      nzContent: BranchManagerComponent,
-      nzWidth: 480,
-      nzFooter: null,
-      nzData: { branch }
-    });
-
-    modalRef.afterClose.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((changed?: boolean) => {
-      if (changed) this.loadData();
-    });
-  }
-
   canManageBranch(): boolean {
     return this.hasPermission('ORGANIZATION_BRANCH_MANAGE');
-  }
-
-  canAssignManager(): boolean {
-    return true;
   }
 
   hasPermission(permission: string): boolean {
@@ -288,10 +304,6 @@ export class BranchComponent implements OnInit {
 
   getBranchStatusKey(status: OrganizationBranchStatus | null | undefined): string {
     return status ? `branch.status.${status.toLowerCase()}` : 'common.emptyValue';
-  }
-
-  getManagerName(branch: OrganizationBranchResponse): string | null {
-    return branch.managerName || branch.managerUsername || null;
   }
 
   private getErrorKey(error: HttpErrorResponse): string {
