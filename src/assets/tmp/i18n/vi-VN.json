@@ -604,7 +604,6 @@
   "status.locked": "Tài khoản bị khóa",
   "status.pending": "Chờ kích hoạt",
   "action.edit": "Chỉnh sửa",
-  "action.reload": "Tải lại",
   "action.save": "Lưu",
   "action.cancel": "Hủy",
   "table.transfer.title": "Chuyển bàn",
@@ -993,11 +992,6 @@
   "voucher-form.msg.update-error": "Lỗi khi cập nhật voucher.",
   "voucher-form.msg.create-success": "Tạo voucher mới thành công!",
   "voucher-form.msg.create-error": "Lỗi khi tạo voucher.",
-  "booking.action.seated": "Nhận bàn",
-  "booking.status.seated": "Đã nhận bàn (Seated)",
-  "booking.confirm.seated": "Xác nhận khách đã nhận bàn? Hệ thống sẽ tự động đăng ký/lưu Khách hàng thành viên cho Nhà hàng.",
-  "booking.warning.no-table": "Phiếu đặt bàn này chưa được gán bàn! Vui lòng chỉnh sửa để chọn bàn trước khi Nhận bàn.",
-  "booking.success.seated": "Nhận bàn thành công! Đã tự động lưu hồ sơ Khách hàng & khởi tạo ví điểm thành viên.",
   "customer.sys-voucher.col.usageLimit": "Giới hạn dùng",
   "checkout.label.orderId": "Mã Đơn Hàng (Order ID)",
   "checkout.placeholder.orderId": "Nhập Order ID cần thanh toán",
@@ -1213,5 +1207,9 @@
   "branch.status.active": "Hoạt động",
   "branch.status.inactive": "Ngừng hoạt động",
   "branch.status.closed": "Đã đóng",
-  "branch.validation.branchNameRequired": "Vui lòng nhập tên chi nhánh"
+  "branch.validation.branchNameRequired": "Vui lòng nhập tên chi nhánh",
+  "menu.portal.branch": "Chi nhánh",
+  "common.reload": "Tải lại",
+  "common.cancel": "Hủy",
+  "common.submit": "Xác nhận"
 }

@@ -716,7 +716,6 @@
   "status.locked": "Locked",
   "status.pending": "Pending",
   "action.edit": "Edit",
-  "action.reload": "Reload",
   "action.save": "Save",
   "action.cancel": "Cancel",
   "table.transfer.title": "Transfer table",
@@ -757,10 +756,6 @@
   "table.capacity.min": "Minimum capacity",
   "table.capacity.max": "Maximum capacity",
   "table.status": "Status",
-  "validation.standard.required": "Please enter a metric",
-  "table.status.available": "Available",
-  "table.status.occupied": "Occupied",
-  "table.status.reserved": "Reserved",
   "validation.standard.required": "Please enter a metric",
   "app.inventory.title": "Inventory Management",
   "app.inventory.search": "Search",
@@ -1319,5 +1314,9 @@
   "branch.status.active": "Active",
   "branch.status.inactive": "Inactive",
   "branch.status.closed": "Closed",
-  "branch.validation.branchNameRequired": "Please enter branch name"
+  "branch.validation.branchNameRequired": "Please enter branch name",
+  "menu.portal.branch": "Branch",
+  "common.reload": "Reload",
+  "common.cancel": "Cancel",
+  "common.submit": "Submit"
 }
