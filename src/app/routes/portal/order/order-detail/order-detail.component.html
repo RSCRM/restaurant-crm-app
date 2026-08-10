@@ -25,12 +25,12 @@
         {{ getStatusText(order.status) | i18n }}
       </nz-tag>
     </nz-descriptions-item>
-    <nz-descriptions-item [nzTitle]="'app.order.detail.subtotal' | i18n">{{ order.subtotal?.toLocaleString('vi-VN') }}
+    <nz-descriptions-item [nzTitle]="'app.order.detail.subtotal' | i18n">{{ order.subtotal.toLocaleString('vi-VN') }}
       ₫</nz-descriptions-item>
     <nz-descriptions-item [nzTitle]="'app.order.detail.discount' | i18n">{{
-      order.discountAmount?.toLocaleString('vi-VN') }} ₫</nz-descriptions-item>
+      order.discountAmount.toLocaleString('vi-VN') }} ₫</nz-descriptions-item>
     <nz-descriptions-item [nzTitle]="'app.order.detail.total' | i18n">
-      <strong>{{ order.totalAmount?.toLocaleString('vi-VN') }} ₫</strong>
+      <strong>{{ order.totalAmount.toLocaleString('vi-VN') }} ₫</strong>
     </nz-descriptions-item>
   </nz-descriptions>
 
