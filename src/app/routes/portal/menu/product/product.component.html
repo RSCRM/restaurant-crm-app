@@ -50,6 +50,26 @@
   @if (showFilter) {
     <div class="filter-panel">
       <div nz-row [nzGutter]="[16, 16]">
+        @if (isOwnerContext) {
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label>{{ 'app.portal.menu.product.filter.branch' | i18n }}</nz-form-label>
+              <nz-form-control>
+                <nz-select
+                  [(ngModel)]="filter.branchId"
+                  (ngModelChange)="onBranchFilterChange($event)"
+                  [nzPlaceHolder]="'app.portal.menu.product.filter.all' | i18n"
+                  [nzAllowClear]="true"
+                >
+                  @for (branch of branches; track branch.id) {
+                    <nz-option [nzValue]="branch.id" [nzLabel]="branch.branchName" />
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        }
+
         <div nz-col [nzSpan]="8">
           <nz-form-item>
             <nz-form-label>{{ 'app.portal.menu.product.filter.category' | i18n }}</nz-form-label>
@@ -137,6 +157,9 @@
     </ng-template>
     <ng-template st-row="category" let-item>
       {{ categoryName(item.categoryId) }}
+    </ng-template>
+    <ng-template st-row="branch" let-item>
+      {{ branchName(item.branchId) }}
     </ng-template>
     <ng-template st-row="price" let-item> {{ item.price.toLocaleString('vi-VN') }} đ </ng-template>
     <ng-template st-row="status" let-item>
