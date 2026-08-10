@@ -5,13 +5,8 @@
   <div class="toolbar">
     <div class="toolbar-left">
       <nz-input-group [nzPrefix]="prefixSearchPhone" class="search-input">
-        <input
-          nz-input
-          [(ngModel)]="searchPhone"
-          name="searchPhone"
-          [placeholder]="'booking.search.placeholder' | i18n"
-          (ngModelChange)="onSearchChange($event)"
-        />
+        <input nz-input [(ngModel)]="searchPhone" name="searchPhone" [placeholder]="'booking.search.placeholder' | i18n"
+          (ngModelChange)="onSearchChange($event)" />
       </nz-input-group>
       <ng-template #prefixSearchPhone>
         <span nz-icon nzType="phone" nzTheme="outline"></span>
@@ -21,120 +16,106 @@
         <span nz-icon nzType="filter" nzTheme="outline"></span>
         {{ 'customer.filter.button' | i18n }}
         @if (hasActiveFilter) {
-          <span class="filter-badge"></span>
+        <span class="filter-badge"></span>
         }
       </button>
 
       @if (hasActiveFilter) {
-        <button nz-button nzType="default" nzDanger (click)="reset()">
-          <span nz-icon nzType="close-circle" nzTheme="outline"></span>
-          {{ 'customer.search.reset' | i18n }}
-        </button>
+      <button nz-button nzType="default" nzDanger (click)="reset()">
+        <span nz-icon nzType="close-circle" nzTheme="outline"></span>
+        {{ 'customer.search.reset' | i18n }}
+      </button>
       }
     </div>
 
     <!-- Add Booking Button -->
     <div style="margin-left: auto; display: flex; align-items: center">
       @if (hasCreatePermission) {
-        <button nz-button nzType="primary" (click)="openCreateBooking()">
-          <span nz-icon nzType="plus"></span>{{ 'booking.action.create' | i18n }}
-        </button>
+      <button nz-button nzType="primary" (click)="openCreateBooking()">
+        <span nz-icon nzType="plus"></span>{{ 'booking.action.create' | i18n }}
+      </button>
       }
     </div>
   </div>
 
   <!-- Collapsible Filter Panel matching Customer/Menu layout -->
   @if (showFilter) {
-    <div class="filter-panel">
-      <div nz-row [nzGutter]="[16, 16]">
-        <!-- Status Selection -->
-        <div nz-col [nzSpan]="8">
-          <nz-form-item style="margin-bottom: 0">
-            <nz-form-label>{{ 'booking.filter.status' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <nz-select [(ngModel)]="filterStatus" name="filterStatus" style="width: 100%" (ngModelChange)="onFilterChange()">
-                <nz-option nzValue="ALL" [nzLabel]="'booking.filter.all' | i18n" />
-                <nz-option nzValue="PENDING" [nzLabel]="'booking.status.pending' | i18n" />
-                <nz-option nzValue="CONFIRMED" [nzLabel]="'booking.status.confirmed' | i18n" />
-                <nz-option nzValue="SEATED" [nzLabel]="'booking.status.seated' | i18n" />
-                <nz-option nzValue="CANCELLED" [nzLabel]="'booking.status.cancelled' | i18n" />
-                <nz-option nzValue="EXPIRED" [nzLabel]="'booking.status.expired' | i18n" />
-              </nz-select>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <!-- Guest Count Range -->
-        <div nz-col [nzSpan]="8">
-          <nz-form-item style="margin-bottom: 0">
-            <nz-form-label>{{ 'booking.column.guests' | i18n }}</nz-form-label>
-            <nz-form-control>
-              <div class="price-range">
-                <nz-input-number
-                  [(ngModel)]="filterMinGuests"
-                  name="filterMinGuests"
-                  [nzMin]="1"
-                  [nzStep]="1"
-                  [nzPrecision]="0"
-                  [nzPlaceHolder]="'customer.filter.from' | i18n"
-                  (ngModelChange)="filterData()"
-                  style="width: 100%"
-                />
-                <span class="price-range-separator">-</span>
-                <nz-input-number
-                  [(ngModel)]="filterMaxGuests"
-                  name="filterMaxGuests"
-                  [nzMin]="1"
-                  [nzStep]="1"
-                  [nzPrecision]="0"
-                  [nzPlaceHolder]="'customer.filter.to' | i18n"
-                  (ngModelChange)="filterData()"
-                  style="width: 100%"
-                />
-              </div>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
+  <div class="filter-panel">
+    <div nz-row [nzGutter]="[16, 16]">
+      <!-- Status Selection -->
+      <div nz-col [nzSpan]="8">
+        <nz-form-item style="margin-bottom: 0">
+          <nz-form-label>{{ 'booking.filter.status' | i18n }}</nz-form-label>
+          <nz-form-control>
+            <nz-select [(ngModel)]="filterStatus" name="filterStatus" style="width: 100%"
+              (ngModelChange)="onFilterChange()">
+              <nz-option nzValue="ALL" [nzLabel]="'booking.filter.all' | i18n" />
+              <nz-option nzValue="PENDING" [nzLabel]="'booking.status.pending' | i18n" />
+              <nz-option nzValue="CONFIRMED" [nzLabel]="'booking.status.confirmed' | i18n" />
+              <nz-option nzValue="SEATED" [nzLabel]="'booking.status.seated' | i18n" />
+              <nz-option nzValue="CANCELLED" [nzLabel]="'booking.status.cancelled' | i18n" />
+              <nz-option nzValue="EXPIRED" [nzLabel]="'booking.status.expired' | i18n" />
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
       </div>
+
+       <!-- Guest Count Range -->
+       <div nz-col [nzSpan]="8">
+        <nz-form-item style="margin-bottom: 0">
+          <nz-form-label>{{ 'booking.column.guests' | i18n }}</nz-form-label>
+          <nz-form-control>
+            <div class="price-range">
+              <nz-input-number [(ngModel)]="filterMinGuests" name="filterMinGuests" [nzMin]="1" [nzStep]="1"
+                [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.from' | i18n" (ngModelChange)="onFilterChange()"
+                style="width: 100%" />
+              <span class="price-range-separator">-</span>
+              <nz-input-number [(ngModel)]="filterMaxGuests" name="filterMaxGuests" [nzMin]="1" [nzStep]="1"
+                [nzPrecision]="0" [nzPlaceHolder]="'customer.filter.to' | i18n" (ngModelChange)="onFilterChange()"
+                style="width: 100%" />
+            </div>
+          </nz-form-control>
+           </nz-form-item>
+       </div>
     </div>
+  </div>
   }
 
   <!-- Delon ST Table -->
-  <st
-    #st
-    [columns]="columns"
-    [data]="displayBookings"
-    [total]="total"
-    [ps]="pageSize"
-    [pi]="currentPage"
-    [loading]="loading"
-    [page]="{ show: true, showSize: true }"
-    [scroll]="{ x: '1100px' }"
-    (change)="onSTChange($event)"
-  >
+  <st #st [columns]="columns" [data]="displayBookings" [total]="total" [ps]="pageSize" [pi]="currentPage"
+    [loading]="loading" [page]="{ show: true, showSize: true, front: false }" [scroll]="{ x: '1350px' }"
+    (change)="onSTChange($event)">
+    <!-- Custom render for Table Number column -->
+    <ng-template st-row="tableNumber" let-item>
+      @if (item.tableNumber || getTableNumber(item.tableId)) {
+        <nz-tag nzColor="blue" style="font-weight: 600">{{ 'booking.table.prefix' | i18n }} {{ item.tableNumber || getTableNumber(item.tableId) }}</nz-tag>
+      } @else {
+        <span style="color: #8c8c8c; font-style: italic">{{ 'booking.table.unassigned' | i18n }}</span>
+      }
+    </ng-template>
+
     <!-- Custom render for bookingTime column (with real-time countdown) -->
     <ng-template st-row="bookingTime" let-item>
       <div style="font-weight: 500">{{ item.bookingTime | date: 'yyyy-MM-dd HH:mm' }}</div>
       @switch (getCountdownInfo(item).type) {
-        @case ('countdown') {
-          <span class="countdown-active">
-            <span nz-icon nzType="clock-circle" nzTheme="outline" style="margin-right: 4px"></span>
-            {{ getCountdownInfo(item).text }}
-          </span>
-        }
-        @case ('overdue') {
-          <span class="overdue-pulse">
-            <span nz-icon nzType="warning" nzTheme="outline" style="margin-right: 4px"></span>
-            {{ getCountdownInfo(item).text }}
-          </span>
-        }
+      @case ('countdown') {
+      <span class="countdown-active">
+        <span nz-icon nzType="clock-circle" nzTheme="outline" style="margin-right: 4px"></span>
+        {{ getCountdownInfo(item).text }}
+      </span>
+      }
+      @case ('overdue') {
+      <span class="overdue-pulse">
+        <span nz-icon nzType="warning" nzTheme="outline" style="margin-right: 4px"></span>
+        {{ getCountdownInfo(item).text }}
+      </span>
+      }
       }
     </ng-template>
 
     <!-- Custom render for Status column -->
     <ng-template st-row="status" let-item>
-      <nz-tag
-        [nzColor]="
+      <nz-tag [nzColor]="
           item.status === 'CONFIRMED'
             ? 'success'
             : item.status === 'SEATED'
@@ -144,9 +125,8 @@
                 : item.status === 'EXPIRED'
                   ? 'default'
                   : 'processing'
-        "
-      >
-        {{ item.status }}
+        ">
+        {{ ('booking.status.' + (item.status | lowercase)) | i18n }}
       </nz-tag>
     </ng-template>
 
@@ -154,21 +134,22 @@
     <ng-template st-row="actions" let-item>
       <div style="display: flex; gap: 8px; align-items: center">
         @if (hasUpdatePermission && (item.status === 'CONFIRMED' || item.status === 'PENDING')) {
-          <button nz-button nzType="default" nzSize="small" (click)="openEditBooking(item)">
-            <span nz-icon nzType="edit"></span>Sửa
-          </button>
+        <button nz-button nzType="default" nzSize="small" (click)="openEditBooking(item)">
+          <span nz-icon nzType="edit"></span>{{ 'booking.action.edit' | i18n }}
+        </button>
         }
 
         @if (item.status === 'CONFIRMED' || item.status === 'PENDING') {
-          <button nz-button nzType="primary" nzSize="small" (click)="updateStatus(item, bookingStatus.SEATED)">
-            {{ 'booking.action.seated' | i18n }}
-          </button>
+        <button nz-button nzType="primary" nzSize="small" (click)="updateStatus(item, bookingStatus.SEATED)">
+          {{ 'booking.action.seated' | i18n }}
+        </button>
         }
 
         @if (hasUpdatePermission && (item.status === 'CONFIRMED' || item.status === 'PENDING')) {
-          <button nz-button nzType="default" nzDanger nzSize="small" (click)="updateStatus(item, bookingStatus.CANCELLED)">
-            {{ 'booking.action.cancel' | i18n }}
-          </button>
+        <button nz-button nzType="default" nzDanger nzSize="small"
+          (click)="updateStatus(item, bookingStatus.CANCELLED)">
+          {{ 'booking.action.cancel' | i18n }}
+        </button>
         }
       </div>
     </ng-template>

@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Subscription, timer } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { PageHeaderModule } from '@delon/abc/page-header';
 import { STColumn, STModule, STChange } from '@delon/abc/st';
-import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -11,7 +11,6 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -20,7 +19,7 @@ import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { Subscription, timer } from 'rxjs';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
 import {
   CustomerPointResponse,
@@ -34,6 +33,8 @@ import { CustomerService } from './customer.service';
 import { RedeemModalComponent } from './redeem-modal/redeem-modal.component';
 import { VoucherFormComponent } from './voucher-form/voucher-form.component';
 import { selectContextToken } from '../../auth/store/auth.selectors';
+
+import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 
 @Component({
   selector: 'app-customer',
@@ -165,27 +166,23 @@ export class CustomerComponent implements OnInit, OnDestroy {
   filterMinLifetimePoints: number | null = null;
   filterMaxLifetimePoints: number | null = null;
 
+  readonly Math = Math;
+
   private initColumns(): void {
     this.pointColumns = [
-      { title: this.i18n.fanyi('customer.history.col.type'), render: 'type', width: 130 },
-      { title: this.i18n.fanyi('customer.history.col.amount'), render: 'amount', width: 120 },
+      { title: this.i18n.fanyi('customer.history.col.type'), render: 'type', width: 140 },
+      { title: this.i18n.fanyi('customer.history.col.amount'), render: 'amount', width: 140 },
       { title: this.i18n.fanyi('customer.history.col.balanceAfter'), index: 'balanceAfter', width: 120, type: 'number' },
       { title: this.i18n.fanyi('customer.history.col.source'), index: 'source' },
       { title: this.i18n.fanyi('customer.history.col.referenceId'), index: 'referenceId' },
-      { title: this.i18n.fanyi('customer.history.col.createdAt'), index: 'createdAt', width: 160, type: 'date' }
+      { title: this.i18n.fanyi('customer.history.col.createdAt'), index: 'createdAt', width: 180, type: 'date' }
     ];
 
     this.sysVoucherColumns = [
       { title: this.i18n.fanyi('customer.sys-voucher.col.title'), index: 'title', width: 220, sort: true },
       { title: this.i18n.fanyi('customer.sys-voucher.col.type'), width: 140, render: 'voucherType' },
       { title: this.i18n.fanyi('customer.sys-voucher.col.usageLimit'), width: 120, render: 'usageLimit' },
-      {
-        title: this.i18n.fanyi('customer.sys-voucher.col.discountPercent'),
-        index: 'discountPercent',
-        width: 100,
-        format: item => `${item.discountPercent}%`,
-        sort: true
-      },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.discountPercent'), index: 'discountPercent', width: 100, format: item => `${item.discountPercent}%`, sort: true },
       {
         title: this.i18n.fanyi('customer.sys-voucher.col.minBillAmount'),
         index: 'minBillAmount',
@@ -193,58 +190,62 @@ export class CustomerComponent implements OnInit, OnDestroy {
         format: item => `${item.minBillAmount?.toLocaleString('vi-VN')} ₫`,
         sort: true
       },
-      {
-        title: this.i18n.fanyi('customer.sys-voucher.col.pointsRequired'),
-        index: 'pointsRequired',
-        width: 110,
-        format: item => `${item.pointsRequired} ${this.i18n.fanyi('voucher.points')}`,
-        sort: true
-      },
+      { title: this.i18n.fanyi('customer.sys-voucher.col.pointsRequired'), index: 'pointsRequired', width: 110, format: item => `${item.pointsRequired} ${this.i18n.fanyi('voucher.points')}`, sort: true },
       { title: this.i18n.fanyi('customer.sys-voucher.col.isActive'), width: 130, render: 'isActive' },
       { title: this.i18n.fanyi('customer.sys-voucher.col.actions'), width: 120, fixed: 'right', render: 'actions' }
     ];
 
     this.memberCustomerColumns = [
-      {
-        title: this.i18n.fanyi('customer.column.phone'),
-        index: 'customerPhone',
-        width: 160,
-        sort: { key: 'customer.phone', reName: { ascend: 'ASC', descend: 'DESC' } }
-      },
-      {
-        title: this.i18n.fanyi('customer.column.points'),
-        index: 'currentPoints',
-        width: 140,
-        type: 'number',
-        sort: { key: 'currentPoints', reName: { ascend: 'ASC', descend: 'DESC' } }
-      },
-      {
-        title: this.i18n.fanyi('customer.column.lifetime-points'),
-        index: 'lifetimePoints',
-        width: 160,
-        type: 'number',
-        sort: { key: 'lifetimePoints', reName: { ascend: 'ASC', descend: 'DESC' } }
-      },
-      {
-        title: this.i18n.fanyi('customer.column.updated-at'),
-        index: 'updatedAt',
-        width: 160,
-        type: 'date',
-        sort: { key: 'updatedAt', reName: { ascend: 'ASC', descend: 'DESC' } }
-      },
+      { title: this.i18n.fanyi('customer.column.phone'), index: 'customerPhone', width: 160, sort: { key: 'customer.phone', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.points'), index: 'currentPoints', width: 140, type: 'number', sort: { key: 'currentPoints', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.lifetime-points'), index: 'lifetimePoints', width: 160, type: 'number', sort: { key: 'lifetimePoints', reName: { ascend: 'ASC', descend: 'DESC' } } },
+      { title: this.i18n.fanyi('customer.column.status'), render: 'status', width: 140 },
+      { title: this.i18n.fanyi('customer.column.updated-at'), index: 'updatedAt', width: 160, type: 'date', sort: { key: 'updatedAt', reName: { ascend: 'ASC', descend: 'DESC' } } },
       {
         title: this.i18n.fanyi('customer.column.actions'),
-        width: 140,
-        buttons: [
-          {
-            text: this.i18n.fanyi('customer.action.view-wallet'),
-            type: 'link',
-            click: (record: CustomerPointResponse) => this.selectCustomerFromList(record)
-          }
-        ]
+        width: 180,
+        render: 'actions'
       }
     ];
     this.originalMemberCustomerColumns = [...this.memberCustomerColumns];
+  }
+
+  toggleCustomerStatus(item: CustomerPointResponse): void {
+    if (!this.organizationId) return;
+
+    const newStatus: 'ACTIVE' | 'LOCKED' = item.status === 'LOCKED' ? 'ACTIVE' : 'LOCKED';
+    const confirmTitle = newStatus === 'LOCKED'
+      ? this.i18n.fanyi('customer.confirm.lock-title')
+      : this.i18n.fanyi('customer.confirm.unlock-title');
+    const confirmContent = newStatus === 'LOCKED'
+      ? this.i18n.fanyi('customer.confirm.lock-content', { phone: item.customerPhone })
+      : this.i18n.fanyi('customer.confirm.unlock-content', { phone: item.customerPhone });
+
+    this.modal.confirm({
+      nzTitle: confirmTitle,
+      nzContent: confirmContent,
+      nzOkText: this.i18n.fanyi('customer.filter.button'),
+      nzOkDanger: newStatus === 'LOCKED',
+      nzOnOk: () => {
+        this.customerService.updateCustomerStatus(item.customerId, this.organizationId!, newStatus).subscribe({
+          next: updatedWallet => {
+            this.message.success(
+              newStatus === 'LOCKED'
+                ? this.i18n.fanyi('customer.msg.lock-success', { phone: item.customerPhone })
+                : this.i18n.fanyi('customer.msg.unlock-success', { phone: item.customerPhone })
+            );
+            this.memberCustomersList = this.memberCustomersList.map(c =>
+              c.customerId === item.customerId ? { ...c, status: updatedWallet.status } : c
+            );
+            this.cdr.markForCheck();
+          },
+          error: err => {
+            const msg = err?.error?.errorMessage?.message || err?.message || this.i18n.fanyi('customer.msg.status-error');
+            this.message.error(msg);
+          }
+        });
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -291,6 +292,8 @@ export class CustomerComponent implements OnInit, OnDestroy {
     this.refreshSub?.unsubscribe();
   }
 
+  filterCustomerStatus: 'ALL' | 'ACTIVE' | 'LOCKED' = 'ALL';
+
   loadMemberCustomers(silent = false): void {
     if (!this.organizationId) return;
 
@@ -309,6 +312,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
         },
         this.sortBy,
         this.sortDirection,
+        this.filterCustomerStatus === 'ALL' ? null : this.filterCustomerStatus,
         this.filterMinPoints,
         this.filterMaxPoints,
         this.filterMinLifetimePoints,
@@ -332,7 +336,10 @@ export class CustomerComponent implements OnInit, OnDestroy {
     this.isBulkGivingActive = !this.isBulkGivingActive;
     this.selectedCustomerIds = [];
     if (this.isBulkGivingActive) {
-      this.memberCustomerColumns = [{ title: '', index: 'customerId', type: 'checkbox', width: 50 }, ...this.originalMemberCustomerColumns];
+      this.memberCustomerColumns = [
+        { title: '', index: 'customerId', type: 'checkbox', width: 50 },
+        ...this.originalMemberCustomerColumns
+      ];
     } else {
       this.memberCustomerColumns = [...this.originalMemberCustomerColumns];
     }
@@ -472,19 +479,19 @@ export class CustomerComponent implements OnInit, OnDestroy {
   }
 
   get hasActiveCustomerFilter(): boolean {
-    return (
-      this.searchPhone.trim() !== '' ||
+    return this.searchPhone.trim() !== '' ||
+      this.filterCustomerStatus !== 'ALL' ||
       this.filterMinPoints !== null ||
       this.filterMaxPoints !== null ||
       this.filterMinLifetimePoints !== null ||
-      this.filterMaxLifetimePoints !== null
-    );
+      this.filterMaxLifetimePoints !== null;
   }
 
   resetCustomerSearch(): void {
     this.searchPhone = '';
     this.sortBy = 'updatedAt';
     this.sortDirection = 'DESC';
+    this.filterCustomerStatus = 'ALL';
     this.filterMinPoints = null;
     this.filterMaxPoints = null;
     this.filterMinLifetimePoints = null;
@@ -582,6 +589,7 @@ export class CustomerComponent implements OnInit, OnDestroy {
   }
 
   // System Vouchers (Tab 2)
+  // Load ALL vouchers at once since filtering/pagination is client-side (front: true)
   loadSystemVouchers(): void {
     if (!this.branchId) return;
 
@@ -590,8 +598,8 @@ export class CustomerComponent implements OnInit, OnDestroy {
 
     this.customerService
       .getVouchers(this.branchId, {
-        page: this.sysVoucherPage,
-        size: this.sysVoucherSize
+        page: 1,
+        size: 999
       })
       .subscribe({
         next: res => {
@@ -683,25 +691,20 @@ export class CustomerComponent implements OnInit, OnDestroy {
   }
 
   get hasActiveVoucherFilter(): boolean {
-    return (
-      this.searchVoucherTitle.trim() !== '' ||
+    return this.searchVoucherTitle.trim() !== '' ||
       this.filterVoucherStatus !== 'ALL' ||
       this.filterVoucherType !== 'ALL' ||
       this.filterMinDiscount !== null ||
       this.filterMaxDiscount !== null ||
       this.filterVoucherMinPoints !== null ||
-      this.filterVoucherMaxPoints !== null
-    );
+      this.filterVoucherMaxPoints !== null;
   }
 
   onSysVoucherSTChange(e: STChange): void {
-    if (e.type === 'pi') {
-      this.sysVoucherPage = e.pi!;
-      this.loadSystemVouchers();
-    } else if (e.type === 'ps') {
+    // Pagination is client-side (front: true), so no need to re-fetch from API.
+    // Only track page size changes for state.
+    if (e.type === 'ps') {
       this.sysVoucherSize = e.ps!;
-      this.sysVoucherPage = 1;
-      this.loadSystemVouchers();
     }
   }
 

@@ -1,61 +1,61 @@
 @if (loading) {
-  <div class="loading-container">
-    <nz-spin nzSimple [nzSize]="'large'" />
-  </div>
+<div class="loading-container">
+  <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+</div>
 } @else if (order) {
-  <page-header [title]="'Order: ' + order.orderCode" [action]="actionTpl" />
-  <ng-template #actionTpl>
-    <button nz-button (click)="goBack()">
-      <span nz-icon nzType="arrow-left" nzTheme="outline"></span>
-      {{ 'app.order.back' | i18n }}
+<page-header [title]="'Order: ' + order.orderCode" [action]="actionTpl" />
+<ng-template #actionTpl>
+  <button nz-button (click)="goBack()">
+    <span nz-icon nzType="arrow-left" nzTheme="outline"></span>
+    {{ 'app.order.back' | i18n }}
+  </button>
+</ng-template>
+
+<!-- Order Info -->
+<nz-card [nzTitle]="'app.order.detail.info' | i18n" class="mb-16">
+  <nz-descriptions nzBordered [nzColumn]="2">
+    <nz-descriptions-item [nzTitle]="'app.order.detail.orderId' | i18n">{{ order.orderId }}</nz-descriptions-item>
+    <nz-descriptions-item [nzTitle]="'app.order.detail.orderCode' | i18n">{{ order.orderCode }}</nz-descriptions-item>
+    <nz-descriptions-item [nzTitle]="'app.order.detail.tableId' | i18n">{{ order.tableId || '-'
+      }}</nz-descriptions-item>
+    <nz-descriptions-item [nzTitle]="'app.order.detail.customerPhone' | i18n">{{ order.customerPhone || '-'
+      }}</nz-descriptions-item>
+    <nz-descriptions-item [nzTitle]="'app.order.detail.status' | i18n">
+      <nz-tag [nzColor]="getStatusColor(order.status)">
+        {{ getStatusText(order.status) | i18n }}
+      </nz-tag>
+    </nz-descriptions-item>
+    <nz-descriptions-item [nzTitle]="'app.order.detail.subtotal' | i18n">{{ order.subtotal.toLocaleString('vi-VN') }}
+      ₫</nz-descriptions-item>
+    <nz-descriptions-item [nzTitle]="'app.order.detail.discount' | i18n">{{
+      order.discountAmount.toLocaleString('vi-VN') }} ₫</nz-descriptions-item>
+    <nz-descriptions-item [nzTitle]="'app.order.detail.total' | i18n">
+      <strong>{{ order.totalAmount.toLocaleString('vi-VN') }} ₫</strong>
+    </nz-descriptions-item>
+  </nz-descriptions>
+
+  <div class="action-bar">
+    @if (order.status === 'PENDING') {
+    <button nz-button nzType="primary" (click)="openAddItem()">
+      <span nz-icon nzType="plus" nzTheme="outline"></span>
+      {{ 'app.order.action.addItem' | i18n }}
     </button>
-  </ng-template>
+    <button nz-button nzType="default" nzDanger (click)="cancelOrder()">
+      <span nz-icon nzType="stop" nzTheme="outline"></span>
+      {{ 'app.order.action.cancelOrder' | i18n }}
+    </button>
+    }
+  </div>
+</nz-card>
 
-  <!-- Order Info -->
-  <nz-card [nzTitle]="'app.order.detail.info' | i18n" class="mb-16">
-    <nz-descriptions nzBordered [nzColumn]="2">
-      <nz-descriptions-item [nzTitle]="'app.order.detail.orderId' | i18n">{{ order.orderId }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.order.detail.orderCode' | i18n">{{ order.orderCode }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.order.detail.tableId' | i18n">{{ order.tableId || '-' }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.order.detail.customerPhone' | i18n">{{ order.customerPhone || '-' }}</nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.order.detail.status' | i18n">
-        <nz-tag [nzColor]="getStatusColor(order.status)">
-          {{ getStatusText(order.status) | i18n }}
-        </nz-tag>
-      </nz-descriptions-item>
-      <nz-descriptions-item [nzTitle]="'app.order.detail.subtotal' | i18n"
-        >{{ order.subtotal?.toLocaleString('vi-VN') }} ₫</nz-descriptions-item
-      >
-      <nz-descriptions-item [nzTitle]="'app.order.detail.discount' | i18n"
-        >{{ order.discountAmount?.toLocaleString('vi-VN') }} ₫</nz-descriptions-item
-      >
-      <nz-descriptions-item [nzTitle]="'app.order.detail.total' | i18n">
-        <strong>{{ order.totalAmount?.toLocaleString('vi-VN') }} ₫</strong>
-      </nz-descriptions-item>
-    </nz-descriptions>
-
-    <div class="action-bar">
-      @if (order.status === 'PENDING') {
-        <button nz-button nzType="primary" (click)="openAddItem()">
-          <span nz-icon nzType="plus" nzTheme="outline"></span>
-          {{ 'app.order.action.addItem' | i18n }}
-        </button>
-        <button nz-button nzType="default" nzDanger (click)="cancelOrder()">
-          <span nz-icon nzType="stop" nzTheme="outline"></span>
-          {{ 'app.order.action.cancelOrder' | i18n }}
-        </button>
-      }
-    </div>
-  </nz-card>
-
-  <!-- Order Items -->
-  <nz-card [nzTitle]="'app.order.detail.items' | i18n">
-    <st [columns]="columns" [data]="order.items" [page]="{ show: false }" [scroll]="{ x: '900px' }">
-      <ng-template st-row="status" let-item>
-        <nz-tag [nzColor]="getStatusColor(item.status)">
-          {{ getStatusText(item.status) | i18n }}
-        </nz-tag>
-      </ng-template>
-    </st>
-  </nz-card>
+<!-- Order Items -->
+<nz-card [nzTitle]="'app.order.detail.items' | i18n">
+  <st [columns]="columns" [data]="order.items" [page]="{ show: false }" [scroll]="{ x: '900px' }">
+    <ng-template st-row="status" let-item>
+      <nz-tag [nzColor]="getStatusColor(item.status)">
+        {{ getStatusText(item.status) | i18n }}
+      </nz-tag>
+    </ng-template>
+  </st>
+</nz-card>
 }

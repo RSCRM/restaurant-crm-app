@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ALAIN_I18N_TOKEN, I18nPipe } from '@delon/theme';
 import { Store } from '@ngrx/store';
@@ -18,7 +18,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 
 import { selectContextToken } from '../../../auth/store/auth.selectors';
-import { BookingStatus, BookingResponse, TableSearchResponse } from '../booking.model';
+import { BookingStatus, BookingResponse, TableSearchResponse, RestaurantTableStatus } from '../booking.model';
 import { BookingService } from '../booking.service';
 
 interface TableAvailability extends TableSearchResponse {
@@ -49,7 +49,7 @@ interface TableAvailability extends TableSearchResponse {
   templateUrl: './booking-form.component.html',
   styleUrls: ['./booking-form.component.less']
 })
-export class BookingFormComponent implements OnInit {
+export class BookingFormComponent implements OnInit, OnDestroy {
   private i18n = inject(ALAIN_I18N_TOKEN);
   private fb = inject(FormBuilder);
   private bookingService = inject(BookingService);
@@ -58,6 +58,7 @@ export class BookingFormComponent implements OnInit {
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
 
+  private refreshTimerId: ReturnType<typeof setInterval> | null = null;
   form!: FormGroup;
   branchId: string | null = null;
   loading = false;
@@ -113,6 +114,19 @@ export class BookingFormComponent implements OnInit {
     this.form.valueChanges.subscribe(() => {
       this.calculateAvailability();
     });
+
+    // Polling every 3 seconds while modal is open so checkout/release table status is updated in real-time
+    this.refreshTimerId = setInterval(() => {
+      if (this.branchId && !this.submitting) {
+        this.loadData(true);
+      }
+    }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshTimerId) {
+      clearInterval(this.refreshTimerId);
+    }
   }
 
   private initForm(): void {
@@ -125,49 +139,54 @@ export class BookingFormComponent implements OnInit {
     });
   }
 
-  private loadData(): void {
+  private loadData(silent = false): void {
     if (!this.branchId) return;
-    this.loading = true;
-    this.cdr.markForCheck();
+    if (!silent) {
+      this.loading = true;
+      this.cdr.markForCheck();
+    }
 
-    // Load tables (size 100 to get all tables of this branch)
-    // and load active bookings of this branch (size 1000 for conflict check)
-    // using Promise.all or manual subscriptions. Let's subscribe to both.
+    let tablesLoaded = false;
+    let bookingsLoaded = false;
+
+    const checkBothLoaded = () => {
+      if (tablesLoaded && bookingsLoaded) {
+        this.loading = false;
+        this.calculateAvailability();
+      }
+    };
+
     this.bookingService.getTables(this.branchId, { page: 1, size: 100 }).subscribe({
       next: tableRes => {
-        this.allTables = tableRes.data;
-        this.checkDataLoaded();
+        this.allTables = tableRes.data || [];
+        tablesLoaded = true;
+        checkBothLoaded();
       },
       error: () => {
-        this.loading = false;
-        this.message.error(this.i18n.fanyi('booking-form.msg.table-load-error'));
+        if (!silent) {
+          this.loading = false;
+          this.message.error(this.i18n.fanyi('booking-form.msg.table-load-error'));
+        }
         this.cdr.markForCheck();
       }
     });
 
     this.bookingService.getBookingsByBranch(this.branchId, { page: 1, size: 1000 }).subscribe({
       next: bookingRes => {
-        // Filter out cancelled, expired or current editing booking for conflict checking
-        this.allBookings = bookingRes.data.filter(
-          b => b.status !== BookingStatus.CANCELLED && b.status !== BookingStatus.EXPIRED && b.id !== this.bookingId
+        this.allBookings = (bookingRes.data || []).filter(
+          b => (b.status === BookingStatus.PENDING || b.status === BookingStatus.CONFIRMED) && b.id !== this.bookingId
         );
-        this.checkDataLoaded();
+        bookingsLoaded = true;
+        checkBothLoaded();
       },
       error: () => {
-        this.loading = false;
-        this.message.error(this.i18n.fanyi('booking-form.msg.history-load-error'));
+        if (!silent) {
+          this.loading = false;
+          this.message.error(this.i18n.fanyi('booking-form.msg.history-load-error'));
+        }
         this.cdr.markForCheck();
       }
     });
-  }
-
-  private loadedCount = 0;
-  private checkDataLoaded(): void {
-    this.loadedCount++;
-    if (this.loadedCount >= 2) {
-      this.loading = false;
-      this.calculateAvailability();
-    }
   }
 
   disabledDate = (current: Date): boolean => {
@@ -194,8 +213,23 @@ export class BookingFormComponent implements OnInit {
     const targetEnd = targetStart + durationVal * 60 * 60 * 1000;
     const bufferStart = targetStart - 3 * 60 * 60 * 1000; // Block 3h before to avoid overlap with previous diners
 
+    const now = Date.now();
+    const activeDiningEnd = now + 3 * 60 * 60 * 1000; // Active dining window for currently OCCUPIED tables (3h)
+
     this.tablesWithAvailability = this.allTables.map(table => {
-      // 2. Check overlap with existing bookings on the same table
+      // 1. Check if table is currently OCCUPIED by active diners (walk-in or seated)
+      // and target booking time overlaps with current active dining window [now, activeDiningEnd]
+      if (table.status === RestaurantTableStatus.OCCUPIED || (table.status as string) === 'OCCUPIED') {
+        if (targetStart < activeDiningEnd && targetEnd > now) {
+          return {
+            ...table,
+            isAvailable: false,
+            reason: this.i18n.fanyi('booking-form.reason.occupied')
+          };
+        }
+      }
+
+      // 2. Check overlap with existing PENDING or CONFIRMED bookings on the same table
       const overlappingBooking = this.allBookings.find(booking => {
         if (booking.tableId !== table.id) return false;
 
