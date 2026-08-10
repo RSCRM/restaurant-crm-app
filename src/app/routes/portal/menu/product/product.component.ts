@@ -23,7 +23,9 @@ import { catchError, combineLatest, EMPTY, finalize } from 'rxjs';
 
 import { CategoryManagerComponent } from './category-manager/category-manager.component';
 import { ProductFormComponent } from './product-form/product-form.component';
-import { selectBranchId, selectHasPermission, selectIsOwnerContext } from '../../../auth/store/auth.selectors';
+import { selectBranchId, selectHasPermission, selectIsOwnerContext, selectSelectedContext } from '../../../auth/store/auth.selectors';
+import { OrganizationBranchResponse } from '../../branch/branch.model';
+import { BranchService } from '../../branch/branch.service';
 import { menuErrorMessage } from '../menu-error';
 import { CategoryResponse, ProductResponse } from '../menu.model';
 import { MenuService } from '../menu.service';
@@ -33,6 +35,7 @@ interface ProductFilter {
   status: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  branchId: string | null;
 }
 
 @Component({
@@ -60,6 +63,7 @@ interface ProductFilter {
 })
 export class ProductComponent implements OnInit {
   private menuService = inject(MenuService);
+  private branchService = inject(BranchService);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
@@ -68,6 +72,8 @@ export class ProductComponent implements OnInit {
   private router = inject(Router);
 
   branchId: string | null = null;
+  isOwnerContext = false;
+  branches: OrganizationBranchResponse[] = [];
 
   canAddProduct = true;
   canUpdateProduct = true;
@@ -82,7 +88,7 @@ export class ProductComponent implements OnInit {
   loading = false;
 
   searchValue = '';
-  filter: ProductFilter = { categoryId: null, status: null, minPrice: null, maxPrice: null };
+  filter: ProductFilter = { categoryId: null, status: null, minPrice: null, maxPrice: null, branchId: null };
   showFilter = false;
 
   statusOptions = [
@@ -90,46 +96,63 @@ export class ProductComponent implements OnInit {
     { label: 'Ngừng bán', value: 'UNAVAILABLE' }
   ];
 
-  columns: STColumn[] = [
-    { title: { i18n: 'app.portal.menu.product.image' }, width: 70, render: 'image' },
-    { title: { i18n: 'app.portal.menu.product.name' }, width: 200, index: 'productName' },
-    { title: { i18n: 'app.portal.menu.product.category' }, width: 150, render: 'category' },
-    { title: { i18n: 'app.portal.menu.product.price' }, width: 120, render: 'price' },
-    { title: { i18n: 'app.portal.menu.product.status' }, width: 110, render: 'status' },
-    { title: { i18n: 'app.portal.menu.product.requiresPreparation' }, width: 170, render: 'prep' },
-    {
-      title: { i18n: 'app.portal.menu.product.actions' },
-      width: 220,
-      fixed: 'right',
-      buttons: [
-        {
-          i18n: 'app.portal.menu.product.edit',
-          icon: 'edit',
-          iif: () => this.canUpdateProduct,
-          click: item => this.openEdit(item)
-        },
-        {
-          i18n: 'app.portal.menu.product.detail',
-          icon: 'eye',
-          click: item => this.goToDetail(item)
-        },
-        {
-          i18n: 'app.portal.menu.product.delete',
-          icon: 'delete',
-          iif: () => this.canDeleteProduct,
-          pop: { titleI18n: 'app.portal.menu.product.deleteConfirm' },
-          click: item => this.deleteProduct(item)
-        }
-      ]
+  get columns(): STColumn[] {
+    const cols: STColumn[] = [
+      { title: { i18n: 'app.portal.menu.product.image' }, width: 70, render: 'image' },
+      { title: { i18n: 'app.portal.menu.product.name' }, width: 200, index: 'productName' },
+      { title: { i18n: 'app.portal.menu.product.category' }, width: 150, render: 'category' }
+    ];
+    if (this.isOwnerContext) {
+      cols.push({ title: { i18n: 'app.portal.menu.product.filter.branch' }, width: 150, render: 'branch' });
     }
-  ];
+    cols.push(
+      { title: { i18n: 'app.portal.menu.product.price' }, width: 120, render: 'price' },
+      { title: { i18n: 'app.portal.menu.product.status' }, width: 110, render: 'status' },
+      { title: { i18n: 'app.portal.menu.product.requiresPreparation' }, width: 170, render: 'prep' },
+      {
+        title: { i18n: 'app.portal.menu.product.actions' },
+        width: 220,
+        fixed: 'right',
+        buttons: [
+          {
+            i18n: 'app.portal.menu.product.edit',
+            icon: 'edit',
+            iif: () => this.canUpdateProduct,
+            click: item => this.openEdit(item)
+          },
+          {
+            i18n: 'app.portal.menu.product.detail',
+            icon: 'eye',
+            click: item => this.goToDetail(item)
+          },
+          {
+            i18n: 'app.portal.menu.product.delete',
+            icon: 'delete',
+            iif: () => this.canDeleteProduct,
+            pop: { titleI18n: 'app.portal.menu.product.deleteConfirm' },
+            click: item => this.deleteProduct(item)
+          }
+        ]
+      }
+    );
+    return cols;
+  }
 
   ngOnInit(): void {
-    this.store
-      .select(selectBranchId)
+    combineLatest([this.store.select(selectBranchId), this.store.select(selectIsOwnerContext), this.store.select(selectSelectedContext)])
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(branchId => {
+      .subscribe(([branchId, isOwner, context]) => {
         this.branchId = branchId;
+        this.isOwnerContext = isOwner;
+
+        if (isOwner) {
+          if (context?.organizationId && this.branches.length === 0) {
+            this.loadBranches(context.organizationId);
+          }
+          this.loadData();
+          return;
+        }
+
         if (!branchId) {
           this.data = [];
           this.total = 0;
@@ -165,13 +188,40 @@ export class ProductComponent implements OnInit {
       });
   }
 
+  private loadBranches(organizationId: string): void {
+    this.branchService
+      .getBranches(organizationId, { page: 1, size: 100 })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(res => {
+        this.branches = res.data;
+        this.cdr.markForCheck();
+      });
+  }
+
+  get effectiveBranchId(): string | null {
+    return this.isOwnerContext ? this.filter.branchId : this.branchId;
+  }
+
+  branchName(branchId: string | null): string {
+    if (!branchId) return '-';
+    return this.branches.find(b => b.id === branchId)?.branchName ?? '-';
+  }
+
   categoryName(categoryId: string | null): string {
     if (!categoryId) return 'Chưa phân loại';
     return this.categories.find(c => c.id === categoryId)?.categoryName ?? 'Chưa phân loại';
   }
 
+  onBranchFilterChange(branchId: string | null): void {
+    this.filter.branchId = branchId;
+    this.filter.categoryId = null;
+    this.categories = [];
+    if (branchId) this.loadCategories(branchId);
+    this.search();
+  }
+
   loadData(): void {
-    if (!this.branchId) {
+    if (!this.branchId && !this.isOwnerContext) {
       this.message.warning('Vui lòng chọn chi nhánh');
       return;
     }
@@ -204,7 +254,10 @@ export class ProductComponent implements OnInit {
       )
       .subscribe(res => {
         this.total = res.totalElement;
-        this.data = this.filter.categoryId ? res.data.filter(p => p.categoryId === this.filter.categoryId) : res.data;
+        let items = res.data;
+        if (this.filter.categoryId) items = items.filter(p => p.categoryId === this.filter.categoryId);
+        if (this.filter.branchId) items = items.filter(p => p.branchId === this.filter.branchId);
+        this.data = items;
       });
   }
 
@@ -229,7 +282,8 @@ export class ProductComponent implements OnInit {
   }
 
   clearFilter(): void {
-    this.filter = { categoryId: null, status: null, minPrice: null, maxPrice: null };
+    this.filter = { categoryId: null, status: null, minPrice: null, maxPrice: null, branchId: null };
+    this.categories = [];
     this.searchValue = '';
     this.currentPage = 1;
     this.loadData();
@@ -241,12 +295,14 @@ export class ProductComponent implements OnInit {
       this.filter.categoryId !== null ||
       this.filter.status !== null ||
       this.filter.minPrice !== null ||
-      this.filter.maxPrice !== null
+      this.filter.maxPrice !== null ||
+      this.filter.branchId !== null
     );
   }
 
   openCreate(): void {
-    if (!this.branchId) {
+    const branchId = this.effectiveBranchId;
+    if (!branchId) {
       this.message.warning('Vui lòng chọn chi nhánh');
       return;
     }
@@ -255,7 +311,7 @@ export class ProductComponent implements OnInit {
       nzContent: ProductFormComponent,
       nzWidth: 600,
       nzFooter: null,
-      nzData: { branchId: this.branchId, categories: this.categories }
+      nzData: { branchId, categories: this.categories }
     });
     modalRef.afterClose.subscribe(result => {
       if (result) this.loadData();
@@ -263,17 +319,21 @@ export class ProductComponent implements OnInit {
   }
 
   openEdit(product: ProductResponse): void {
-    if (!this.branchId) return;
-    const modalRef = this.modal.create({
-      nzTitle: undefined,
-      nzContent: ProductFormComponent,
-      nzWidth: 600,
-      nzFooter: null,
-      nzData: { branchId: this.branchId, categories: this.categories, product }
-    });
-    modalRef.afterClose.subscribe(result => {
-      if (result) this.loadData();
-    });
+    this.menuService
+      .listCategories(product.branchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(categories => {
+        const modalRef = this.modal.create({
+          nzTitle: undefined,
+          nzContent: ProductFormComponent,
+          nzWidth: 600,
+          nzFooter: null,
+          nzData: { branchId: product.branchId, categories, product }
+        });
+        modalRef.afterClose.subscribe(result => {
+          if (result) this.loadData();
+        });
+      });
   }
 
   goToDetail(product: ProductResponse): void {
@@ -281,7 +341,8 @@ export class ProductComponent implements OnInit {
   }
 
   openCategoryManager(): void {
-    if (!this.branchId) {
+    const branchId = this.effectiveBranchId;
+    if (!branchId) {
       this.message.warning('Vui lòng chọn chi nhánh');
       return;
     }
@@ -289,10 +350,10 @@ export class ProductComponent implements OnInit {
       nzTitle: undefined,
       nzContent: CategoryManagerComponent,
       nzWidth: 700,
-      nzData: { branchId: this.branchId }
+      nzData: { branchId }
     });
     modalRef.afterClose.subscribe(() => {
-      if (this.branchId) this.loadCategories(this.branchId);
+      this.loadCategories(branchId);
       this.loadData();
     });
   }
