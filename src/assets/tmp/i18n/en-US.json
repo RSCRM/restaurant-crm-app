@@ -1181,7 +1181,6 @@
   "order.voucher.apply": "🎁 Apply Voucher",
   "order.btn.addItems": "⊕ Add More Items",
   "voucher-form.error.dateRangeInvalid": "End date must be after or equal to start date!",
-
   "app.employee.title": "Employee Management",
   "app.employee.add": "Add employee",
   "app.employee.col.username": "Username",
@@ -1245,7 +1244,6 @@
   "app.employee.form.activateDisabledHint": "Assign a role before activating.",
   "app.employee.detail.title": "Employee detail",
   "app.employee.detail.close": "Close",
-
   "menu.portal.org-role": "Org Roles",
   "app.org-role.title": "Role Management",
   "app.org-role.create": "Create role",
@@ -1275,7 +1273,6 @@
   "app.org-role.detail.permissions": "Assigned permissions",
   "app.org-role.detail.noPermission": "No permission assigned",
   "app.org-role.detail.close": "Close",
-
   "error.unknown": "Something went wrong. Please try again.",
   "error.AUTHZ_UNAUTHORIZED": "You do not have permission to perform this action.",
   "error.ORG_ROLE_NAME_REQUIRED": "Role name is required.",

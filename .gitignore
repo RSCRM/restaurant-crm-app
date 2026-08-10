@@ -69,3 +69,6 @@ yarn-error.log
 .understand-anything/
 docs/superpowers/
 documents/
+
+
+proxy.conf.js
